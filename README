@@ -1,0 +1,54 @@
+cbcpost
+========
+
+Description
+-----------
+
+cbcpost is a postprocessing framework designed for time-dependent problems solved using the
+FEniCS project. 
+
+Authors
+-------
+
+cbcpost is developed by
+
+  * Øyvind Evju
+  * Martin Sandve Alnæs
+
+Licence
+-------
+
+cbcpost is licensed under the GNU LGPL, version 3 or (at your option) any
+later version.
+
+cbcpost is Copyright (2011-2014) by the authors and Simula Research Laboratory.
+
+Documentation
+-------------
+
+TODO
+
+Installation
+------------
+
+cbcpost requires an installation of FEniCS version 1.3, see www.fenicsproject.org.
+
+To install simply run
+
+  python setup.py install --prefix=/path/to/your/favourite/site-packages
+
+Contact
+-------
+
+The latest version of this software can be obtained from
+
+  http://www.bitbucket.org/simula_cbc/cbcpost/
+
+Please report bugs and other issues through the bitbucket issue tracker at:
+
+  http://www.bitbucket.org/simula_cbc/cbcpost/issues
+
+More about the Center for Biomedical Computing can be found at
+
+  http://cbc.simula.no
+

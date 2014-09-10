@@ -1,6 +1,6 @@
-from cbcpost import PostProcessor
+from cbcpost import PostProcessor, ParamDict
 from cbcpost import SolutionField, Field, MetaField, MetaField2, Norm
-import os, shutil
+import os, shutil, pickle
 """
 cbcpost.PostProcessor.add_field       cbcpost.PostProcessor.get_playlog
 cbcpost.PostProcessor.add_fields      cbcpost.PostProcessor.get_savedir
@@ -69,9 +69,6 @@ def test_add_field():
     assert "foo" in pp._fields.keys()
     pp.add_field(SolutionField("bar"))
     assert set(["foo", "bar"]) == set(pp._fields.keys())
-    pp.add_field(SolutionField("bar"))
-    assert set(["foo", "bar"]) == set(pp._fields.keys())
-    
     
     pp.add_fields([
         MetaField("foo"),
@@ -196,9 +193,6 @@ def test_playlog():
     playlog = pp.get_playlog()
     assert playlog == {"0": {"t": 0.0}, "1": {"t": 0.1}}
 
-def test_get_savedir():
-    pass
-
 def test_store_mesh():
     # Move to conftest, make fixture for casedir
     casedir = "mockresults"
@@ -241,10 +235,59 @@ def test_store_mesh():
     assert F1 == F2
     
 def test_store_params():
-    pass
+    # Move to conftest, make fixture for casedir
+    casedir = "mockresults"
+    if os.path.isdir(casedir):
+        shutil.rmtree(casedir)
 
-def test_update_all():
-    pass
+    pp = PostProcessor()
+    params = ParamDict(Field=Field.default_params(),
+                       PostProcessor=PostProcessor.default_params())
+    
+    pp.store_params(params)
 
+    # Read back params
+    params2 = None
+    with open(os.path.join(pp.get_casedir(), "params.pickle"), 'r') as f:
+        params2 = pickle.load(f)
+    assert params2 == params
+    
+    str_params2 = open(os.path.join(pp.get_casedir(), "params.txt"), 'r').read()
+    assert str_params2 == str(params)
+
+def test_update_all():    
+    pressure = SolutionField("MockPressure") #MockPressure()
+    velocity = SolutionField("MockVelocity") #MockVelocity()
+    Du = MockVelocityGradient()
+    epsilon = MockStrain(dict(start_timestep=3))
+    sigma = MockStress(dict(start_time=0.5, end_time=0.8))
+    
+    # Add fields to postprocessor
+    pp = PostProcessor()
+    pp.add_fields([pressure, velocity, Du, epsilon, sigma])
+    
+    N = 11
+    T = [(i, float(i)/(N-1)) for i in xrange(N)]
+    
+    for timestep, t in T:
+        pp.update_all({"MockPressure": lambda: "p"+str(timestep), "MockVelocity": lambda: "u"+str(timestep)}, t, timestep)
+        
+        assert Du.touched == timestep+1
+        
+        assert pp._cache[0]["MockPressure"] == "p%d" %timestep
+        assert pp._cache[0]["MockVelocity"] == "u%d" %timestep
+        assert pp._cache[0]["MockVelocityGradient"] == "grad(u%d)" %timestep
+        
+        if timestep >= 3:
+            assert pp._cache[0]["MockStrain"] == "epsilon(grad(u%d))" %timestep
+        else:
+            assert "MockStrain" not in pp._cache[0]
+            
+        if 0.5 <= t <= 0.8:
+            assert pp._cache[0]["MockStress"] == "sigma(epsilon(grad(u%d)), p%d)" %(timestep, timestep)
+        else:
+            assert "MockStress" not in pp._cache[0]
+            
+    
 
 

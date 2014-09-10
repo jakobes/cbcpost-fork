@@ -191,13 +191,13 @@ class PostProcessor(Parameterized):
             # Append to dependencies
             deps.append(tuple(dep))
         
-        #print field.name, sorted(set(deps))
         # Make unique (can happen that deps are repeated in rare cases)
         return sorted(set(deps))
 
     def add_field(self, field):
         "Add field to postprocessor."
         assert isinstance(field, Field)
+        assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
         
         # Did we get a field name instead of a field?
         #if isinstance(field, str):
@@ -226,7 +226,6 @@ class PostProcessor(Parameterized):
 
         # Analyze dependencies of field through source inspection
         deps = self._find_dependencies(field)
-        print field, deps
         for dep in deps:
             if dep[0] not in self._fields and dep[0] not in builtin_fields:
                 raise DependencyException(fieldname=field.name, dependency=dep[0])
@@ -293,9 +292,9 @@ class PostProcessor(Parameterized):
             else:
                 raise RuntimeError("Unable to get data from before update was started. \
                                    (%s, relative_timestep: %d, update_all_count: %d)" %(name, relative_timestep, self._update_all_count))
-        field = self._fields[name]
         # Cache miss?
         if data == "N/A":
+            field = self._fields[name]
             if relative_timestep == 0:
                 # Ensure before_first_compute is always called once initially
                 if self._compute_counts[field.name] == 0:
@@ -333,18 +332,21 @@ class PostProcessor(Parameterized):
                         data = Function(data)
 
                 # Cache it!
-                c[name] = data
+                #c[name] = data
             else:
                 # Cannot compute missing value from previous relative_timestep,
                 # dependency handling must have failed
                 raise DependencyException(name, relative_timestep=relative_timestep)
 
         if finalize:
+            field = self._fields[name]
             finalized_data = field.after_last_compute(self.get)
             if finalized_data not in [None, "N/A"]:
                 data = finalized_data
             self._finalized[name] = data
             self._timer.completed("PP: finalize %s" %name)
+
+        c[name] = data
         return data
 
     def _execute_plan(self, t, timestep):
@@ -356,7 +358,6 @@ class PostProcessor(Parameterized):
             "t": t,
             "timestep": timestep,
             }
-        #print "heiheihei", self._plan[0]["timestep"]
 
         # Loop over all planned field computations
         for name in self._sorted_fields_keys:
@@ -390,7 +391,7 @@ class PostProcessor(Parameterized):
                         self._apply_action(action, field, data)
             """
     
-    def _update_cache(self):
+    def _update_cache(self, t, timestep):
         "Update cache, remove what can be removed"
         new_cache = defaultdict(dict)
         # Loop over cache plans for each timestep
@@ -418,7 +419,7 @@ class PostProcessor(Parameterized):
         self._saver._update_play_log(t, timestep)
 
         # Update cache to keep what's needed later according to plan, forget what we don't need
-        self._update_cache()
+        self._update_cache(t, timestep)
 
         # Plan what we need to compute now and in near future based on action triggers and dependencies
         #self._plan = self._planner._update_plan(self._plan, t, timestep)
@@ -429,9 +430,6 @@ class PostProcessor(Parameterized):
 
         # Compute what's needed according to plan
         self._execute_plan(t, timestep)
-        #for name, field in self._fields:
-        #    if 
-        #print self._cache[0].keys()
         
         triggered_or_finalized = []
         for name in self._cache[0]:

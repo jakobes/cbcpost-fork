@@ -23,6 +23,7 @@ from cbcpost import ParamDict, Parameterized
 from cbcpost.plotter import Plotter
 from cbcpost.planner import Planner
 from cbcpost.saver import Saver
+from cbcpost.fieldbases import Field
 
 from cbcpost.utils import Timer, cbc_log, cbc_warning, strip_code
 
@@ -85,6 +86,9 @@ class PostProcessor(Parameterized):
         
         # Cache of computed values needed for planned computations
         self._cache = defaultdict(dict)
+        
+        # Solution provided to update_all
+        self._solution = dict()
         
         # Keep track of which fields have been finalized
         self._finalized = {}
@@ -192,14 +196,16 @@ class PostProcessor(Parameterized):
         return sorted(set(deps))
 
     def add_field(self, field):
-        "Add field to postprocessor. Recursively adds basic dependencies."
+        "Add field to postprocessor."
+        assert isinstance(field, Field)
+        
         # Did we get a field name instead of a field?
-        if isinstance(field, str):
-            if field in builtin_fields:
-                return None
-            elif field in self._fields.keys():
+        #if isinstance(field, str):
+            #if field in builtin_fields:
+            #    return None
+            #elif field in self._fields.keys():
                 # Field of this name already exists, no need to add it again
-                return self._fields[field]
+            #    return self._fields[field]
             #elif field in basic_fields:
                 # Create a proper field object from known field name with negative end time,
                 # so that it is never triggered directly
@@ -220,8 +226,10 @@ class PostProcessor(Parameterized):
 
         # Analyze dependencies of field through source inspection
         deps = self._find_dependencies(field)
+        print field, deps
         for dep in deps:
-            assert dep[0] in self._fields or dep[0] in builtin_fields, "%s has dependency %s, but %s has not been added to the postprocessor" %(field.name, dep[0], dep[0])
+            if dep[0] not in self._fields and dep[0] not in builtin_fields:
+                raise DependencyException(fieldname=field.name, dependency=dep[0])
 
         # Add dependent fields to self._fields (this will add known fields by name)
         #for depname in set(d[0] for d in deps) - set(self._fields.keys()):
@@ -285,12 +293,11 @@ class PostProcessor(Parameterized):
             else:
                 raise RuntimeError("Unable to get data from before update was started. \
                                    (%s, relative_timestep: %d, update_all_count: %d)" %(name, relative_timestep, self._update_all_count))
-
+        field = self._fields[name]
         # Cache miss?
         if data == "N/A":
             if relative_timestep == 0:
                 # Ensure before_first_compute is always called once initially
-                field = self._fields[name]
                 if self._compute_counts[field.name] == 0:
                     init_data = field.before_first_compute(self.get)
                     """
@@ -307,12 +314,14 @@ class PostProcessor(Parameterized):
                     if compute:
                         data = field.compute(self.get)
                         self._timer.completed("PP: compute %s" %name)
+                    """
                     if finalize:
                         finalized_data = field.after_last_compute(self.get)
                         if finalized_data not in [None, "N/A"]:
                             data = finalized_data
                         self._finalized[name] = data
                         self._timer.completed("PP: finalize %s" %name)
+                    """
                 self._compute_counts[field.name] += 1
 
                 # Copy functions to avoid storing references to the same function objects at each relative_timestep
@@ -330,6 +339,12 @@ class PostProcessor(Parameterized):
                 # dependency handling must have failed
                 raise DependencyException(name, relative_timestep=relative_timestep)
 
+        if finalize:
+            finalized_data = field.after_last_compute(self.get)
+            if finalized_data not in [None, "N/A"]:
+                data = finalized_data
+            self._finalized[name] = data
+            self._timer.completed("PP: finalize %s" %name)
         return data
 
     def _execute_plan(self, t, timestep):

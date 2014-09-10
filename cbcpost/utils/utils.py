@@ -1,6 +1,7 @@
 import keyword
+import os
 from time import time
-from dolfin import compile_extension_module
+from dolfin import compile_extension_module, MPI, log
 
 def on_master_process():
     return MPI.process_number() == 0

@@ -290,6 +290,10 @@ class Saver():
         casedir = self.get_casedir()
         meshfile = HDF5File(os.path.join(casedir, "mesh.hdf5"), 'w')
         meshfile.write(mesh, "Mesh")
+        if cell_domains != None:
+            meshfile.write(cell_domains, "CellDomains")
+        if facet_domains != None:
+            meshfile.write(facet_domains, "FacetDomains")
         del meshfile
     
     def _action_save(self, field, data):

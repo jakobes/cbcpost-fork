@@ -1,38 +1,34 @@
 def test_imports():
-    # Core modules
-    from cbcpost import PostProcessor
-    from cbcpost import Restart
-    from cbcpost import Replay
-    
+    # Core
+    core = ["PostProcessor", "Restart", "Replay"]
+    for c in core:
+        exec("from cbcpost import %s" %c)
+        
     # Field bases
-    from cbcpost import Field
-    from cbcpost import MetaField
-    from cbcpost import MetaField2
+    field_bases = ["SolutionField", "Field", "MetaField", "MetaField2"]
+    for f in field_bases:
+        exec("from cbcpost import %s" %f)
     
-    # Metafields
-    from cbcpost import Boundary
-    from cbcpost import BoundaryAvg
-    from cbcpost import DomainAvg
-    from cbcpost import ErrorNorm
-    from cbcpost import Magnitude
-    from cbcpost import Maximum
-    from cbcpost import Minimum
-    from cbcpost import Norm
-    from cbcpost import PointEval
-    from cbcpost import Restrict
-    from cbcpost import RunningAvg
-    from cbcpost import RunningL2norm
-    from cbcpost import RunningMax
-    from cbcpost import RunningMin
-    from cbcpost import SecondTimeDerivative
-    from cbcpost import SubFunction
-    from cbcpost import TimeAverage
-    from cbcpost import TimeDerivative
-    from cbcpost import TimeIntegral
-
+    # Meta fields
+    metafields = ["Boundary", "BoundaryAvg", "DomainAvg", "ErrorNorm", "FlowRate","Magnitude", "Maximum",
+                  "Minimum", "Norm", "PointEval", "Restrict", "RunningAvg", "RunningL2norm",
+                  "RunningMax", "RunningMin", "SecondTimeDerivative", "SubFunction", "TimeAverage",
+                  "TimeDerivative", "TimeIntegral"]
+    for mf in metafields:
+        exec("from cbcpost import %s" %mf)
+    
     # Tools
-    from cbcpost import ParamDict
-    from cbcpost import Parameterized
-    from cbcpost import SpacePool
-    from cbcpost import get_grad_space
+    tools = ["ParamDict", "Parameterized", "SpacePool", "get_grad_space"]
+    for t in tools:
+        exec("from cbcpost import %s" %t)
     
+    # Modules
+    modules = ["fieldbases", "meta_fields", "metafields", "planner", "plotter", "postprocessor",
+               "paramdict", "parameterized", "replay", "restart", "saver", "spacepool", "utils"]
+    
+    # Check that imported core, field bases, meta fields and tools match entire cbcpost, excluding modules
+    import cbcpost
+    all_imports = dir(cbcpost)
+    all_imports = [m for m in all_imports if m[0] != "_"]
+    
+    assert set(core+field_bases+metafields+tools) == set(all_imports)-set(modules)

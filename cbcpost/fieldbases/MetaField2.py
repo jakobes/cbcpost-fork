@@ -29,3 +29,8 @@ class MetaField2(Field):
         if self.label: n += "_"+self.label
             
         return n
+    
+    def compute(self, get):
+        get(self.valuename1)
+        get(self.valuename2)
+        Field.compute(get)

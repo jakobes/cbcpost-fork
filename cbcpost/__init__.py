@@ -25,12 +25,12 @@ from postprocessor import PostProcessor
 from restart import Restart
 from replay import Replay
 
-from cbcflow.post.fieldbases import Field
-from cbcflow.post.fieldbases import SolutionField
-from cbcflow.post.fieldbases import MetaField
-from cbcflow.post.fieldbases import MetaField2
+from cbcpost.fieldbases import Field
+from cbcpost.fieldbases import SolutionField
+from cbcpost.fieldbases import MetaField
+from cbcpost.fieldbases import MetaField2
 
-from cbcflow.post.metafields import meta_fields
+from cbcpost.metafields import meta_fields
 
 for f in meta_fields:
-    exec("from cbcflow.post.metafields.%s import %s" % (f, f))
+    exec("from cbcpost.metafields.%s import %s" % (f, f))

@@ -16,7 +16,7 @@
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 from dolfin import Constant, MeshEditor, Mesh, MPI, compile_extension_module
 #from cbcflow.utils.common.mpi_utils import broadcast, distribute_meshdata, distribution, gather
-from cbcflow.post.utils.mpi_utils import broadcast, distribute_meshdata, distribution, gather
+from cbcpost.utils.mpi_utils import broadcast, distribute_meshdata, distribution, gather
 import numpy as np
 
 class Slice(Mesh):

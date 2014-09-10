@@ -25,7 +25,7 @@ The :math:'\infty'-norm is computed as
 .. math:: ||\mathbf{x}||_\infty := max(|x_1|, |x_2|, ..., |x_n|)
 
 '''
-from cbcflow.post.fieldbases.MetaField import MetaField
+from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import Function, Vector, norm
 
 class Norm(MetaField):

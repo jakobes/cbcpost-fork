@@ -1,8 +1,8 @@
 from hashlib import sha1
 from dolfin import Function, MPI, plot, File, HDF5File, XDMFFile, error
 
-from cbcflow.post.utils import safe_mkdir, hdf5_link
-from cbcflow.post.fieldbases import Field
+from cbcpost.utils import safe_mkdir, hdf5_link
+from cbcpost.fieldbases import Field
 
 import os, shelve, pickle
 from shutil import rmtree
@@ -15,6 +15,9 @@ class Saver():
         # Caches for file storage
         self._datafile_cache = {}
         self._casedir = casedir
+        
+        self._create_casedir()
+        
 
     def _get_save_formats(self, field, data):
         if data == None:
@@ -312,7 +315,7 @@ class Saver():
         # TODO: We don't need to cache a distinct Function
         # object like we do for plotting, or?
         if isinstance(data, Function):
-            data.rename(field_name, "Function produced by cbcflow postprocessing.")
+            data.rename(field_name, "Function produced by cbcpostprocessing.")
         
         # Get list of file formats
         save_as = self._get_save_formats(field, data)

@@ -1,8 +1,8 @@
 
-from cbcflow.post import Parameterized, ParamDict, PostProcessor, SpacePool
+from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
 
-#from cbcflow.post import PostProcessor
-#from cbcflow.post import SpacePool
+#from cbcpost import PostProcessor
+#from cbcpost import SpacePool
 from cbcflow.utils.common.utils import cbcflow_log
 
 

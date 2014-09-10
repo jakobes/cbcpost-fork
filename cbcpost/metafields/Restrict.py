@@ -14,8 +14,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
-from cbcflow.post.fieldbases.MetaField import MetaField
-from cbcflow.post.utils.restriction_map import restriction_map
+from cbcpost.fieldbases.MetaField import MetaField
+from cbcpost.utils.restriction_map import restriction_map
 from cbcflow.utils.common.utils import cbcflow_warning
 #from cbcflow.fields import Field
 

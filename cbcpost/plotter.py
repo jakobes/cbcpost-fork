@@ -1,4 +1,4 @@
-from cbcflow.post.utils import in_serial
+from cbcpost.utils import in_serial
 import os
 
 from dolfin import Function, plot

@@ -18,15 +18,15 @@
 from dolfin import Function
 
 # TODO: No imports from cbcflow!
-#from cbcflow.post.parameterized import Parameterized
-#from cbcflow.post.paramdict import ParamDict
-from cbcflow.post import ParamDict, Parameterized
-from cbcflow.post.plotter import Plotter
-from cbcflow.post.planner import Planner
-from cbcflow.post.saver import Saver
+#from cbcpost.parameterized import Parameterized
+#from cbcpost.paramdict import ParamDict
+from cbcpost import ParamDict, Parameterized
+from cbcpost.plotter import Plotter
+from cbcpost.planner import Planner
+from cbcpost.saver import Saver
 
 #from cbcflow.utils.core.strip_code import strip_code
-from cbcflow.post.utils.utils import strip_code, Timer, cbcflow_log, cbcflow_warning
+from cbcpost.utils.utils import strip_code, Timer, cbcflow_log, cbcflow_warning
 
 import inspect, re
 from collections import defaultdict
@@ -78,9 +78,6 @@ class PostProcessor(Parameterized):
             
         #import ipdb; ipdb.set_trace()
         #self._reverse_dependencies = {} # TODO: Need this?
-        
-        
-        
         self._plotter = Plotter(self._timer)
         self._saver = Saver(self._timer, self.params.casedir)
         self._planner = Planner(self._timer, self.params.initial_dt)
@@ -99,7 +96,6 @@ class PostProcessor(Parameterized):
         
         # Keep track of how many times .get has called each field.compute, for administration:
         self._compute_counts = defaultdict(int) # Actually only used for triggering "before_first_compute"
-        
         
         """
         

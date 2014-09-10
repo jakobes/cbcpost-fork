@@ -16,7 +16,7 @@
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 import numpy as np  
 #from cbcflow.utils.common.mpi_utils import broadcast
-from cbcflow.post.utils.mpi_utils import broadcast
+from cbcpost.utils.mpi_utils import broadcast
 from cbcflow.utils.common.utils import cbcflow_warning
 from scipy.spatial.ckdtree import cKDTree as KDTree
 from dolfin import MPI

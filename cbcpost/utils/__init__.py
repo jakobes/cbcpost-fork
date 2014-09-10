@@ -20,4 +20,4 @@ from restriction_map import restriction_map
 from submesh import create_submesh
 from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
 from Slice import Slice
-from utils import *
+from _utils import *

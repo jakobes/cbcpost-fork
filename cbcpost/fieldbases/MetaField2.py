@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 
-from cbcflow.post.fieldbases.Field import Field
+from cbcpost.fieldbases.Field import Field
 
 class MetaField2(Field):
     def __init__(self, value1, value2, params=None, name="default", label=None):

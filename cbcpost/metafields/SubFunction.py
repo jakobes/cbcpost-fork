@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 
-from cbcflow.post.fieldbases.Field import Field
+from cbcpost.fieldbases.Field import Field
 from dolfin import Function, VectorFunctionSpace, FunctionSpace, project, as_vector, MPI
 
 def import_fenicstools():

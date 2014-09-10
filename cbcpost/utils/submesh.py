@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
-from cbcflow.post.utils.mpi_utils import (broadcast, distribute_meshdata,
+from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
 from dolfin import MPI, Mesh, MeshEditor, LocalMeshData
 import numpy as np  

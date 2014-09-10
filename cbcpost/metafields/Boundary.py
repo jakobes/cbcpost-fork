@@ -14,9 +14,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
-from cbcflow.post.fieldbases.MetaField import MetaField
-from cbcflow.post.utils.mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
-from cbcflow.post import SpacePool
+from cbcpost.fieldbases.MetaField import MetaField
+from cbcpost.utils.mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
+from cbcpost import SpacePool
 
 from dolfin import Function, ds, dx, assemble
 

@@ -1,19 +1,19 @@
 # Copyright (C) 2010-2014 Simula Research Laboratory
 #
-# This file is part of CBCFLOW.
+# This file is part of CBCPOST.
 #
-# CBCFLOW is free software: you can redistribute it and/or modify
+# CBCPOST is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# CBCFLOW is distributed in the hope that it will be useful,
+# CBCPOST is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
+# along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 r'''
 Computes the norm of a Field. If the Field returns a Vector or Function, the computation is forwarded to
 the dolfin function *norm*. Otherwise a float list-type object is expected, and the :math:'l^p'-norm is computed as

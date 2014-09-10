@@ -14,7 +14,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
-#from cbcflow.fields.meta.TimeIntegral import TimeIntegral
 from cbcpost.metafields.TimeIntegral import TimeIntegral
 from dolfin import Function
 

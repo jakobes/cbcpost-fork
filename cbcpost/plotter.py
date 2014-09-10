@@ -10,10 +10,10 @@ def disable_plotting():
         if in_serial() and 'DISPLAY' in os.environ:
             disable_plotting.value = False
         elif 'DISPLAY' not in os.environ:
-            cbcflow_warning("Did not find display. Disabling plotting.")
+            cbc_warning("Did not find display. Disabling plotting.")
             disable_plotting.value = True
         else:
-            cbcflow_warning("Unable to plot in paralell. Disabling plotting.")
+            cbc_warning("Unable to plot in paralell. Disabling plotting.")
             disable_plotting.value = True
         
     return disable_plotting.value
@@ -30,7 +30,7 @@ def import_pylab():
                 pylab.ion()
                 import_pylab.value = pylab
             except:
-                cbcflow_warning("Unable to load pylab. Disabling pylab plotting.")
+                cbc_warning("Unable to load pylab. Disabling pylab plotting.")
                 import_pylab.value = None
     return import_pylab.value
 import_pylab.value = "init"
@@ -138,7 +138,7 @@ class Plotter():
         elif isinstance(data, float):
             self._plot_pylab(t, timestep, field, data)
         else:
-            cbcflow_warning("Unable to plot object %s of type %s." % (field.name, type(data)))
+            cbc_warning("Unable to plot object %s of type %s." % (field.name, type(data)))
         self._timer.completed("PP: plot %s" %field.name)
 
 

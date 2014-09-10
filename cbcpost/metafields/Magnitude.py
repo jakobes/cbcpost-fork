@@ -16,7 +16,7 @@
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import project, sqrt, Function, inner
-from cbcflow.utils.common import cbcflow_warning
+from cbcpost.utils import cbc_warning
 
 class Magnitude(MetaField):
     def compute(self, get):
@@ -32,7 +32,7 @@ class Magnitude(MetaField):
                 return mag
         else:
             # Don't know how to handle object
-            cbcflow_warning("Don't know how to calculate magnitude of object of type %s. Returning object." %type(u))
+            cbc_warning("Don't know how to calculate magnitude of object of type %s. Returning object." %type(u))
             return u
                         
     

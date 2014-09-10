@@ -16,8 +16,7 @@
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.restriction_map import restriction_map
-from cbcflow.utils.common.utils import cbcflow_warning
-#from cbcflow.fields import Field
+from cbcpost.utils import cbc_warning
 
 from dolfin import Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace
 from numpy import array, uint
@@ -42,7 +41,7 @@ class Restrict(MetaField):
             return None
         
         if not isinstance(u, Function):
-            cbcflow_warning("Do not understand how to handle datatype %s" %str(type(u)))
+            cbc_warning("Do not understand how to handle datatype %s" %str(type(u)))
             return None
         
         #if not hasattr(self, "restriction_map"):

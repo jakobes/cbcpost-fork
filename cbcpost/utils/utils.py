@@ -77,7 +77,6 @@ class _HDF5Link:
     
     def link(self, hdf5filename, link_from, link_to):
         self.cpp_link_module.link_dataset(hdf5filename, link_from, link_to)
-
 hdf5_link = _HDF5Link().link
 
 
@@ -126,7 +125,7 @@ def get_memory_usage():
         from fenicstools import getMemoryUsage
         return getMemoryUsage()
     except:
-        cbcflow_warning("Unable to load fenicstools to check memory usage. Falling back to unsafe memory check.")
+        cbc_warning("Unable to load fenicstools to check memory usage. Falling back to unsafe memory check.")
         mypid = getpid()
         mymemory = getoutput("ps -o rss %s" % mypid).split()[1]
         return int(mymemory)/1024
@@ -173,12 +172,12 @@ class Timer:
                 ss = ""
             s += ss
 
-            cbcflow_print(s)
+            cbc_print(s)
 
         self._timer = time()
     
     def _print_summary(self):
-        cbcflow_print("Timings summary: ")
+        cbc_print("Timings summary: ")
         
         for key in self._keys:
             tot = self._timings[key][0]
@@ -202,7 +201,7 @@ class Timer:
             else:
                 ss = ""
             s += ss
-            cbcflow_print(s)
+            cbc_print(s)
     
     def _reset(self):
         self._timings = {}
@@ -220,7 +219,7 @@ def timeit(t0=None, msg=None):
         return time()
     else:
         t = time() - t0
-        cbcflow_print("%s: %g" % (msg, t))
+        cbc_print("%s: %g" % (msg, t))
         return t
 
 

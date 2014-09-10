@@ -17,7 +17,6 @@
 
 from dolfin import Function
 
-# TODO: No imports from cbcflow!
 #from cbcpost.parameterized import Parameterized
 #from cbcpost.paramdict import ParamDict
 from cbcpost import ParamDict, Parameterized
@@ -25,8 +24,7 @@ from cbcpost.plotter import Plotter
 from cbcpost.planner import Planner
 from cbcpost.saver import Saver
 
-#from cbcflow.utils.core.strip_code import strip_code
-from cbcpost.utils.utils import strip_code, Timer, cbcflow_log, cbcflow_warning
+from cbcpost.utils import Timer, cbc_log, cbc_warning, strip_code
 
 import inspect, re
 from collections import defaultdict
@@ -264,7 +262,7 @@ class PostProcessor(Parameterized):
         The relative_timestep is relative to now.
         Values are computed at first request and cached.
         """
-        cbcflow_log(20, "Getting: %s, %d (compute=%s, finalize=%s)" %(name, relative_timestep, compute, finalize))
+        cbc_log(20, "Getting: %s, %d (compute=%s, finalize=%s)" %(name, relative_timestep, compute, finalize))
         
         # Check cache
         c = self._cache[relative_timestep]
@@ -274,14 +272,14 @@ class PostProcessor(Parameterized):
         # return finalized value
         if name in self._finalized and data == "N/A":
             if compute:
-                cbcflow_warning("Field %s has already been finalized. Will not call compute on field." %name)
+                cbc_warning("Field %s has already been finalized. Will not call compute on field." %name)
             return self._finalized[name]
         
         # Are we attempting to get value from before update was started?
         # Use constant extrapolation if allowed.
         if abs(relative_timestep) > self._update_all_count and data == "N/A":
             if self._extrapolate:
-                cbcflow_log(20, "Extrapolating %s from %d to %d" %(name, relative_timestep, -self._update_all_count))
+                cbc_log(20, "Extrapolating %s from %d to %d" %(name, relative_timestep, -self._update_all_count))
                 data = self.get(name, -self._update_all_count, compute, finalize)
                 c[name] = data
             else:

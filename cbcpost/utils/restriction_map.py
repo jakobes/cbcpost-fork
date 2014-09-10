@@ -15,9 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCFLOW. If not, see <http://www.gnu.org/licenses/>.
 import numpy as np  
-#from cbcflow.utils.common.mpi_utils import broadcast
 from cbcpost.utils.mpi_utils import broadcast
-from cbcflow.utils.common.utils import cbcflow_warning
+from cbcpost.utils import cbc_warning
 from scipy.spatial.ckdtree import cKDTree as KDTree
 from dolfin import MPI
 
@@ -25,7 +24,7 @@ def restriction_map(V, Vb):
     "Return a map between dofs in Vb to dofs in V. Vb's mesh should be a submesh of V's Mesh."
     
     if V.ufl_element().family() != "Lagrange":
-        cbcflow_warning("This function is only tested for CG-spaces. \
+        cbc_warning("This function is only tested for CG-spaces. \
                         Will not work if several dofs are associated with same point (e.g. DG-spaces).")
     
     assert V.ufl_element() == Vb.ufl_element(), "ufl elements differ in the two spaces"
@@ -112,7 +111,7 @@ if __name__ == '__main__':
         def inside(self, x, on_boundary):
             return x[0] > 0.7
     
-    from cbcflow.utils.common.submesh import create_submesh
+    from cbcpost.utils import create_submesh
     
     
     markers = MeshFunction("size_t", mesh, 3)

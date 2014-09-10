@@ -20,7 +20,7 @@ import os
 import shelve
 
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-from cbcflow.utils.common import cbcflow_print, Timer
+from cbcpost.utils import cbc_print, Timer
 
 from dolfin import HDF5File, Mesh, Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh
 
@@ -320,7 +320,7 @@ class Replay(Parameterized):
         """
         # Run replay
         for timestep in sorted(replay_plan.keys()):
-            cbcflow_print("Processing timestep %d of %d. %.3f%% complete." %(timestep, max(replay_plan.keys()), 100.0*(timestep)/(max(replay_plan.keys()))))
+            cbc_print("Processing timestep %d of %d. %.3f%% complete." %(timestep, max(replay_plan.keys()), 100.0*(timestep)/(max(replay_plan.keys()))))
 
             # Load solution at this timestep (all available fields)
             solution = replay_plan[timestep]

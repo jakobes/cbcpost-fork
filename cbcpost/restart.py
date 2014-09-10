@@ -3,7 +3,7 @@ from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
 
 #from cbcpost import PostProcessor
 #from cbcpost import SpacePool
-from cbcflow.utils.common.utils import cbcflow_log
+from cbcpost.utils import cbc_log
 
 
 import os, shelve, subprocess
@@ -383,7 +383,7 @@ class Restart(Parameterized):
         #import ipdb; ipdb.set_trace()
         status, result = getstatusoutput("h5repack -V")
         if status != 0:
-            cbcflow_warning("Unable to run h5repack. Will not repack hdf5-files before replay, which may cause bloated hdf5-files.")
+            cbc_warning("Unable to run h5repack. Will not repack hdf5-files before replay, which may cause bloated hdf5-files.")
         else:
             subprocess.call("h5repack %s %s" %(hdf5filename, hdf5tmpfilename), shell=True)
             os.remove(hdf5filename)
@@ -449,6 +449,6 @@ class Restart(Parameterized):
     def _clean_pvd(self, fieldname, del_metadata):
         if os.path.isfile(os.path.join(self._pp.get_savedir(fieldname), fieldname+'.pvd')):
         #if os.path.isfile(self.casedir+"/"+fieldname+"/"+fieldname+".pvd"):
-            cbcflow_warning("No functionality for cleaning pvd-files for restart. Will overwrite.")
+            cbc_warning("No functionality for cleaning pvd-files for restart. Will overwrite.")
     
     

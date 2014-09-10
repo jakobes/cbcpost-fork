@@ -42,7 +42,7 @@ class Saver():
         return self._casedir
 
     def _clean_casedir(self):
-        "Cleans out all files produced by cbcflow in the current casedir."
+        "Cleans out all files produced by cbcpost in the current casedir."
         if on_master_process():
             if os.path.isdir(self.get_casedir()):
                 playlogfilename = os.path.join(self.get_casedir(), "play.db")

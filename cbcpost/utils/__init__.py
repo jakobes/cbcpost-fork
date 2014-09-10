@@ -16,8 +16,9 @@
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 
 #from mpi_utils import *
+from utils import *
 from restriction_map import restriction_map
 from submesh import create_submesh
 from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
 from Slice import Slice
-from utils import *
+

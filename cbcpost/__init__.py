@@ -34,3 +34,4 @@ from cbcpost.metafields import meta_fields
 
 for f in meta_fields:
     exec("from cbcpost.metafields.%s import %s" % (f, f))
+del f

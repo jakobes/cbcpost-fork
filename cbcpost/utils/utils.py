@@ -1,12 +1,12 @@
 import keyword
 from time import time
+from dolfin import compile_extension_module
 
 def on_master_process():
     return MPI.process_number() == 0
 
 def in_serial():
     return MPI.num_processes() == 1
-
 
 def strip_code(code):
     """Strips code of unnecessary spaces, comments etc."""

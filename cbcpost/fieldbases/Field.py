@@ -28,9 +28,8 @@ class Field(Parameterized):
             self.label = str(label)
         else:
             self.label = None
+        self._name = name
         
-        self._name = self.__class__.__name__ if name == "default" else name
-
     # --- Parameters
 
     @classmethod
@@ -77,9 +76,11 @@ class Field(Parameterized):
     @property
     def name(self):
         "Return name of field, by default the classname but can be overloaded in subclass."
-        n = self._name
-        if self.label: n += "-"+self.label
-        
+        if self._name == "default":
+            n = self.__class__.__name__
+            if self.label: n += "-"+self.label
+        else:
+            n = self._name
         return n
 
     # --- Main interface

@@ -25,19 +25,19 @@ The :math:'\infty'-norm is computed as
 .. math:: ||\mathbf{x}||_\infty := max(|x_1|, |x_2|, ..., |x_n|)
 
 '''
-from cbcpost.fieldbases.MetaField import MetaField
+from cbcpost.fieldbases.MetaField2 import MetaField2
 from dolfin import Function, Vector, norm
 
-class ErrorNorm(MetaField):
+class ErrorNorm(MetaField2):
     @classmethod
     def default_params(cls):
-        params = MetaField.default_params()
+        params = MetaField2.default_params()
         params.update(
             norm_type='default',
             degree_rise='3',
             )
         return params
-    
+    """
     @property
     def name(self):
         n = "%s" % (self.__class__.__name__)
@@ -45,7 +45,7 @@ class ErrorNorm(MetaField):
         n += "_"+self.valuename1+"_"+self.valuename2
         if self.label: n += "_"+self.label
         return n
-    
+    """
     def compute(self, get):
         u = get(self.valuename1)
         uh = get(self.valuename2)
@@ -68,11 +68,13 @@ class ErrorNorm(MetaField):
             
             if self.params.norm_type == 'default':
                 norm_type = 'l2'
+            else:
+                norm_type = self.params.norm_type
             
-            if self.params.norm_type == 'linf':
+            if norm_type == 'linf':
                 return max([abs(_u-_uh) for _u,_uh in zip(u,uh)])
                 
             else:
                 # Extract norm type
-                p = int(self.params.norm_type[1:])
+                p = int(norm_type[1:])
                 return sum(abs(_u-_uh)**p for _u, _uh in zip(u,uh))**(1./p)

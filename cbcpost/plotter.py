@@ -1,4 +1,4 @@
-from cbcpost.utils import in_serial
+from cbcpost.utils import in_serial, cbc_warning
 import os
 
 from dolfin import Function, plot

@@ -22,11 +22,15 @@ class MetaField2(Field):
         Field.__init__(self, params, name, label)
         self.valuename1 = value1.name if isinstance(value1, Field) else value1
         self.valuename2 = value2.name if isinstance(value2, Field) else value2
+        
 
     @property
     def name(self):
-        n = "%s_%s_%s" % (self._name, self.valuename1, self.valuename2)
-        if self.label: n += "_"+self.label
+        if self._name == "default":
+            n = "%s_%s_%s" % (self.__class__.__name__, self.valuename1, self.valuename2)
+            if self.label: n += "_"+self.label
+        else:
+            n = self._name
             
         return n
     

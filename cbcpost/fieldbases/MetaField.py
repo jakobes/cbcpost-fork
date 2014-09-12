@@ -21,12 +21,16 @@ class MetaField(Field):
     def __init__(self, value, params=None, name="default", label=None):
         Field.__init__(self, params, name, label)
         self.valuename = value.name if isinstance(value, Field) else value
-
+    
     @property
     def name(self):
-        n = "%s_%s" % (self._name, self.valuename)
-        if self.label: n += "_"+self.label
+        if self._name == "default":
+            n = self.__class__.__name__+"_"+self.valuename
+            if self.label: n += "-"+self.label
+        else:
+            n = self._name
         return n
+        
     
     def after_last_compute(self, get):
         u = get(self.valuename)

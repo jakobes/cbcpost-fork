@@ -23,8 +23,8 @@ from numpy import array, uint
 
 class Restrict(MetaField):
     "Restrict is used to restrict a Field to a submesh of the mesh associated with the Field."
-    def __init__(self, field, submesh, params={}, label=None):
-        MetaField.__init__(self, field, params, label)
+    def __init__(self, field, submesh, params={}, name="default", label=None):
+        MetaField.__init__(self, field, params, name, label)
         
         self.submesh = submesh
         

@@ -119,6 +119,7 @@ class PointEval(MetaField):
         results = self.probes.array()
         self.probes.clear()
         #self._probetimestep += 1
+        #import ipdb; ipdb.set_trace()
 
         # Return as list to store without 'array(...)' text.
         # Probes give us no data if not on master node, so we just
@@ -128,6 +129,8 @@ class PointEval(MetaField):
         else:
             if u.shape():
                 return list(tuple(res) for res in results)
+            elif results.size == 1:
+                return float(results)
             else:
                 return list(results)
 

@@ -22,6 +22,8 @@ class Slice(Mesh):
     def __init__(self, basemesh, point, normal):
         Mesh.__init__(self)
         
+        assert basemesh.geometry().dim() == 3
+        
         P = np.array([point[0], point[1], point[2]])
         self.P = Constant((P[0], P[1],P[2]))
 

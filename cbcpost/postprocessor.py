@@ -99,6 +99,8 @@ class PostProcessor(Parameterized):
         # Keep track of how many times .get has called each field.compute, for administration:
         self._compute_counts = defaultdict(int) # Actually only used for triggering "before_first_compute"
         
+        if self.params.clean_casedir: self._saver._clean_casedir()
+        
         """
         
         # Callback to be called with fields where the 'callback' action is enabled
@@ -118,6 +120,7 @@ class PostProcessor(Parameterized):
             enable_timer=False,
             extrapolate=True,
             initial_dt=1e-5,
+            clean_casedir=True,
             )
         return params
     
@@ -198,28 +201,12 @@ class PostProcessor(Parameterized):
         "Add field to postprocessor."
         assert isinstance(field, Field)
         assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
-        
-        # Did we get a field name instead of a field?
-        #if isinstance(field, str):
-            #if field in builtin_fields:
-            #    return None
-            #elif field in self._fields.keys():
-                # Field of this name already exists, no need to add it again
-            #    return self._fields[field]
-            #elif field in basic_fields:
-                # Create a proper field object from known field name with negative end time,
-                # so that it is never triggered directly
-                #field = field_classes[field](params={"end_time":-1e16, "end_timestep": -1e16}) 
-            #elif field in meta_fields:
-                #error("Meta field %s cannot be constructed by name because the field instance requires parameters." % field)
-            #else:
-                #error("Unknown field name %s" % field)
 
         # Note: If field already exists, replace anyway to overwrite params, this
         # typically happens when a fields has been created implicitly by dependencies.
         # This is a bit unsafe though, the user might add a field twice with different parameters...
         # Check that at least the same name is not used for different field classes:
-        assert type(field) == type(self._fields.get(field.name,field))
+        #assert type(field) == type(self._fields.get(field.name,field))
         
         # Add fields explicitly specified by field
         self.add_fields(field.add_fields())

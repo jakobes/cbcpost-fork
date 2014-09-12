@@ -15,9 +15,28 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 from cbcpost.fieldbases.MetaField import MetaField
-from dolfin import assemble, dx, Function, Constant
+from dolfin import assemble, dx, Function, Constant, Measure
 
 class DomainAvg(MetaField):
+    def __init__(self, value, params=None, name="default", label=None, measure=dx(), cell_domains=None, facet_domains=None, indicator=None):
+        assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
+        
+        if (cell_domains and indicator != None):
+            self.dI = Measure("cell")[cell_domains](indicator)
+        elif (facet_domains and indicator != None):
+            self.dI = Measure("exterior_facet")[facet_domains](indicator)
+        else:
+            if indicator != None:
+                cbcwarning("Indicator specified, but no domains. Will dompute average over entire domain.")
+            self.dI = measure
+        
+        if label == None and str(self.dI) != "dxeverywhere":
+            label = str(self.dI)[:2]
+            if self.dI.domain_id() != "everywhere":
+                label += str(self.dI.domain_id())
+        MetaField.__init__(self, value, params, name, label)
+        
+    
     def compute(self, get):
         u = get(self.valuename)
         
@@ -32,16 +51,16 @@ class DomainAvg(MetaField):
         
         # Calculate volume
         if not hasattr(self, "volume"):
-            self.volume = assemble(Constant(1)*dx(), mesh=mesh)
+            self.volume = assemble(Constant(1)*self.dI, mesh=mesh)
         
         if u.rank() == 0:
-            value = assemble(u*dx(), mesh=mesh)/self.volume
+            value = assemble(u*self.dI, mesh=mesh)/self.volume
         elif u.rank() == 1:
-            value = [assemble(u[i]*dx(), mesh=mesh)/self.volume for i in xrange(u.value_size())]
+            value = [assemble(u[i]*self.dI, mesh=mesh)/self.volume for i in xrange(u.value_size())]
         elif u.rank() == 2:
             value = []
             for i in xrange(u.shape()[0]):
                 for j in xrange(u.shape()[1]):
-                    value.append(assemble(u[i,j]*dx(), mesh=mesh)/self.volume)
+                    value.append(assemble(u[i,j]*self.dI, mesh=mesh)/self.volume)
 
         return value

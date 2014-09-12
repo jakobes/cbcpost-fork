@@ -135,8 +135,8 @@ modindex_common_prefix = ["cbcpost."]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'default'
-html_theme = 'agogo_mod'
+html_theme = 'default'
+#html_theme = 'agogo_mod'
 
 
 headerbg = """
@@ -165,6 +165,7 @@ headerbg = swap(headerbg, "top", "bottom")
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
+"""
 html_theme_options = {
     "pagewidth": "90em",
     "documentwidth": "70em",
@@ -177,6 +178,7 @@ html_theme_options = {
     "bodyfont": "helvetica",
     "headerfont": "helvetica",
     }
+"""
 """
 agogo – A theme created by Andi Albrecht. The following options are supported:
 

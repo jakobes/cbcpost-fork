@@ -67,6 +67,7 @@ inheritance_graph_attrs = dict(rankdir="LR", size='"6.0, 8.0"',
                                      fontsize=14, ratio='compress')
 inheritance_node_attrs = dict(shape='ellipse', fontsize=14, height=0.75,
                                 )
+todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

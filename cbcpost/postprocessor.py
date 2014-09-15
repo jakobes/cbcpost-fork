@@ -200,13 +200,13 @@ class PostProcessor(Parameterized):
     def add_field(self, field):
         "Add field to postprocessor."
         assert isinstance(field, Field)
-        assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
-
+        
         # Note: If field already exists, replace anyway to overwrite params, this
         # typically happens when a fields has been created implicitly by dependencies.
         # This is a bit unsafe though, the user might add a field twice with different parameters...
         # Check that at least the same name is not used for different field classes:
-        #assert type(field) == type(self._fields.get(field.name,field))
+        #assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
+        assert type(field) == type(self._fields.get(field.name,field))
         
         # Add fields explicitly specified by field
         self.add_fields(field.add_fields())

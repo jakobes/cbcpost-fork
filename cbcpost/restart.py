@@ -76,10 +76,7 @@ to *get_restart_conditions*: ::
 .. todo:: Make this work for different meshes as well.
 """
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-
-#from cbcpost import PostProcessor
-#from cbcpost import SpacePool
-from cbcpost.utils import cbc_log, Loadable, fetchable_formats
+from cbcpost.utils import cbc_log, Loadable, loadable_formats, create_function_from_metadata
 
 
 import os, shelve, subprocess
@@ -89,96 +86,59 @@ from numpy import array, where, inf
 from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module
 from commands import getstatusoutput
 
-#fetchable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
-
-def _create_function_from_metadata(pp, fieldname, metadata, saveformat):
-    assert metadata['type'] == 'Function'
-    
-    # Load mesh
-    if saveformat == 'hdf5':    
-        mesh = Mesh()
-        hdf5file = HDF5File(os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5'), 'r')
-        hdf5file.read(mesh, "Mesh")
-        del hdf5file
-    elif saveformat == 'xml' or saveformat == 'xml.gz':
-        mesh = Mesh(os.path.join(self.postproc.get_casedir(), fieldname, "mesh."+saveformat))
-    
-    shape = eval(metadata["element_value_shape"])
-    degree = eval(metadata["element_degree"])
-    family = eval(metadata["element_family"])
-    
-    # Get space from existing function spaces if mesh is the same
-    spaces = SpacePool(mesh)
-    space = spaces.get_custom_space(family, degree, shape)
-
-    return Function(space, name=fieldname)
-
-
-#def find_common_savetimes(play_log, fields):
 def find_solution_presence(pp, play_log, fields):
-    #if fields == "default": fields = ["default"]
-    #common_keys = []
+    "Searcg play-log to find where solution items are saved in a loadable format"
     present_solution = defaultdict(list)
-    #times = defaultdict(float)
+
     functions = dict()
     metadatas = dict()
     for ts, data in play_log.items():
-        #if "fields" not in data:
-        #    continue
         for fieldname in data.get("fields", []):
-            if not any([saveformat in fetchable_formats for saveformat in data["fields"][fieldname]["save_as"]]):
+            # Continue if field in a format we can't read back
+            if not any([saveformat in loadable_formats for saveformat in data["fields"][fieldname]["save_as"]]):
                 continue
             
-            
-            
+            # Check if field is present and part of solution we're searching for
             is_present = False
             if fields == "default" and data["fields"][fieldname]["type"] == "SolutionField":
-                #loadable = Loadable(filename, f, ts, data[ts]["t"], saveformat, function)
-                #present_solution[f].append(ts)
                 is_present = True
             elif fieldname in fields:
                 is_present = True
-                #present_solution[f].append(ts)
-                
-            #loadable = Loadable(filename, f, ts, data[ts]["t"], saveformat, function)
-            
+
             metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
 
             if is_present:
-                tic()
                 function = None
                 if 'hdf5' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5')
 
                     if fieldname in functions: function = functions[fieldname]
-                    else: function = functions.setdefault(fieldname, _create_function_from_metadata(pp, fieldname, metadata, 'hdf5'))
+                    else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'hdf5'))
 
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'hdf5', function))
                 elif 'xml' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.xml')
                     
                     if fieldname in functions: function = functions[fieldname]
-                    else: function = functions.setdefault(fieldname, _create_function_from_metadata(pp, fieldname, metadata, 'xml'))
+                    else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml'))
                     
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'xml', function))
                 elif 'xml.gz' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.xml.gz')
                     
                     if fieldname in functions: function = functions[fieldname]
-                    else: function = functions.setdefault(fieldname, _create_function_from_metadata(pp, fieldname, metadata, 'xml.gz'))
+                    else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml.gz'))
 
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'xml.gz', function))
                 elif 'shelve' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.db')
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], "shelve", None))
-                print toc()
 
-        #times[ts] = data["t"]
-    #return times, present_solution
     return present_solution
 
 
 def find_restart_items(restart_times, present_solution):
+    "Find which items should be used for computing restart data"
     if not isinstance(restart_times, Iterable):
         restart_times = [restart_times]
 
@@ -187,57 +147,27 @@ def find_restart_items(restart_times, present_solution):
     loadables = dict()
     for restart_time in sorted(restart_times):
         loadables[restart_time] = dict()
-        #for fieldname in present_solution:
         for fieldname in present_solution:
-            
-            
             sorted_ps = sorted(present_solution[fieldname], key=lambda l: l.time)
             present_times = array([l.time for l in sorted_ps])
-            #print times
-            #continue
-            #present_times = [times[ts] for ts in present_timesteps]
-            #present_times = array(sorted([l.time for l in present_solution[fieldname]]))
             
             # Find lower and upper limit
-
             limits = []
-            # loadables[restart_time0][solution_name] = [(t0, Lt0)] # will load Lt0
-            # loadables[restart_time0][solution_name] = [(t0, Lt0), (t1, Lt1)] # will interpolate to restart_time
             lower = where(present_times <= restart_time)[0]
             if len(lower) > 0: limits.append((present_times[lower[-1]], sorted_ps[lower[-1]]))
-            #print lower            
-            
             upper = where(present_times >= restart_time)[0]
             if len(upper) > 0 and upper[0] != lower[-1]: limits.append((present_times[upper[0]], sorted_ps[upper[0]]))
             
             loadables[restart_time][fieldname] = limits
-            #print "*"*30
-            #print upper
-            #print lower
-            #print limits   
-            #else:
-            #    upper = None
-            #print upper[0]
-            #print dir(upper[0])
     
     for k, v in loadables.items():
-        print k, v
+
         if k == inf:
             loadables.pop(k)
             new_k = v.values()[0][0][0]
             loadables[new_k] = v
-    #import ipdb; ipdb.set_trace()
-            #loadables[]
-    #print loadables
-    #print min(upper)
-    
-    
-    #pass
+
     return loadables
-    
-#def create_loadables()
-
-
 
 class Restart(Parameterized):
     def __init__(self, params=None):
@@ -256,16 +186,11 @@ class Restart(Parameterized):
             )
         return params
     
-    #def get_restart_conditions(self, function_spaces="default", return_as_function=False, depth=1):
     def get_restart_conditions(self, function_spaces="default"):
-        #import ipdb; ipdb.set_trace()
         self._pp = PostProcessor(dict(casedir=self.params.casedir, clean_casedir=False))
         
         playlog = self._pp.get_playlog()
-        #timesteps, times = find_common_savetimes(playlog, self.params.solution_names)
-        tic()
         loadable_solutions = find_solution_presence(self._pp, playlog, self.params.solution_names)
-        print toc()
         loadables = find_restart_items(self.params.restart_times, loadable_solutions)
         
         if function_spaces != "default":
@@ -290,16 +215,12 @@ class Restart(Parameterized):
                         t1, Lt1 = loadables[t][solution_name][1]
                         
                         assert t0 <= t <= t1
-                        print "*"*50
-                        print t0, t, t1
-                        print Lt0.time, t, Lt1.time
                         
                         f = Function(Lt0())
-                        print t0, t, t1, norm(f)
+
                         df = Lt1().vector()
                         df.axpy(-1.0, f.vector())
                         f.vector().axpy((t-t0)/(t1-t0), df)
-                        print t0, t, t1, norm(f)
                         
                     space = spaces[solution_name]
                     if space != f.function_space():
@@ -316,15 +237,8 @@ class Restart(Parameterized):
             function_spaces = {}
             for fieldname in loadables.values()[0]:
                 function_spaces[fieldname] = loadables.values()[0][fieldname][0][1].function.function_space()
-        
-        #import ipdb; ipdb.set_trace()
-        #tic()
-        
+               
         result = restart_conditions(function_spaces, loadables)
-        
-        
-        #print ts, playlog[str(ts)]["t"]
-        #print toc()
         
         ts = 0
         while playlog[str(ts)]["t"] < max(loadables):
@@ -332,11 +246,7 @@ class Restart(Parameterized):
         self.restart_timestep = ts
         if self.params.rollback_casedir:
             self._correct_postprocessing(playlog, ts)
-        #print restart_conditions(function_spaces, loadables)
         
-        
-        
-        #return restart_conditions(function_spaces, loadables)
         return result
         
         
@@ -344,33 +254,25 @@ class Restart(Parameterized):
     def _correct_postprocessing(self, play_log, restart_timestep):
         "Removes data from casedir found at timestep>restart_timestep."
         play_log_to_remove = {}
-        #import ipdb; ipdb.set_trace()
         for k,v in play_log.items():
             if int(k) >= restart_timestep:
                 play_log_to_remove[k] = play_log.pop(k)
 
         all_fields_to_clean = []
-        print play_log_to_remove
-        #import ipdb; ipdb.set_trace()
                 
         for k,v in play_log_to_remove.items():
             if not "fields" in v:
                 continue
             else:
                 all_fields_to_clean += v["fields"].keys()
-        print all_fields_to_clean
-        #import ipdb; ipdb.set_trace()
         all_fields_to_clean = list(set(all_fields_to_clean))
-        print all_fields_to_clean
-        #import ipdb; ipdb.set_trace()
+
         for fieldname in all_fields_to_clean:
-            
             self._clean_field(fieldname, restart_timestep)
     
     def _clean_field(self, fieldname, restart_timestep):
         "Deletes data from field found at timestep>restart_timestep."
         metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'w')
-        #import ipdb; ipdb.set_trace()
         metadata_to_remove = {}
         for k in metadata.keys():
             try:
@@ -379,7 +281,7 @@ class Restart(Parameterized):
                 continue
             if k > restart_timestep:
                 metadata_to_remove[str(k)] = metadata.pop(str(k))
-        #import ipdb; ipdb.set_trace()
+
         # Remove files and data for all save formats
         self._clean_hdf5(fieldname, metadata_to_remove)
         self._clean_files(fieldname, metadata_to_remove)
@@ -484,7 +386,5 @@ class Restart(Parameterized):
     
     def _clean_pvd(self, fieldname, del_metadata):
         if os.path.isfile(os.path.join(self._pp.get_savedir(fieldname), fieldname+'.pvd')):
-        #if os.path.isfile(self.casedir+"/"+fieldname+"/"+fieldname+".pvd"):
             cbc_warning("No functionality for cleaning pvd-files for restart. Will overwrite.")
-    
     

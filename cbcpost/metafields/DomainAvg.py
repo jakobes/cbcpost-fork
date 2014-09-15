@@ -52,6 +52,7 @@ class DomainAvg(MetaField):
         # Calculate volume
         if not hasattr(self, "volume"):
             self.volume = assemble(Constant(1)*self.dI, mesh=mesh)
+            assert self.volume > 0
         
         if u.rank() == 0:
             value = assemble(u*self.dI, mesh=mesh)/self.volume

@@ -16,12 +16,26 @@
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
+from cbcpost.utils import cbc_warning
 from dolfin import MPI, Mesh, MeshEditor, LocalMeshData
 import numpy as np  
 
 def create_submesh(mesh, markers, marker):
     "This function allows for a SubMesh-equivalent to be created in parallel"
-
+    # Build mesh
+    submesh = Mesh()
+    mesh_editor = MeshEditor()
+    mesh_editor.open(submesh,
+                     mesh.ufl_cell().cellname(),
+                     mesh.ufl_cell().topological_dimension(),
+                     mesh.ufl_cell().geometric_dimension())
+    
+    # Return empty mesh if no matching markers
+    if MPI.sum(int(marker in markers.array())) == 0:
+        cbc_warning("Unable to find matching markers in meshfunction. Submesh is empty.")
+        mesh_editor.close()
+        return submesh
+    
     base_cell_indices = np.where(markers.array() == marker)[0]
     base_cells = mesh.cells()[base_cell_indices]
     base_vertex_indices = np.unique(base_cells.flatten())
@@ -87,13 +101,7 @@ def create_submesh(mesh, markers, marker):
     global_num_cells = MPI.sum(len(sub_cells))
     global_num_vertices = sum(unshared_vertices_dist)+MPI.sum(len(all_shared_global_indices))
 
-    # Build mesh
-    submesh = Mesh()
-    mesh_editor = MeshEditor()
-    mesh_editor.open(submesh,
-                     mesh.ufl_cell().cellname(),
-                     mesh.ufl_cell().topological_dimension(),
-                     mesh.ufl_cell().geometric_dimension())
+    
     
     mesh_editor.init_vertices(len(sub_vertices))
     mesh_editor.init_cells(len(sub_cells))

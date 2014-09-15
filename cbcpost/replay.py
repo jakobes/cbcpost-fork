@@ -20,7 +20,7 @@ import os
 import shelve
 
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-from cbcpost.utils import cbc_print, Timer, Loadable, fetchable_formats
+from cbcpost.utils import cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata
 
 from dolfin import HDF5File, Mesh, Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh
 
@@ -41,33 +41,6 @@ def have_necessary_deps(solution, pp, field):
     for dep in deps:
         all_deps.append(have_necessary_deps(solution, pp, dep[0]))
     return all(all_deps)
-
-"""
-class Loadable():
-    def __init__(self, filename, fieldname, timestep, time, saveformat, function):
-        self.filename = filename
-        self.fieldname = fieldname
-        self.timestep = timestep
-        self.time = time
-        self.saveformat = saveformat
-        self.function = function
-        
-        assert self.saveformat in fetchable_formats
-        
-    def __call__(self):
-        if self.saveformat == 'hdf5':
-            hdf5file = HDF5File(self.filename, 'r')
-            hdf5file.read(self.function, self.fieldname+str(self.timestep))
-            del hdf5file
-            return self.function
-        elif self.saveformat in ["xml", "xml.gz"]:
-            V = self.function.function_space()
-            self.function.assign(Function(V, self.filename))
-            return self.function
-        elif self.saveformat == "shelve":
-            shelvefile = shelve.open(self.filename)
-            return shelvefile[str(self.timestep)]
-"""
     
 class Replay(Parameterized):
     """ Replay class for postprocessing exisiting solution data. """
@@ -104,7 +77,7 @@ class Replay(Parameterized):
                 continue
             
             for fieldname, fieldnamedata in data[timestep]["fields"].items():
-                if not any([saveformat in fetchable_formats for saveformat in fieldnamedata["save_as"]]):
+                if not any([saveformat in loadable_formats for saveformat in fieldnamedata["save_as"]]):
                     continue
                 
                 if fieldname not in metadata_files:
@@ -163,7 +136,7 @@ class Replay(Parameterized):
                     continue
                 checks.append(self._recursive_dependency_check(plan, key, dep_field))
             return all(checks)
-     
+    """
     def _get_mesh(self):
         if not hasattr(self, "_mesh"):       
             # Read mesh
@@ -181,7 +154,9 @@ class Replay(Parameterized):
             self._boundarymesh = BoundaryMesh(self._get_mesh(), 'exterior')
 
         return self._boundarymesh
-
+    """
+    
+    """
     def _create_function_from_metadata(self, fieldname, metadata, saveformat):
         assert metadata['type'] == 'Function'
         
@@ -201,31 +176,13 @@ class Replay(Parameterized):
         # Get space from existing function spaces if mesh is the same
         spaces = SpacePool(mesh)
         space = spaces.get_custom_space(family, degree, shape)
-        """
-        # TODO: Verify that this check is good enough
-        if mesh.hash() != self._get_mesh().hash():
-            if mesh.hash() == self._get_boundarymesh().hash():
-                mesh = self._get_boundarymesh()
-            rank = len(shape)
-            if rank == 0:
-                space = FunctionSpace(mesh, family, degree)
-            elif rank == 1:
-                space = VectorFunctionSpace(mesh, family, degree)
-            elif rank == 2:
-                space = TensorFunctionSpace(mesh, family, degree)
-        else:
-            del mesh
-            space = self._get_spaces().get_space(degree, len(shape), family)
-        """
+
         return Function(space, name=fieldname)
     """
-    def _get_all_params(self):
-        paramfile = open(os.path.join(self.postproc.get_casedir(), "params.pickle"), 'rb')
-        return pickle.load(paramfile)
-    """
+
     def _get_function(self, fieldname, metadata, saveformat):
         if fieldname not in self._functions:
-            self._functions[fieldname] = self._create_function_from_metadata(fieldname, metadata, saveformat)
+            self._functions[fieldname] = create_function_from_metadata(self.postproc, fieldname, metadata, saveformat)
         return self._functions[fieldname]
        
     def replay(self):

@@ -102,7 +102,7 @@ def safe_mkdir(dir):
         Exception("FAILED TO CREATE DIRECTORY %s" % (dir,))
 
 
-fetchable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
+loadable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
 from dolfin import HDF5File, Function
 import shelve
 class Loadable():
@@ -114,21 +114,53 @@ class Loadable():
         self.saveformat = saveformat
         self.function = function
         
-        assert self.saveformat in fetchable_formats
+        assert self.saveformat in loadable_formats
         
     def __call__(self):
+        cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
         if self.saveformat == 'hdf5':
             hdf5file = HDF5File(self.filename, 'r')
             hdf5file.read(self.function, self.fieldname+str(self.timestep))
             del hdf5file
-            return self.function
+            data = self.function
         elif self.saveformat in ["xml", "xml.gz"]:
             V = self.function.function_space()
             self.function.assign(Function(V, self.filename))
-            return self.function
+            data = self.function
         elif self.saveformat == "shelve":
             shelvefile = shelve.open(self.filename)
-            return shelvefile[str(self.timestep)]
+            data = shelvefile[str(self.timestep)]
+        
+        cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
+        return data
+
+
+from dolfin import Mesh, HDF5File, Function
+from cbcpost import SpacePool
+def create_function_from_metadata(pp, fieldname, metadata, saveformat):
+    "Create a function from metadata"
+    assert metadata['type'] == 'Function'
+    
+    # Load mesh
+    if saveformat == 'hdf5':    
+        mesh = Mesh()
+        hdf5file = HDF5File(os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5'), 'r')
+        hdf5file.read(mesh, "Mesh")
+        del hdf5file
+    elif saveformat == 'xml' or saveformat == 'xml.gz':
+        mesh = Mesh(os.path.join(self.postproc.get_casedir(), fieldname, "mesh."+saveformat))
+    
+    shape = eval(metadata["element_value_shape"])
+    degree = eval(metadata["element_degree"])
+    family = eval(metadata["element_family"])
+    
+    # Get space from existing function spaces if mesh is the same
+    spaces = SpacePool(mesh)
+    space = spaces.get_custom_space(family, degree, shape)
+
+    return Function(space, name=fieldname)
+
+
 
 # --- Logging ---
 

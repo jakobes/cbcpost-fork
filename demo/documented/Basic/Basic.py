@@ -5,9 +5,9 @@ set_log_level(WARNING)
 
 # Create parameters for problem
 params = ParamDict(
-    T = 5.0,           # End time
+    T = 3.0,            # End time
     dt = 0.05,          # Time step
-    theta = 0.5,       # Time stepping scheme (0.5=Crank-Nicolson)
+    theta = 0.5,        # Time stepping scheme (0.5=Crank-Nicolson)
     alpha0 = 10.0,      # Outer diffusivity
     alpha1 = 1e-3,      # Inner diffusivity
     amplitude = 3.0,    # Amplitude of boundary condition
@@ -19,12 +19,14 @@ mesh = UnitCubeMesh(21,21,21)
 # Function spaces
 V = FunctionSpace(mesh, "CG", 1)
 u,v = TrialFunction(V), TestFunction(V)
-U = Function(V)
 
 # Time and time-stepping
 t = 0.0
 timestep = 0
 dt = Constant(params.dt)
+
+# Initial condition
+U = Function(V)
 
 # Define inner domain
 def inside(x):
@@ -46,12 +48,15 @@ class Alpha(Expression):
 alpha = project(Alpha(params.alpha0, params.alpha1), V)
 
 # Boundary condition
-u0 = Expression("ampl*sin(2*pi*t)", t=t, ampl=params.amplitude)
-bc = DirichletBC(V, u0, "x[0] > 1-DOLFIN_EPS")
+u0 = Expression("ampl*sin(x[0]*2*pi*t)", t=t, ampl=params.amplitude)
+bc = DirichletBC(V, u0, "on_boundary")
+
+# Source term
+f = Constant(0)
 
 # Bilinear form
-a = 1.0/dt*inner(u,v)*dx() + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx() #+ alpha*inner(dot(grad(u),n), v)*ds()# + b*inner(u,v)*dx()
-L = 1.0/dt*inner(U,v)*dx() + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx()
+a = 1.0/dt*inner(u,v)*dx() + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx()
+L = 1.0/dt*inner(U,v)*dx() + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx() + inner(f,v)*dx()
 A = assemble(a)
 b = assemble(L)
 bc.apply(A)
@@ -92,7 +97,7 @@ pp.add_fields([
     DomainAvg("Temperature", cell_domains=cell_domains, indicator=0, label="outer"),
 ])
 
-pp.add_field(Norm("Temperature", save=True))
+pp.add_field(Norm("Temperature", dict(save=True)))
 
 
 # Custom fields
@@ -121,7 +126,7 @@ class TempDiff2(Field):
 
 pp.add_fields([
     TempDiff1(cell_domains, 1, 0, dict(plot=True)),
-    TempDiff2(dict(plot=True)),
+    TempDiff2(dict(plot=True, save=True)),
 ])
 
 # Norm inspection
@@ -135,7 +140,6 @@ pp.add_fields([
     DomainAvg("TimeAverage_Restrict_Temperature", params=dict(save=True)),
 ])
 
-
 pp.store_mesh(mesh, cell_domains=cell_domains)
 pp.store_params(params)
 
@@ -145,9 +149,9 @@ while t <= params.T+DOLFIN_EPS:
     cbc_print("Time: "+str(t))
     u0.t = float(t)
     assemble(L, tensor=b)
-    bc.apply(b)
+    bc.apply(A,b)
     solver.solve(U.vector(), b)
-    #plot(U, range_min=-amplitude, range_max=amplitude)
+
     pp.update_all({"Temperature": lambda: U}, t, timestep)
     t += float(dt)
     timestep += 1

@@ -1,29 +1,29 @@
-.. _AdvancedUsage:
+.. _Basic:
 
-A More Advanced Use Case
+A Basic Use Case
 ========================================
 
-For a more complex problem, consider the 3D-case of the heat equation with variable diffusivity. The file
-full demo can be found in :download:`AdvancedUsage.py`
+To demonstrate the functionality of the postprocessor, consider the 3D-case of the heat equation with
+variable diffusivity. The full demo can be found in :download:`Basic.py`.
 
 The general heat equation reads
 
 ..  math::
-    \frac{\partial u}{\partial t} + \alpha(x) \delta u = f
+    \frac{\partial u}{\partial t} + \alpha(x) \Delta u = f
 
 where u typically denotes the temperature and :math:`\alpha` denotes the material diffusivity.
 
 Boundary conditions are in our example given as
 
 .. math::
-    u(x,t) = Asin(2\pi t), x \in \partial \Omega
+    u(x,t) = Asin(2\pi tx_0), x \in \partial \Omega
     
 and initial condition
 
 .. math::
     u(x,0) = 0.
     
-We solve the equations at the unit cube for :math:`t \in (0,5]`.
+We also use f=0, and solve the equations at the unit cube for :math:`t \in (0,3]`.
 
 Setting up the problem
 _______________________________________________
@@ -37,13 +37,14 @@ We start by defininge a set of parameters for our problem: ::
     
     # Create parameters for problem
     params = ParamDict(
-        T = 5.0,           # End time
+        T = 3.0,            # End time
         dt = 0.05,          # Time step
-        theta = 0.5,       # Time stepping scheme (0.5=Crank-Nicolson)
+        theta = 0.5,        # Time stepping scheme (0.5=Crank-Nicolson)
         alpha0 = 10.0,      # Outer diffusivity
         alpha1 = 1e-3,      # Inner diffusivity
         amplitude = 3.0,    # Amplitude of boundary condition
     )
+
 
 The parameters are created using the utility class :class:`.ParamDict`, which extend the built-in python
 dict.
@@ -56,12 +57,14 @@ We the use the parameters to set up the problem using FEniCS: ::
     # Function spaces
     V = FunctionSpace(mesh, "CG", 1)
     u,v = TrialFunction(V), TestFunction(V)
-    U = Function(V)
     
     # Time and time-stepping
     t = 0.0
     timestep = 0
     dt = Constant(params.dt)
+    
+    # Initial condition
+    U = Function(V)
     
     # Define inner domain
     def inside(x):
@@ -83,12 +86,15 @@ We the use the parameters to set up the problem using FEniCS: ::
     alpha = project(Alpha(params.alpha0, params.alpha1), V)
     
     # Boundary condition
-    u0 = Expression("ampl*sin(2*pi*t)", t=t, ampl=params.amplitude)
-    bc = DirichletBC(V, u0, "x[0] > 1-DOLFIN_EPS")
+    u0 = Expression("ampl*sin(x[0]*2*pi*t)", t=t, ampl=params.amplitude)
+    bc = DirichletBC(V, u0, "on_boundary")
+    
+    # Source term
+    f = Constant(0)
     
     # Bilinear form
-    a = 1.0/dt*inner(u,v)*dx() + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx() #+ alpha*inner(dot(grad(u),n), v)*ds()# + b*inner(u,v)*dx()
-    L = 1.0/dt*inner(U,v)*dx() + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx()
+    a = 1.0/dt*inner(u,v)*dx() + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx()
+    L = 1.0/dt*inner(U,v)*dx() + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx() + inner(f,v)*dx()
     A = assemble(a)
     b = assemble(L)
     bc.apply(A)
@@ -112,14 +118,6 @@ Since we`re solving for temperature, we add a SolutionField to the postprocessor
 Note that we pass parameters, specifying that the field are to be saved in hdf5 and xdmf formats. These
 formats are default for dolfin.Function-type objects. We also ask for the Field to be plotted, with plot_args
 specifying the plot window. These arguments are passed directly to the dolfin.plot-command.
-
-We choose to store the mesh, domains and parameters associated with the problem: ::
-
-    pp.store_mesh(mesh, cell_domains=cell_domains)
-    pp.store_params(params)
-    
-These will be stored to *[casedir]/mesh.hdf5*, *params.pickle* and *params.txt*.
-
 
 Time derivatives and time integrals
 -----------------------------------------
@@ -243,8 +241,18 @@ postprocessor. For example, we can compute the space average of a time-average o
     ])
 
 If *TimeAverage("Restrict_Temperature")* is not added first, adding the :class:`.DomainAvg`-field would
-fail with a *DependencyException*, since the postprocessor would have no knowledge of the field
+fail with a :class:`.DependencyException`, since the postprocessor would have no knowledge of the field
 *TimeAverage_Restrict_Temperature*.
+
+Saving mesh and parameters
+--------------------------------------
+
+We choose to store the mesh, domains and parameters associated with the problem: ::
+
+    pp.store_mesh(mesh, cell_domains=cell_domains)
+    pp.store_params(params)
+    
+These will be stored to *mesh.hdf5*, *params.pickle* and *params.txt* in the case directory.
 
 Solving the problem
 ______________________________________________

@@ -20,11 +20,9 @@ import os
 import shelve
 
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-from cbcpost.utils import cbc_print, Timer
+from cbcpost.utils import cbc_print, Timer, Loadable, fetchable_formats
 
 from dolfin import HDF5File, Mesh, Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh
-
-fetchable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
 
 def print_replay_plan(plan):
     for timestep in sorted(plan.keys()):
@@ -44,7 +42,7 @@ def have_necessary_deps(solution, pp, field):
         all_deps.append(have_necessary_deps(solution, pp, dep[0]))
     return all(all_deps)
 
-
+"""
 class Loadable():
     def __init__(self, filename, fieldname, timestep, time, saveformat, function):
         self.filename = filename
@@ -68,7 +66,8 @@ class Loadable():
             return self.function
         elif self.saveformat == "shelve":
             shelvefile = shelve.open(self.filename)
-            return shelvefile[str(timestep)]
+            return shelvefile[str(self.timestep)]
+"""
     
 class Replay(Parameterized):
     """ Replay class for postprocessing exisiting solution data. """
@@ -114,15 +113,21 @@ class Replay(Parameterized):
                 if 'hdf5' in fieldnamedata["save_as"]:
                     function = self._get_function(fieldname, metadata_files[fieldname], 'hdf5')
                     filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+'.hdf5')
+                    saveformat = "hdf5"
                 elif 'xml' in fieldnamedata["save_as"]:
                     function = self._get_function(fieldname, metadata_files[fieldname], 'xml')
-                    filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+str(timestep)+'.hdf5')
+                    filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+str(timestep)+'.xml')
+                    saveformat = "xml"
                 elif 'xml.gz' in fieldnamedata["save_as"]:
                     function = self._get_function(fieldname, metadata_files[fieldname], 'xml.gz')
-                    filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+'.db')
-                else:
+                    filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+'.xml.gz')
+                    saveformat = "xml.gz"
+                elif "shelve" in fieldnamedata["save_as"]:
                     function = None
-                
+                    filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+'.db')
+                    saveformat = "shelve"
+                else:
+                    raise RuntimeError("Unable to find readable saveformat for field %s" %fieldname)
                 replay_solutions[timestep][fieldname] = Loadable(filename, fieldname, timestep, data[timestep]["t"], saveformat, function)
                 
         return replay_solutions    
@@ -258,11 +263,17 @@ class Replay(Parameterized):
                 if t_dep == 0 and set(keys).issubset(set(ppkeys)):
                     # TODO: Check this extend
                     ppkeys.extend(keys)
-                    pp.add_fields(fields)
+                    #pp.add_fields(fields)
+                    for f in fields:
+                        if f.name not in pp._fields:
+                            pp.add_field(f)
                     added_to_postprocessor = True
                     break
                 elif t_dep == ppt_dep and keys == ppkeys:
-                    pp.add_fields(fields)
+                    #pp.add_fields(fields)
+                    for f in fields:
+                        if f.name not in pp._fields:
+                            pp.add_field(f)
                     added_to_postprocessor = True
                     break
                 else:
@@ -275,7 +286,9 @@ class Replay(Parameterized):
                 #dep_fields = list(set([self.postproc._fields[dep[0]] for dep in self.postproc._full_dependencies[fieldname] if dep[0] not in ["t", "timestep"]]))
                 fields = dep_fields + [field]
                 #import ipdb; ipdb.set_trace()
-                pp.add_fields(fields)
+                for f in fields:
+                    if f.name not in pp._fields:
+                        pp.add_field(f)
                 postprocessors.append([keys, t_dep, pp])
             
             

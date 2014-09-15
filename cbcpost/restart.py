@@ -1,9 +1,85 @@
+"""
+Restarting a problem
+-----------------------------------------
+If we want to restart any problem, where a solution has been stored by cbcpost, we can simply point to the
+case directory: ::
 
+    from cbcpost import *
+    restart = Restart(dict(casedir='Results/'))
+    restart_data = restart.get_restart_conditions()
+    
+If you for instance try to restart the simple case of the heat equation, *restart_data* will be a *dict* of
+the format {t0: {"Temperature": U0}}. If you try to restart for example a (Navier-)Stokes-problem, it will take
+a format of {t0: {"Velocity": U0, "Pressure": P0}}.
+
+There are several options for fetching the restart conditions.
+
+Specify restart time
+#########################################
+
+You can easily specify the restart time to fetch the solution from: ::
+
+    t0 = 2.5
+    restart = Restart(dict(casedir='Results/', restart_times=t0))
+    restart_data = restart.get_restart_conditions()
+    
+If the restart time does not match a solution time, it will do a linear interpolation between the closest
+existing solution times.
+
+Fetch multiple restart times
+#########################################
+
+For many problems (for example the wave equation), initial conditions are required at several time points
+prior to the desired restart time. This can also be handled through: ::
+
+    dt = 0.01
+    t1 = 2.5
+    t0 = t1-dt
+    restart = Restart(dict(casedir='Results/', restart_times=[t0,t1]))
+    restart_data = restart.get_restart_conditions()
+
+
+Rollback case directory for restart
+#########################################
+
+If you wish to write the restarted solution to the same case directory, you will need to clean up the case
+directory to avoid write errors. This is done by setting the parameter *rollback_casedir*: ::
+
+    t0 = 2.5
+    restart = Restart(dict(casedir='Results/', restart_times=t0, rollback_casedir=True))
+    restart_data = restart.get_restart_conditions()
+
+Specifying solution names to fetch
+#########################################
+
+By default, the Restart-module will search through the case directory for all data stored as a
+:class:`SolutionField`. However, you can also specify other fields to fetch as restart data: ::
+
+    solution_names = ["MyField", "MyField2"]
+    restart = Restart(dict(casedir='Results/', solution_names=solution_names))
+    restart_data = restart.get_restart_conditions()
+
+In this case, all :class:`SolutionField`-names will be ignored, and only restart conditions from fields
+named *MyField* and *MyField2* will be returned.
+
+
+Changing function spaces
+#########################################
+
+If you wish to restart the simulation using different function spaces, you can pass the function spaces
+to *get_restart_conditions*: ::
+
+    V = FunctionSpace(mesh, "CG", 3)
+    restart = Restart(dict(casedir='Results/'))
+    restart_data = restart.get_restart_conditions(spaces={"Temperature": V})
+
+.. todo:: Make this work for different meshes as well.
+"""
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
 
 #from cbcpost import PostProcessor
 #from cbcpost import SpacePool
-from cbcpost.utils import cbc_log
+from cbcpost.utils import cbc_log, Loadable, fetchable_formats
 
 
 import os, shelve, subprocess
@@ -13,32 +89,7 @@ from numpy import array, where, inf
 from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module
 from commands import getstatusoutput
 
-fetchable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
-
-class Loadable():
-    def __init__(self, filename, fieldname, timestep, time, saveformat, function):
-        self.filename = filename
-        self.fieldname = fieldname
-        self.timestep = timestep
-        self.time = time
-        self.saveformat = saveformat
-        self.function = function
-        
-        assert self.saveformat in fetchable_formats
-        
-    def __call__(self):
-        if self.saveformat == 'hdf5':
-            hdf5file = HDF5File(self.filename, 'r')
-            hdf5file.read(self.function, self.fieldname+str(self.timestep))
-            del hdf5file
-            return self.function
-        elif self.saveformat in ["xml", "xml.gz"]:
-            V = self.function.function_space()
-            self.function.assign(Function(V, self.filename))
-            return self.function
-        elif self.saveformat == "shelve":
-            shelvefile = shelve.open(self.filename)
-            return shelvefile[str(timestep)]
+#fetchable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
 
 def _create_function_from_metadata(pp, fieldname, metadata, saveformat):
     assert metadata['type'] == 'Function'
@@ -59,29 +110,13 @@ def _create_function_from_metadata(pp, fieldname, metadata, saveformat):
     # Get space from existing function spaces if mesh is the same
     spaces = SpacePool(mesh)
     space = spaces.get_custom_space(family, degree, shape)
-    """
-    # TODO: Verify that this check is good enough
-    if mesh.hash() != self._get_mesh().hash():
-        if mesh.hash() == self._get_boundarymesh().hash():
-            mesh = self._get_boundarymesh()
-        rank = len(shape)
-        if rank == 0:
-            space = FunctionSpace(mesh, family, degree)
-        elif rank == 1:
-            space = VectorFunctionSpace(mesh, family, degree)
-        elif rank == 2:
-            space = TensorFunctionSpace(mesh, family, degree)
-    else:
-        del mesh
-        space = self._get_spaces().get_space(degree, len(shape), family)
-    """
+
     return Function(space, name=fieldname)
 
 
 #def find_common_savetimes(play_log, fields):
 def find_solution_presence(pp, play_log, fields):
     #if fields == "default": fields = ["default"]
-    
     #common_keys = []
     present_solution = defaultdict(list)
     #times = defaultdict(float)
@@ -176,9 +211,9 @@ def find_restart_items(restart_times, present_solution):
             if len(upper) > 0 and upper[0] != lower[-1]: limits.append((present_times[upper[0]], sorted_ps[upper[0]]))
             
             loadables[restart_time][fieldname] = limits
-            print "*"*30
-            print upper
-            print lower
+            #print "*"*30
+            #print upper
+            #print lower
             #print limits   
             #else:
             #    upper = None
@@ -186,6 +221,7 @@ def find_restart_items(restart_times, present_solution):
             #print dir(upper[0])
     
     for k, v in loadables.items():
+        print k, v
         if k == inf:
             loadables.pop(k)
             new_k = v.values()[0][0][0]
@@ -215,7 +251,7 @@ class Restart(Parameterized):
                 #restart_timesteps=-1,
                 solution_names="default",
                 rollback_casedir=False,
-                interpolate=True,
+                #interpolate=True,
                 #dt=None,
             )
         return params
@@ -223,7 +259,7 @@ class Restart(Parameterized):
     #def get_restart_conditions(self, function_spaces="default", return_as_function=False, depth=1):
     def get_restart_conditions(self, function_spaces="default"):
         #import ipdb; ipdb.set_trace()
-        self._pp = PostProcessor(dict(casedir=self.params.casedir))
+        self._pp = PostProcessor(dict(casedir=self.params.casedir, clean_casedir=False))
         
         playlog = self._pp.get_playlog()
         #timesteps, times = find_common_savetimes(playlog, self.params.solution_names)

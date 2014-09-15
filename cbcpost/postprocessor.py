@@ -120,7 +120,7 @@ class PostProcessor(Parameterized):
             enable_timer=False,
             extrapolate=True,
             initial_dt=1e-5,
-            clean_casedir=True,
+            clean_casedir=False,
             )
         return params
     

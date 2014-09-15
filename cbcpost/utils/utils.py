@@ -101,6 +101,35 @@ def safe_mkdir(dir):
         #warning("FAILED TO CREATE DIRECTORY %s" % (dir,))
         Exception("FAILED TO CREATE DIRECTORY %s" % (dir,))
 
+
+fetchable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
+from dolfin import HDF5File, Function
+import shelve
+class Loadable():
+    def __init__(self, filename, fieldname, timestep, time, saveformat, function):
+        self.filename = filename
+        self.fieldname = fieldname
+        self.timestep = timestep
+        self.time = time
+        self.saveformat = saveformat
+        self.function = function
+        
+        assert self.saveformat in fetchable_formats
+        
+    def __call__(self):
+        if self.saveformat == 'hdf5':
+            hdf5file = HDF5File(self.filename, 'r')
+            hdf5file.read(self.function, self.fieldname+str(self.timestep))
+            del hdf5file
+            return self.function
+        elif self.saveformat in ["xml", "xml.gz"]:
+            V = self.function.function_space()
+            self.function.assign(Function(V, self.filename))
+            return self.function
+        elif self.saveformat == "shelve":
+            shelvefile = shelve.open(self.filename)
+            return shelvefile[str(self.timestep)]
+
 # --- Logging ---
 
 def cbc_warning(msg):

@@ -10,9 +10,8 @@ def test_imports():
         exec("from cbcpost import %s" %f)
     
     # Meta fields
-    metafields = ["Boundary", "BoundaryAvg", "DomainAvg", "ErrorNorm", "FlowRate","Magnitude", "Maximum",
-                  "Minimum", "Norm", "PointEval", "Restrict", "RunningAvg", "RunningL2norm",
-                  "RunningMax", "RunningMin", "SecondTimeDerivative", "SubFunction", "TimeAverage",
+    metafields = ["Boundary", "DomainAvg", "ErrorNorm", "Magnitude", "Maximum",
+                  "Minimum", "Norm", "PointEval", "Restrict", "SubFunction", "TimeAverage",
                   "TimeDerivative", "TimeIntegral"]
     for mf in metafields:
         exec("from cbcpost import %s" %mf)

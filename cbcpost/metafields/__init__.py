@@ -29,11 +29,9 @@ meta_fields = [
     "Restrict",
 
     # Spatial analysis of other fields
-    "FlowRate",
     "Norm",
     "ErrorNorm",
     "DomainAvg",
-    "BoundaryAvg",
     "Magnitude",
     "Minimum",
     "Maximum",
@@ -42,10 +40,5 @@ meta_fields = [
     "TimeIntegral",
     "TimeAverage",
     "TimeDerivative",
-    "SecondTimeDerivative",
-    "RunningAvg",
-    "RunningMin",
-    "RunningMax",
-    "RunningL2norm",
     ]
 

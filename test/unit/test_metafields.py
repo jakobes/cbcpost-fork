@@ -2,35 +2,21 @@
 """
 Tests of postprocessing framework in cbcflow.
 """
-
+from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField, MockScalarField
 from collections import defaultdict
 
-#from cbcflow import (ParamDict, NSProblem, NSPostProcessor, NSScheme,
-#    Field, Velocity, Pressure, VelocityGradient, Strain, Stress, WSS,
-#    TimeDerivative, SecondTimeDerivative, TimeIntegral)
-#from cbcflow.fields import *
-#from cbcflow.post import *
 from cbcpost import *
 from cbcpost.utils import cbc_warning
 
-#from cbcflow.core.parameterized import Parameterized
-#from cbcflow.core.paramdict import ParamDict
-
-#from cbcflow.utils.core import NSSpacePoolSplit
-#from cbcflow.utils.schemes import compute_regular_timesteps
-
 import pytest
 
-import dolfin
-dolfin.set_log_level(40)
-#from dolfin import (UnitSquareMesh, Function, Expression, norm, errornorm, assemble, dx,
-#                    interpolate, plot)
 from dolfin import *
 from math import sqrt
 from numpy.random import random
 from numpy import linspace
 
 # Avoid negative norms caused by instable tensor representation:
+import dolfin
 dolfin.parameters["form_compiler"]["representation"] = "quadrature"
 dolfin.parameters["form_compiler"]["quadrature_degree"] = 1
 
@@ -102,47 +88,6 @@ def compute_regular_timesteps(problem):
     #    cbc_warning("End time for simulation does not match end time set for problem (T-T0 not a multiple of dt).")
     
     return dt, timesteps, problem.params.start_timestep
-
-class MockFunctionField(Field):
-    def __init__(self, Q, params=None):
-        Field.__init__(self, params)
-        self.f = Function(Q)
-    
-    def before_first_compute(self, get):
-        t = get('t')
-        self.expr = Expression("1+x[0]*x[1]*t", t=t)
-        
-    def compute(self, get):
-        t = get('t')
-        self.expr.t = t
-        self.f.interpolate(self.expr)
-        return self.f
-
-class MockVectorFunctionField(Field):
-    def __init__(self, V, params=None):
-        Field.__init__(self, params)
-        self.f = Function(V)
-    
-    def before_first_compute(self, get):
-        t = get('t')
-
-        
-        D = self.f.function_space().mesh().geometry().dim()
-        if D == 2:
-            self.expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
-        elif D == 3:
-            self.expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
-        
-    def compute(self, get):
-        t = get('t')
-        self.expr.t = t
-        self.f.interpolate(self.expr)
-        return self.f
-     
-class MockTupleField(Field):
-    def compute(self, get):
-        t = get('t')
-        return (t, 3*t, 1+5*t)
 
 def test_TimeDerivative(problem, pp, start_time, end_time, dt):   
     # Setup some mock scheme state
@@ -527,7 +472,7 @@ def test_Norm(problem, pp, start_time, end_time, dt):
     assert abs(pp.get("Norm_l4_MockTupleField") - (t**4+(3*t)**4+(1+5*t)**4)**(0.25)) < 1e-14
     assert abs(pp.get("Norm_linf_MockTupleField") - (1+5*t)) < 1e-14
     
-    
+@pytest.mark.skipif(MPI.num_processes() != 1, reason="Currently not supported in parallel")    
 def test_PointEval(problem, pp, start_time, end_time, dt):   
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)

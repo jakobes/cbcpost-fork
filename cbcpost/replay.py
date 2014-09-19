@@ -23,13 +23,13 @@ from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
 from cbcpost.utils import cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata
 
 from dolfin import HDF5File, Mesh, Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh
-
+"""
 def print_replay_plan(plan):
     for timestep in sorted(plan.keys()):
         print timestep, plan[timestep].keys()
+"""
 
-
-def have_necessary_deps(solution, pp, field):   
+def have_necessary_deps(solution, pp, field):
     if field in solution:
         return True
     
@@ -199,7 +199,6 @@ class Replay(Parameterized):
             keys = self._check_field_coverage(replay_plan, fieldname)
             # Check timesteps covered by current field
             keys = self._check_field_coverage(replay_plan, fieldname)
-            print fieldname#, keys
             
             # Get the time dependency for the field
             t_dep = min([dep[1] for dep in self.postproc._dependencies[fieldname]]+[0])
@@ -295,7 +294,6 @@ class Replay(Parameterized):
             # Load solution at this timestep (all available fields)
             solution = replay_plan[timestep]
             t = solution.pop("t")
-            
             # Cycle through postprocessors and update if required
             for ppkeys, ppt_dep, pp in postprocessors:
                 if timestep in ppkeys:

@@ -433,14 +433,20 @@ class PostProcessor(Parameterized):
 
     def finalize_all(self):
         "Finalize all Fields after last timestep has been computed."
+        finalized = []
         for name in self._sorted_fields_keys:
             field = self._fields[name]
             if field.params.finalize and name not in self._finalized:
                 self.get(name, compute=False, finalize=True)
-                
-            #finalize_data = field.after_last_compute(self.get)
-            #if finalize_data is not None and field.params["save"]:
-            #    self._finalize_metadata_file(name, finalize_data)
+                finalized.append(field)
+        
+        t = self._cache[0].get("t", -1e16)
+        timestep = self._cache[0].get("timestep", -1e16)
+        
+        self._saver.update(t, timestep, self._cache[0], finalized)
+        self._plotter.update(t, timestep, self._cache[0], finalized)
+        MPI.barrier()
+
 
     def store_mesh(self, mesh, cell_domains=None, facet_domains=None):
         self._saver.store_mesh(mesh, cell_domains, facet_domains)

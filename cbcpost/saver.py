@@ -62,6 +62,7 @@ class Saver():
                     for f in ["mesh.hdf5", "play.db", "params.txt", "params.pickle"]:
                         if os.path.isfile(os.path.join(self.get_casedir(), f)):
                             os.remove(os.path.join(self.get_casedir(), f))
+        MPI.barrier()
 
     def _create_casedir(self):
         casedir = self._casedir
@@ -78,6 +79,7 @@ class Saver():
         safe_mkdir(savedir)
         return savedir
 
+    """
     def _init_metadata_file(self, field_name, init_data):
         savedir = self._create_savedir(field_name)
         if on_master_process():
@@ -85,7 +87,8 @@ class Saver():
             metadata_file = shelve.open(metadata_filename)
             metadata_file["init_data"] = init_data
             metadata_file.close()
-
+    """
+    """
     def _finalize_metadata_file(self, field_name, finalize_data):
         if on_master_process():
             savedir = self.get_savedir(field_name)
@@ -93,6 +96,7 @@ class Saver():
             metadata_file = shelve.open(metadata_filename)
             metadata_file["finalize_data"] = finalize_data
             metadata_file.close()
+    """
 
     def _update_metadata_file(self, field_name, data, t, timestep, save_as, metadata):
         if on_master_process():
@@ -319,7 +323,7 @@ class Saver():
         # TODO: We don't need to cache a distinct Function
         # object like we do for plotting, or?
         if isinstance(data, Function):
-            data.rename(field_name, "Function produced by cbcpostprocessing.")
+            data.rename(field_name, "Function produced by cbcpost.")
         
         # Get list of file formats
         save_as = self._get_save_formats(field, data)

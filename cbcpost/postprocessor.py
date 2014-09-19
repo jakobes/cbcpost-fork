@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 
-from dolfin import Function
+from dolfin import Function, MPI
 
 #from cbcpost.parameterized import Parameterized
 #from cbcpost.paramdict import ParamDict
@@ -44,7 +44,6 @@ class DependencyException(Exception):
             message += ["\nOriginal exception was: " + original_exception_msg]
         message = ' '.join(message)
         Exception.__init__(self, message)
-
 
 # Fields available through get(name) even though they have no Field class
 builtin_fields = ("t", "timestep")
@@ -398,7 +397,7 @@ class PostProcessor(Parameterized):
 
     def update_all(self, solution, t, timestep):
         "Updates cache, plan, play log and executes plan."
-
+        MPI.barrier()
         # TODO: Better design solution to making these variables accessible the right places?
         self._solution = solution
 
@@ -430,6 +429,7 @@ class PostProcessor(Parameterized):
         
         
         self._update_all_count += 1
+        MPI.barrier()
 
     def finalize_all(self):
         "Finalize all Fields after last timestep has been computed."
@@ -444,12 +444,14 @@ class PostProcessor(Parameterized):
 
     def store_mesh(self, mesh, cell_domains=None, facet_domains=None):
         self._saver.store_mesh(mesh, cell_domains, facet_domains)
+        MPI.barrier()
 
     def _clean_casedir(self):
         self._saver._clean_casedir()
 
     def store_params(self, params):
         self._saver.store_params(params)
+        MPI.barrier()
         
     def get_casedir(self):
         return self._saver.get_casedir()

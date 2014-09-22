@@ -3,7 +3,7 @@ from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField,
 import os, shelve
 
 
-def test_basic_restart(mesh, casedir):
+def test_basic_replay(mesh, casedir):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(1,0)
     V = spacepool.get_space(1,1)
@@ -55,7 +55,7 @@ def test_basic_restart(mesh, casedir):
     for name in rf_names:
         data = shelve.open(os.path.join(pp.get_savedir(name), name+".db"), 'r')
         for i in range(3):
-            assert data.get(str(i), None) == checks[i][name]
+            assert data.get(str(i), None) == checks[i][name] or abs(data.get(str(i), None) - checks[i][name]) < 1e-8
                     
     
     

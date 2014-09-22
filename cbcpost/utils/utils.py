@@ -62,22 +62,22 @@ class _HDF5Link:
         #include <hdf5.h>
         void link_dataset(const std::string hdf5_filename,
                                   const std::string link_from,
-                                  const std::string link_to)
+                                  const std::string link_to, bool use_mpiio)
         {
-            hid_t hdf5_file_id = HDF5Interface::open_file(hdf5_filename, "a", true);
-        
+            hid_t hdf5_file_id = HDF5Interface::open_file(hdf5_filename, "a", use_mpiio);
             herr_t status = H5Lcreate_hard(hdf5_file_id, link_from.c_str(), H5L_SAME_LOC,
                                 link_to.c_str(), H5P_DEFAULT, H5P_DEFAULT);
             dolfin_assert(status != HDF5_FAIL);
             
-            HDF5Interface::close_file(hdf5_file_id);        
+            HDF5Interface::close_file(hdf5_file_id);
         }
         '''
         
         self.cpp_link_module = compile_extension_module(cpp_link_code, additional_system_headers=["dolfin/io/HDF5Interface.h"])
     
     def link(self, hdf5filename, link_from, link_to):
-        self.cpp_link_module.link_dataset(hdf5filename, link_from, link_to)
+        use_mpiio = MPI.num_processes() > 1
+        self.cpp_link_module.link_dataset(hdf5filename, link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
 
 

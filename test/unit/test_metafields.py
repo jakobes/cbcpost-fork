@@ -6,7 +6,7 @@ from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField,
 from collections import defaultdict
 
 from cbcpost import *
-from cbcpost.utils import cbc_warning
+from cbcpost.utils import cbc_warning, create_submesh
 
 import pytest
 
@@ -56,10 +56,6 @@ def set_problem_params(request, problem):
 @pytest.fixture(scope="module")
 def spacepool(problem):
     #return NSSpacePoolSplit(problem.mesh, 1, 1)
-    return SpacePool(problem.mesh)
-
-@pytest.fixture(scope="module")
-def spacepool2(problem):
     return SpacePool(problem.mesh)
 
 @pytest.fixture(scope="function")
@@ -546,4 +542,278 @@ def test_PointEval(problem, pp, start_time, end_time, dt):
             x,y,z = p
             assert abs( pevalfunction[i] - (1+x*y*t) ) < 1e-10
             assert sum( abs( pevalvectorfunction[i][k] - (1+x*t, 3+y*t, 10+z*t)[k]) for k in range(D)) < 1e-10
+
+def test_ErrorNorm(problem, pp, start_time, end_time, dt):
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    spacepool = SpacePool(problem.mesh)
+    Q = spacepool.get_space(1,0)
+    V = spacepool.get_space(1,1)
+    
+    class MockFunctionField2(MockFunctionField):
+        def before_first_compute(self, get):
+            t = get('t')
+            self.expr = Expression("1+x[0]*x[1]*t+0.4", t=t)
+    
+    class MockVectorFunctionField2(MockVectorFunctionField):
+        def before_first_compute(self, get):
+            t = get('t')
+
+            D = self.f.function_space().mesh().geometry().dim()
+            if D == 2:
+                self.expr = Expression(("1+x[0]*t+0.2", "3+x[1]*t+0.3"), t=t)
+            elif D == 3:
+                self.expr = Expression(("1+x[0]*t+0.2", "3+x[1]*t+0.3", "10+x[2]*t+0.4"), t=t)
+    
+    class MockTupleField2(MockTupleField):
+        def compute(self, get):
+            return (t+0.2, 3*t+0.3, 1+5*t+0.4)
+        
+    class MockScalarField2(MockScalarField):
+        def compute(self, get):
+            t = get('t')
+            return 3*t**0.5+0.3
+    
+    pp.add_fields([
+        MockFunctionField(Q),
+        MockVectorFunctionField(V),
+        MockTupleField(),
+        MockScalarField(),
+    ])
+    
+    pp.add_fields([
+        MockFunctionField2(Q),
+        MockVectorFunctionField2(V),
+        MockTupleField2(),
+        MockScalarField2(),
+    ])
+    
+    pp.add_fields([
+        ErrorNorm("MockFunctionField", "MockFunctionField2"),
+        ErrorNorm("MockVectorFunctionField", "MockVectorFunctionField2"),
+        ErrorNorm("MockTupleField", "MockTupleField2"),
+        ErrorNorm("MockScalarField", "MockScalarField2"),       
+    ])
+    
+    D = problem.D
+    # Update postprocessor for a number of timesteps, this is where the main code under test is
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+        if start_time < t < end_time:
+            assert abs(pp.get("ErrorNorm_MockFunctionField_MockFunctionField2") - \
+                       norm(interpolate(Expression("0.4"), Q))) < 1e-8
+
+            assert abs(pp.get("ErrorNorm_MockVectorFunctionField_MockVectorFunctionField2") - \
+                       norm(interpolate(Expression(["0.2", "0.3", "0.4"][:D]), V))) < 1e-8
+
+            assert abs(pp.get("ErrorNorm_MockTupleField_MockTupleField2") - \
+                       sum([0.2**2, 0.3**2, 0.4**2])**0.5) < 1e-8
+           
+            assert abs(pp.get("ErrorNorm_MockScalarField_MockScalarField2")-0.3) < 1e-8
+    
+    pp.finalize_all()
+    
+    assert abs(pp.get("ErrorNorm_MockFunctionField_MockFunctionField2") - \
+                       norm(interpolate(Expression("0.4"), Q))) < 1e-8
+
+    assert abs(pp.get("ErrorNorm_MockVectorFunctionField_MockVectorFunctionField2") - \
+               norm(interpolate(Expression(["0.2", "0.3", "0.4"][:D]), V))) < 1e-8
+
+    assert abs(pp.get("ErrorNorm_MockTupleField_MockTupleField2") - \
+               sum([0.2**2, 0.3**2, 0.4**2])**0.5) < 1e-8
+   
+    assert abs(pp.get("ErrorNorm_MockScalarField_MockScalarField2")-0.3) < 1e-8
+
+def test_Boundary(problem, pp, start_time, end_time, dt):
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    spacepool = SpacePool(problem.mesh)
+    Q = spacepool.get_space(1,0)
+    V = spacepool.get_space(1,1)
+    
+    bmesh = BoundaryMesh(problem.mesh, "exterior")
+    bspacepool = SpacePool(bmesh)
+    Qb = bspacepool.get_space(1,0)
+    Vb = bspacepool.get_space(1,1)
+    
+    
+    pp.add_fields([
+        MockFunctionField(Q),
+        MockVectorFunctionField(V),
+    ])
+
+    pp.add_fields([
+        Boundary("MockFunctionField"),
+        Boundary("MockVectorFunctionField"),
+        ])
+    D = problem.D
+
+     # Update postprocessor for a number of timesteps, this is where the main code under test is
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+        if start_time < t < end_time:
+            assert errornorm(
+                    pp.get("Boundary_MockFunctionField"),
+                    interpolate(Expression("1+x[0]*x[1]*t", t=t), Qb)
+            ) < 1e-8
+            
+            if D == 2:
+                assert errornorm(
+                    pp.get("Boundary_MockVectorFunctionField"),
+                    interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), Vb)
+                ) < 1e-8
+            else:
+                assert errornorm(
+                    pp.get("Boundary_MockVectorFunctionField"),
+                    interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), Vb)
+                ) < 1e-8
+                
+    pp.finalize_all()
+    assert errornorm(
+             pp.get("Boundary_MockFunctionField"),
+             interpolate(Expression("1+x[0]*x[1]*t", t=end_time), Qb)
+        ) < 1e-8
+     
+    if D == 2:
+        assert errornorm(
+            pp.get("Boundary_MockVectorFunctionField"),
+            interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=end_time), Vb)
+        ) < 1e-8
+    else:
+        assert errornorm(
+            pp.get("Boundary_MockVectorFunctionField"),
+            interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=end_time), Vb)
+        ) < 1e-8
+
+def test_DomainAvg(problem, pp, start_time, end_time, dt):
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    mesh = problem.mesh
+    spacepool = SpacePool(mesh)
+    Q = spacepool.get_space(2,0)
+    V = spacepool.get_space(2,1)
+    D = V.num_sub_spaces()
+    
+    pp.add_fields([
+        MockFunctionField(Q),
+        MockVectorFunctionField(V),
+        MockTupleField(),
+    ])
+    
+    
+    measures = []
+    facet_domains = FacetFunction("size_t", problem.mesh)
+    facet_domains.set_all(0)
+    cell_domains = CellFunction("size_t", problem.mesh)
+    cell_domains.set_all(0)
+    
+    subdomains = AutoSubDomain(lambda x: x[0]<0.5)
+    subdomains.mark(facet_domains, 1)
+    subdomains.mark(cell_domains, 1)
+    
+    measures = [dict(),
+                dict(measure=ds),
+                dict(cell_domains=cell_domains, indicator=0),
+                dict(cell_domains=cell_domains, indicator=1),
+                dict(facet_domains=facet_domains, indicator=0),
+                dict(facet_domains=facet_domains, indicator=1),]
+    
+    for m in measures:
+        pp.add_field(DomainAvg("MockFunctionField", **m))
+        pp.add_field(DomainAvg("MockVectorFunctionField", **m))
+    
+    
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+
+        v = assemble(Constant(1)*dx, mesh=mesh)
+        v_dx0 = assemble(Constant(1)*dx(0), mesh=mesh, cell_domains=cell_domains)
+        v_dx1 = assemble(Constant(1)*dx(1), mesh=mesh, cell_domains=cell_domains)
+        v_ds = assemble(Constant(1)*ds, mesh=mesh)
+        v_ds0 = assemble(Constant(1)*ds(0), mesh=mesh, exterior_facet_domains=facet_domains)
+        v_ds1 = assemble(Constant(1)*ds(1), mesh=mesh, exterior_facet_domains=facet_domains)
+        
+        u = pp.get("MockFunctionField")
+        uv = pp.get("MockVectorFunctionField")
+        
+        val = assemble(u*dx)/v
+        val_dx0 = assemble(u*dx(0), cell_domains=cell_domains)/v_dx0
+        val_dx1 = assemble(u*dx(1), cell_domains=cell_domains)/v_dx1
+        
+        val_ds = assemble(u*ds)/v_ds
+        val_ds0 = assemble(u*ds(0), exterior_facet_domains=facet_domains)/v_ds0
+        val_ds1 = assemble(u*ds(1), exterior_facet_domains=facet_domains)/v_ds1
+        
+        assert abs(pp.get("DomainAvg_MockFunctionField") - val) < 1e-8
+        assert abs(pp.get("DomainAvg_MockFunctionField-dx0") - val_dx0) < 1e-8
+        assert abs(pp.get("DomainAvg_MockFunctionField-dx1") - val_dx1) < 1e-8
+        assert abs(pp.get("DomainAvg_MockFunctionField-ds") - val_ds) < 1e-8
+        assert abs(pp.get("DomainAvg_MockFunctionField-ds0") - val_ds0) < 1e-8
+        assert abs(pp.get("DomainAvg_MockFunctionField-ds1") - val_ds1) < 1e-8
+        
+        val = [assemble(uv[i]*dx)/v for i in xrange(D)]
+        val_dx0 = [assemble(uv[i]*dx(0), cell_domains=cell_domains)/v_dx0 for i in xrange(D)]
+        val_dx1 = [assemble(uv[i]*dx(1), cell_domains=cell_domains)/v_dx1 for i in xrange(D)]
+        
+        val_ds = [assemble(uv[i]*ds)/v_ds for i in xrange(D)]
+        val_ds0 = [assemble(uv[i]*ds(0), exterior_facet_domains=facet_domains)/v_ds0 for i in xrange(D)]
+        val_ds1 = [assemble(uv[i]*ds(1), exterior_facet_domains=facet_domains)/v_ds1 for i in xrange(D)]
+        
+        assert max(abs(x-y) for x,y in zip(val, pp.get("DomainAvg_MockVectorFunctionField"))) < 1e-8
+        assert max(abs(x-y) for x,y in zip(val_dx0, pp.get("DomainAvg_MockVectorFunctionField-dx0"))) < 1e-8
+        assert max(abs(x-y) for x,y in zip(val_dx1, pp.get("DomainAvg_MockVectorFunctionField-dx1"))) < 1e-8
+        
+        assert max(abs(x-y) for x,y in zip(val_ds, pp.get("DomainAvg_MockVectorFunctionField-ds"))) < 1e-8
+        assert max(abs(x-y) for x,y in zip(val_ds0, pp.get("DomainAvg_MockVectorFunctionField-ds0"))) < 1e-8
+        assert max(abs(x-y) for x,y in zip(val_ds1, pp.get("DomainAvg_MockVectorFunctionField-ds1"))) < 1e-8
+
+def test_Restrict(problem, pp, start_time, end_time, dt):
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    mesh = problem.mesh
+    spacepool = SpacePool(mesh)
+    Q = spacepool.get_space(2,0)
+    V = spacepool.get_space(2,1)
+    D = V.num_sub_spaces()
+    #if D == 3:
+    #    return
+    
+    pp.add_fields([
+        MockFunctionField(Q),
+        MockVectorFunctionField(V),
+    ])
+    
+    
+    measures = []
+    cell_domains = CellFunction("size_t", problem.mesh)
+    cell_domains.set_all(0)
+    subdomains = AutoSubDomain(lambda x: x[0]<0.5)
+    subdomains.mark(cell_domains, 1)
+    MPI.barrier()
+    submesh = create_submesh(mesh, cell_domains, 1)
+    return
+    
+    pp.add_fields([
+        Restrict("MockFunctionField", submesh),
+        Restrict("MockVectorFunctionField", submesh),
+    ])
+    
+    
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+        
+        assert abs(assemble(pp.get("MockFunctionField")*dx(1), cell_domains=cell_domains) - \
+                   assemble(pp.get("Restrict_MockFunctionField")*dx)) < 1e-8
+        
+        uv = pp.get("MockVectorFunctionField")
+        uvr = pp.get("Restrict_MockVectorFunctionField")
+        assert abs(assemble(inner(uv,uv)*dx(1), cell_domains=cell_domains) - assemble(inner(uvr, uvr)*dx)) < 1e-8
+
+def test_SubFunction(problem, pp, start_time, end_time, dt):
+    pass
+
 

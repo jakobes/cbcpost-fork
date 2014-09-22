@@ -26,7 +26,7 @@ The :math:'\infty'-norm is computed as
 
 '''
 from cbcpost.fieldbases.MetaField2 import MetaField2
-from dolfin import Function, Vector, norm
+from dolfin import Function, Vector, errornorm
 
 class ErrorNorm(MetaField2):
     @classmethod
@@ -34,7 +34,7 @@ class ErrorNorm(MetaField2):
         params = MetaField2.default_params()
         params.update(
             norm_type='default',
-            degree_rise='3',
+            degree_rise=3,
             )
         return params
     """

@@ -23,9 +23,12 @@ from dolfin import MPI
 def restriction_map(V, Vb):
     "Return a map between dofs in Vb to dofs in V. Vb's mesh should be a submesh of V's Mesh."
     
+    if V.ufl_element().family() == "Discontinuous Lagrange" and V.ufl_element().degree > 0:
+        raise RuntimeError("This function does not work for DG-spaces of degree >0 \
+                           (several dofs associated with same point in same subspace).")
+    
     if V.ufl_element().family() != "Lagrange":
-        cbc_warning("This function is only tested for CG-spaces. \
-                        Will not work if several dofs are associated with same point (e.g. DG-spaces).")
+        cbc_warning("This function is only tested for CG-spaces.")
     
     assert V.ufl_element() == Vb.ufl_element(), "ufl elements differ in the two spaces"
     
@@ -38,6 +41,8 @@ def restriction_map(V, Vb):
 
         return mapping
     
+    D = V.mesh().geometry().dim()
+    
     dm = V.dofmap()
     dmb = Vb.dofmap()
     
@@ -48,11 +53,11 @@ def restriction_map(V, Vb):
     
     # Extract coordinates of dofs
     if dm.is_view():
-        coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, 3)
-        coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,3)
+        coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
+        coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
     else:
-        coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, 3)
-        coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,3)
+        coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
+        coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
     
     # Build KDTree to compute distances from coordinates in base
     kdtree = KDTree(coords)
@@ -85,7 +90,7 @@ def restriction_map(V, Vb):
     all_request_dofs[MPI.process_number()] = []
     all_request_dofs = np.hstack(all_request_dofs)
     
-    all_request_dofs = all_request_dofs.reshape(len(all_request_dofs)/4, 4)
+    all_request_dofs = all_request_dofs.reshape(len(all_request_dofs)/(D+1), D+1)
     all_request_dofs = dict(zip(all_request_dofs[:,0], all_request_dofs[:,1:]))
 
     # Search this process for all dofs not found on same process as subdof
@@ -104,7 +109,7 @@ def restriction_map(V, Vb):
         
 if __name__ == '__main__':
     from dolfin import *
-    N = 8
+    N = 4
     mesh = UnitCubeMesh(N,N,N)
     
     class Left(SubDomain):
@@ -125,8 +130,8 @@ if __name__ == '__main__':
     
     #print bmesh2.size_global(0)
     #print bmesh2.size_global(2)
-    V = FunctionSpace(mesh, "CG", 2)
-    Vb = FunctionSpace(mesh2, "CG", 2)
+    V = FunctionSpace(mesh, "CG", 1)
+    Vb = FunctionSpace(mesh2, "CG", 1)
     
     tic()
     mapping = restriction_map(V, Vb)

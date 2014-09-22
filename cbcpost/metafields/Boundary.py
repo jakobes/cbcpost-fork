@@ -30,7 +30,9 @@ class Boundary(MetaField):
         FS = u.function_space()
         
         spaces = SpacePool(FS.mesh())
-        FS_boundary = spaces.get_space(FS.ufl_element().degree(), FS.num_sub_spaces(), boundary=True)
+        element = FS.ufl_element()
+        #FS_boundary = spaces.get_space(FS.ufl_element().degree(), FS.num_sub_spaces(), boundary=True)
+        FS_boundary = spaces.get_custom_space(element.family(), element.degree(), element.value_shape(), boundary=True)
         
         local_dofmapping = mesh_to_boundarymesh_dofmap(spaces.BoundaryMesh, FS, FS_boundary)
         self._keys = local_dofmapping.keys()

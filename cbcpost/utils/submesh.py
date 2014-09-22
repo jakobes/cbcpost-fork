@@ -126,69 +126,56 @@ def create_submesh(mesh, markers, marker):
         
         
 if __name__ == '__main__':
-    from dolfin import (UnitCubeMesh, BoundaryMesh, MeshFunction, FunctionSpace, SubMesh,
-                        Expression, project, File, SubDomain, dx, assemble, Constant)
+    from dolfin import (UnitCubeMesh, UnitSquareMesh, BoundaryMesh, MeshFunction, FunctionSpace, SubMesh,
+                        Expression, project, File, SubDomain, dx, assemble, Constant, CellFunction, AutoSubDomain)
     #mesh = UnitCubeMesh(3,1,1)
-    N = 16
-    mesh = UnitCubeMesh(N,N,N)
-    #print mesh.num_cells()
-    #exit()
-    mesh = BoundaryMesh(mesh, "exterior")
-    #mesh = UnitSquareMesh(4,4)
-    mf = MeshFunction("size_t", mesh, mesh.ufl_cell().topological_dimension())
-    mf.set_all(0)
+    #N = 16
+    #mesh = UnitCubeMesh(N,N,N)
+    #for mesh in [UnitCubeMesh(6,6,6), UnitSquareMesh(8,8)]:
+    #for mesh in [UnitCubeMesh(6,6,6)]:
+    #for mesh in [UnitSquareMesh(8,8)]:
+    for mesh in [UnitSquareMesh(8,8),UnitCubeMesh(6,6,6)]:
+        #print mesh.num_cells()
+        #exit()
+        #mesh = BoundaryMesh(mesh, "exterior")
     
-    class Left(SubDomain):
-        def inside(self, x, on_boundary):
-            return x[0] < 0.4
+        #mf = MeshFunction("size_t", mesh, mesh.ufl_cell().topological_dimension())
+        #mf.set_all(0)
         
-    Left().mark(mf, 1)
-    #plot(mf)
-    #interactive()
-    #tic()
-    
-    
-    #tic()
-    if MPI.num_processes() == 1:
-        submesh = SubMesh(mesh, mf, 1)
-    else:
-        submesh = create_submesh(mesh, mf, 1)
-    #print "toc: ", toc()
-    #exit()
-    #print submesh
-    #plot(submesh)
-    #interactive()
-    
-    #print "Num vertices: ", submesh.size_global(0)
-    #print "Num cells: ", submesh.size_global(3)
-    
-    #print submesh.topology().shared_entities(0)
-    
-    #File("submesh.xdmf") << submesh
-    
-    
-    V = FunctionSpace(submesh, "CG", 2)
-    expr = Expression("x[0]*x[1]*x[1]+4*x[2]")
-    u = project(expr, V)
-    
-    MPI.barrier()
-    
-    
-    #print "hei: ", assemble(u*dx), "(0.685185185185)"
-    #print "Num vertices: ", submesh.size_global(0)
-    #print "Num cells: ", submesh.size_global(3)
-    
-    s0 = submesh.size_global(0)
-    s3 = submesh.size_global(submesh.ufl_cell().topological_dimension())
-    a = assemble(u*dx)
-    v = assemble(Constant(1)*dx, mesh=submesh)
-    if MPI.process_number() == 0:
-        print "Num vertices: ", s0
-        print "Num cells: ", s3
-        print "assemble(u*dx): ", a
-        print "Volume: ", v
-    #u = Function(V)
-    File("u.pvd") << u
+        #class Left(SubDomain):
+        #    def inside(self, x, on_boundary):
+        #        return x[0] < 0.4
+            
+        #Left().mark(mf, 1)
+        cell_domains = CellFunction("size_t", mesh)
+        cell_domains.set_all(0)
+        subdomains = AutoSubDomain(lambda x: x[0]<0.5)
+        subdomains.mark(cell_domains, 1)
+        
+        if MPI.num_processes() == 1:
+            submesh = SubMesh(mesh, cell_domains, 1)
+        else:
+            submesh = create_submesh(mesh, cell_domains, 1)
+        
+        #MPI.barrier()
+        #continue
+        V = FunctionSpace(submesh, "CG", 2)
+        expr = Expression("x[0]*x[1]*x[1]+4*x[2]")
+        u = project(expr, V)
+        
+        MPI.barrier()
+        
+        s0 = submesh.size_global(0)
+        s3 = submesh.size_global(submesh.ufl_cell().topological_dimension())
+        a = assemble(u*dx)
+        v = assemble(Constant(1)*dx, mesh=submesh)
+        if MPI.process_number() == 0:
+            print "Num vertices: ", s0
+            print "Num cells: ", s3
+            print "assemble(u*dx): ", a
+            print "Volume: ", v
+        #u = Function(V)
+    #File("u.pvd") << u
     
     
     

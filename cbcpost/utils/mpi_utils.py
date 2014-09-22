@@ -57,7 +57,8 @@ def distribution(number):
             int num_processes = dolfin::MPI::num_processes();
             int this_process = dolfin::MPI::process_number();
             
-            static std::vector<uint> distribution(num_processes);
+            //static std::vector<uint> distribution(num_processes);
+            std::vector<uint> distribution(num_processes);
         
             for(uint i=0; i<num_processes; i++) {
                 if(i==this_process) {
@@ -83,9 +84,11 @@ def gather(array, on_process=0, flatten=False):
         {
             int this_process = dolfin::MPI::process_number();
     
-            static std::vector< std::vector<double> > outvector(dolfin::MPI::num_processes());
+            //static std::vector< std::vector<double> > outvector(dolfin::MPI::num_processes());
+            //static std::vector<double> invector(inarray.size());
+            std::vector< std::vector<double> > outvector(dolfin::MPI::num_processes());
+            std::vector<double> invector(inarray.size());
             
-            static std::vector<double> invector(inarray.size());
             
             for(int i=0; i<inarray.size(); i++)
             {

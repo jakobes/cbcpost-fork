@@ -778,14 +778,11 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
     Q = spacepool.get_space(2,0)
     V = spacepool.get_space(2,1)
     D = V.num_sub_spaces()
-    #if D == 3:
-    #    return
-    
+
     pp.add_fields([
         MockFunctionField(Q),
         MockVectorFunctionField(V),
     ])
-    
     
     measures = []
     cell_domains = CellFunction("size_t", problem.mesh)
@@ -794,7 +791,6 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
     subdomains.mark(cell_domains, 1)
     MPI.barrier()
     submesh = create_submesh(mesh, cell_domains, 1)
-    return
     
     pp.add_fields([
         Restrict("MockFunctionField", submesh),

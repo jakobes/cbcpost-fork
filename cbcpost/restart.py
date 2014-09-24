@@ -76,14 +76,14 @@ to *get_restart_conditions*: ::
 .. todo:: Make this work for different meshes as well.
 """
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-from cbcpost.utils import cbc_log, Loadable, loadable_formats, create_function_from_metadata
+from cbcpost.utils import cbc_log, Loadable, loadable_formats, create_function_from_metadata, cbc_warning, on_master_process
 
 
 import os, shelve, subprocess
 from collections import Iterable, defaultdict
 from numpy import array, where, inf
 
-from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module
+from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module, MPI, parameters
 from commands import getstatusoutput
 
 def find_solution_presence(pp, play_log, fields):
@@ -106,7 +106,6 @@ def find_solution_presence(pp, play_log, fields):
                 is_present = True
 
             metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
-
             if is_present:
                 function = None
                 if 'hdf5' in data["fields"][fieldname]["save_as"]:
@@ -117,14 +116,14 @@ def find_solution_presence(pp, play_log, fields):
 
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'hdf5', function))
                 elif 'xml' in data["fields"][fieldname]["save_as"]:
-                    filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.xml')
+                    filename = os.path.join(pp.get_savedir(fieldname), fieldname+str(ts)+'.xml')
                     
                     if fieldname in functions: function = functions[fieldname]
                     else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml'))
                     
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'xml', function))
                 elif 'xml.gz' in data["fields"][fieldname]["save_as"]:
-                    filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.xml.gz')
+                    filename = os.path.join(pp.get_savedir(fieldname), fieldname+str(ts)+'.xml.gz')
                     
                     if fieldname in functions: function = functions[fieldname]
                     else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml.gz'))
@@ -159,7 +158,7 @@ def find_restart_items(restart_times, present_solution):
             if len(upper) > 0 and upper[0] != lower[-1]: limits.append((present_times[upper[0]], sorted_ps[upper[0]]))
             
             loadables[restart_time][fieldname] = limits
-    
+
     for k, v in loadables.items():
 
         if k == inf:
@@ -190,6 +189,8 @@ class Restart(Parameterized):
         self._pp = PostProcessor(dict(casedir=self.params.casedir, clean_casedir=False))
         
         playlog = self._pp.get_playlog()
+        assert playlog != {}, "Playlog is empty! Unable to find restart data."
+        
         loadable_solutions = find_solution_presence(self._pp, playlog, self.params.solution_names)
         loadables = find_restart_items(self.params.restart_times, loadable_solutions)
         
@@ -215,19 +216,44 @@ class Restart(Parameterized):
                         t1, Lt1 = loadables[t][solution_name][1]
                         
                         assert t0 <= t <= t1
-                        
-                        f = Function(Lt0())
-
-                        df = Lt1().vector()
-                        df.axpy(-1.0, f.vector())
-                        f.vector().axpy((t-t0)/(t1-t0), df)
-                        
-                    space = spaces[solution_name]
-                    if space != f.function_space():
-                        try:
-                            f = interpolate(f, space)
-                        except:
-                            f = project(f, space)
+                        if Lt0.function != None:
+                            
+                            # The copy-function raise a PETSc-error in parallel
+                            #f = Function(Lt0())
+                            f0 = Lt0()
+                            f = Function(f0.function_space())
+                            f.vector().axpy(1.0, f0.vector())
+                            del f0
+    
+                            df = Lt1().vector()
+                            df.axpy(-1.0, f.vector())
+                            f.vector().axpy((t-t0)/(t1-t0), df)
+                        else:
+                            f0 = Lt0()
+                            f1 = Lt1()
+                            datatype = type(f0)
+                            if not issubclass(datatype, Iterable):
+                                f0 = [f0]; f1 = [f1]
+                            
+                            f = []
+                            for _f0, _f1 in zip(f0, f1):
+                                val = _f0 + (t-t0)/(t1-t0)*(_f1-_f0)
+                                f.append(val)
+                            
+                            if not issubclass(datatype, Iterable):
+                                f = f[0]
+                            else:
+                                f = datatype(f)
+                     
+                    if solution_name in spaces:
+                        space = spaces[solution_name]
+                        if space != f.function_space():
+                            #from fenicstools import interpolate_nonmatching_mesh
+                            #f = interpolate_nonmatching_mesh(f, space)
+                            try:
+                                f = interpolate(f, space)
+                            except:
+                                f = project(f, space)
                         
                     functions[t][solution_name] = f
 
@@ -236,12 +262,16 @@ class Restart(Parameterized):
         if function_spaces == "default":
             function_spaces = {}
             for fieldname in loadables.values()[0]:
-                function_spaces[fieldname] = loadables.values()[0][fieldname][0][1].function.function_space()
-               
-        result = restart_conditions(function_spaces, loadables)
+                try:
+                    function_spaces[fieldname] = loadables.values()[0][fieldname][0][1].function.function_space()
+                except AttributeError:
+                    # This was not a function field
+                    pass
         
+        result = restart_conditions(function_spaces, loadables)
+
         ts = 0
-        while playlog[str(ts)]["t"] < max(loadables):
+        while playlog[str(ts)]["t"] < max(loadables)-1e-14:
             ts += 1
         self.restart_timestep = ts
         if self.params.rollback_casedir:
@@ -257,7 +287,7 @@ class Restart(Parameterized):
         for k,v in play_log.items():
             if int(k) >= restart_timestep:
                 play_log_to_remove[k] = play_log.pop(k)
-
+        
         all_fields_to_clean = []
                 
         for k,v in play_log_to_remove.items():
@@ -279,7 +309,7 @@ class Restart(Parameterized):
                 k = int(k)
             except:
                 continue
-            if k > restart_timestep:
+            if k >= restart_timestep:
                 metadata_to_remove[str(k)] = metadata.pop(str(k))
 
         # Remove files and data for all save formats
@@ -319,22 +349,36 @@ class Restart(Parameterized):
                 cpp_module.delete_from_hdf5_file(hdf5filename, v['hdf5']['dataset'])
         hdf5tmpfilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+'_tmp.hdf5')
         #import ipdb; ipdb.set_trace()
-        status, result = getstatusoutput("h5repack -V")
-        if status != 0:
-            cbc_warning("Unable to run h5repack. Will not repack hdf5-files before replay, which may cause bloated hdf5-files.")
-        else:
-            subprocess.call("h5repack %s %s" %(hdf5filename, hdf5tmpfilename), shell=True)
-            os.remove(hdf5filename)
-            os.rename(hdf5tmpfilename, hdf5filename)
-        
+        if on_master_process():
+            status, result = getstatusoutput("h5repack -V")
+            if status != 0:
+                cbc_warning("Unable to run h5repack. Will not repack hdf5-files before replay, which may cause bloated hdf5-files.")
+            else:
+                subprocess.call("h5repack %s %s" %(hdf5filename, hdf5tmpfilename), shell=True)
+                os.remove(hdf5filename)
+                os.rename(hdf5tmpfilename, hdf5filename)
+        MPI.barrier()
         
     def _clean_files(self, fieldname, del_metadata):
         for k, v in del_metadata.items():
+            for i in v.values():
+                try:
+                    i["filename"]
+                except:
+                    continue
+                
+                fullpath = os.path.join(self._pp.get_savedir(fieldname), i['filename'])
+                if on_master_process():
+                    os.remove(fullpath)
+                MPI.barrier()
+            """
+            #print k,v
             if not 'filename' in v:
                 continue
             else:
                 fullpath = os.path.join(self.postprocesor.get_savedir(fieldname), v['filename'])
                 os.remove(fullpath)
+            """
 
     def _clean_txt(self, fieldname, del_metadata):
         txtfilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".txt")
@@ -355,12 +399,13 @@ class Restart(Parameterized):
         shelvefilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".db")
         if not os.path.isfile(shelvefilename):
             return
-        
-        shelvefile = shelve.open(shelvefilename, 'c')
-        for k,v in del_metadata.items():
-            if 'shelve' in v:
-                shelvefile.pop(str(k))
-        shelvefile.close()
+        if on_master_process():           
+            shelvefile = shelve.open(shelvefilename, 'c')
+            for k,v in del_metadata.items():
+                if 'shelve' in v:
+                    shelvefile.pop(str(k))
+            shelvefile.close()
+        MPI.barrier()
     
     def _clean_xdmf(self, fieldname, del_metadata):
         basename = os.path.join(self._pp.get_savedir(fieldname), fieldname)
@@ -375,14 +420,16 @@ class Restart(Parameterized):
         
         xdmf_filename = basename+"_RS"+str(i)+".xdmf"
         
-        os.rename(basename+".h5", h5_filename)
-        os.rename(basename+".xdmf", xdmf_filename)
-        
-        f = open(xdmf_filename, 'r').read()
-        
-        new_f = open(xdmf_filename, 'w')
-        new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
-        new_f.close()
+        if on_master_process():
+            os.rename(basename+".h5", h5_filename)
+            os.rename(basename+".xdmf", xdmf_filename)
+            
+            f = open(xdmf_filename, 'r').read()
+            
+            new_f = open(xdmf_filename, 'w')
+            new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
+            new_f.close()
+        MPI.barrier()
     
     def _clean_pvd(self, fieldname, del_metadata):
         if os.path.isfile(os.path.join(self._pp.get_savedir(fieldname), fieldname+'.pvd')):

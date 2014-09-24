@@ -809,7 +809,43 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
         uvr = pp.get("Restrict_MockVectorFunctionField")
         assert abs(assemble(inner(uv,uv)*dx(1), cell_domains=cell_domains) - assemble(inner(uvr, uvr)*dx)) < 1e-8
 
+@pytest.mark.skipif(MPI.num_processes() != 1, reason="Currently not supported in parallel")    
 def test_SubFunction(problem, pp, start_time, end_time, dt):
-    pass
-
-
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    mesh = problem.mesh
+    spacepool = SpacePool(mesh)
+    Q = spacepool.get_space(2,0)
+    V = spacepool.get_space(2,1)
+    
+    mff = MockFunctionField(Q)
+    mvff = MockVectorFunctionField(V)
+    
+    pp.add_fields([mff, mvff])
+    
+    D = mesh.geometry().dim()
+    
+    if D == 3:
+        submesh = UnitCubeMesh(6,6,6)
+    elif D == 2:
+        submesh = UnitSquareMesh(8,8)
+    submesh.coordinates()[:] /= 2.0
+    submesh.coordinates()[:] += 0.2
+    
+    Q_sub = FunctionSpace(submesh, "CG", 2)
+    V_sub = VectorFunctionSpace(submesh, "CG", 2)
+    
+    pp.add_fields([
+        SubFunction("MockFunctionField", submesh),
+        SubFunction("MockVectorFunctionField", submesh),
+    ])
+    
+    
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+        #assert errornorm(interpolate(mff.expr, Q_sub), pp.get("SubFunction_MockFunctionField"), degree_rise=0) < 1e-8
+        #assert errornorm(interpolate(mvff.expr, V_sub), pp.get("SubFunction_MockVectorFunctionField"), degree_rise=0) < 1e-8
+        assert abs(norm(interpolate(mff.expr, Q_sub)) - norm(pp.get("SubFunction_MockFunctionField"))) < 1e-8
+        assert abs(norm(interpolate(mvff.expr, V_sub)) - norm(pp.get("SubFunction_MockVectorFunctionField"))) < 1e-8
+        

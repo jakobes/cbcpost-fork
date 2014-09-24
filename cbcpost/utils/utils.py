@@ -140,7 +140,7 @@ from cbcpost import SpacePool
 def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     "Create a function from metadata"
     assert metadata['type'] == 'Function'
-    
+
     # Load mesh
     if saveformat == 'hdf5':    
         mesh = Mesh()
@@ -148,8 +148,11 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
         hdf5file.read(mesh, "Mesh")
         del hdf5file
     elif saveformat == 'xml' or saveformat == 'xml.gz':
-        mesh = Mesh(os.path.join(self.postproc.get_casedir(), fieldname, "mesh."+saveformat))
-    
+        mesh = Mesh()
+        hdf5file = HDF5File(os.path.join(pp.get_savedir(fieldname), "mesh.hdf5"), 'r')
+        hdf5file.read(mesh, "Mesh")
+        del hdf5file
+
     shape = eval(metadata["element_value_shape"])
     degree = eval(metadata["element_degree"])
     family = eval(metadata["element_family"])

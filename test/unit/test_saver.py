@@ -130,6 +130,7 @@ def test_xml_save(mesh, casedir):
     for mf, FS in [(mff, Q), (mvff, V)]:
         assert os.path.isdir(pp.get_savedir(mf.name))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), "metadata.db"))
+        assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), "mesh.hdf5"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"0.xml"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"1.xml"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"2.xml"))
@@ -142,7 +143,7 @@ def test_xml_save(mesh, casedir):
         
         assert md['saveformats'] == ['xml']
         
-        assert len(os.listdir(pp.get_savedir(mf.name))) == 1+3
+        assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3
     
         # Read back
         for i in ["0", "1", "2"]:
@@ -169,6 +170,7 @@ def test_xmlgz_save(mesh, casedir):
     for mf, FS in [(mff, Q), (mvff, V)]:
         assert os.path.isdir(pp.get_savedir(mf.name))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), "metadata.db"))
+        assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), "mesh.hdf5"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"0.xml.gz"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"1.xml.gz"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"2.xml.gz"))
@@ -181,7 +183,7 @@ def test_xmlgz_save(mesh, casedir):
         
         assert md['saveformats'] == ['xml.gz']
         
-        assert len(os.listdir(pp.get_savedir(mf.name))) == 1+3
+        assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3
     
         # Read back
         for i in ["0", "1", "2"]:

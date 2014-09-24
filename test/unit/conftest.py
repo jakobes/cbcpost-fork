@@ -77,8 +77,8 @@ class MockStress(MockField):
     
     
 class MockFunctionField(Field):
-    def __init__(self, Q, params=None):
-        Field.__init__(self, params)
+    def __init__(self, Q, params=None, **args):
+        Field.__init__(self, params, **args)
         self.f = Function(Q)
     
     def before_first_compute(self, get):

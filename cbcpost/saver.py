@@ -220,6 +220,11 @@ class Saver():
     def _update_xml_file(self, field_name, saveformat, data, timestep, t):
         assert saveformat == "xml"
         fullname, metadata = self._get_datafile_name(field_name, saveformat, timestep)
+        meshfile = os.path.join(self.get_savedir(field_name), "mesh.hdf5")
+        if not os.path.isfile(meshfile):
+            hdf5file = HDF5File(meshfile, 'w')
+            hdf5file.write(data.function_space().mesh(), "Mesh")
+            del hdf5file
         datafile = File(fullname)
         datafile << data
         return metadata
@@ -227,6 +232,11 @@ class Saver():
     def _update_xml_gz_file(self, field_name, saveformat, data, timestep, t):
         assert saveformat == "xml.gz"
         fullname, metadata = self._get_datafile_name(field_name, saveformat, timestep)
+        meshfile = os.path.join(self.get_savedir(field_name), "mesh.hdf5")
+        if not os.path.isfile(meshfile):
+            hdf5file = HDF5File(meshfile, 'w')
+            hdf5file.write(data.function_space().mesh(), "Mesh")
+            del hdf5file
         datafile = File(fullname)
         datafile << data
         return metadata

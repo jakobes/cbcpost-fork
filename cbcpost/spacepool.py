@@ -16,7 +16,8 @@
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,
                     grad, Coefficient)
-import weakref
+import weakref, gc
+from dolfin import Function, MPI, mpi_comm_world
 
 def galerkin_family(degree):
     return "CG" if degree > 0 else "DG"
@@ -37,12 +38,18 @@ class SpacePool(object):
 
     def __new__(cls, mesh):
         key = mesh.id()
-        #key = mesh.hash()
+        
+        # Do a garbage collect to collect any garbage references
+        # Needed for full parallel compatibility
+        gc.collect()
+        
+        # Check if spacepool exists, or create
         self = SpacePool._existing.get(key)
         if self is None:
             self = object.__new__(cls)
             self._init(mesh)
             SpacePool._existing[key] = self
+        
         return self
 
     def __init__(self, mesh):
@@ -76,6 +83,7 @@ class SpacePool(object):
             mesh = self.mesh
             key = (family, degree, shape)
         space = self._spaces.get(key)
+
         if space is None:
             rank = len(shape)
             if rank == 0:
@@ -85,6 +93,7 @@ class SpacePool(object):
             else:
                 space = TensorFunctionSpace(mesh, family, degree, shape)
             self._spaces[key] = space
+
         return space
 
     def get_space(self, degree, rank, family="auto", boundary=False):

@@ -85,7 +85,10 @@ class SubFunction(Field):
         elif u.rank() == 0:
             U = self._ft.interpolate_nonmatching_mesh(u, self.u.function_space())
             MPI.barrier()
-            self.u.assign(U)
+            
+            # FIXME: This gives a PETSc-error (VecCopy). Unnecessary interpolation used instead.
+            #self.u.assign(U)
+            self.u.assign(interpolate(U, self.u.function_space()))
         return self.u
     
 

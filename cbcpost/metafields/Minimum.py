@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 from cbcpost.fieldbases.MetaField import MetaField
-from dolfin import Function, MPI
+from dolfin import Function, MPI, mpi_comm_world
 import numpy
 
 class Minimum(MetaField):

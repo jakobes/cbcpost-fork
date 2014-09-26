@@ -235,7 +235,7 @@ def test_restart_from_hdf5(filled_casedir, mesh, t):
 
     assert abs(norm(data[t]["MockFunctionField-hdf5"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
 
-@pytest.mark.skipif(MPI.num_processes() != 1, reason="Currently not supported in parallel")    
+@pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")    
 def test_restart_change_function_space(filled_casedir, mesh):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(1,0)
@@ -301,7 +301,6 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 assert sorted(data.keys()) == sorted(st)
             elif sf == "txt":
                 data = open(os.path.join(filled_casedir, d, d+".txt"), 'r').readlines()
-                print MPI.rank(mpi_comm_world()), data, st
                 assert len(data) == len(st)
             elif sf == "pvd":
                 pass

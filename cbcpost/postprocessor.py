@@ -241,7 +241,9 @@ class PostProcessor(Parameterized):
         self._dependencies[field.name] = deps
         self._full_dependencies[field.name] = full_deps
         self._insert_in_sorted_list(field.name)
-
+        
+        cbc_log(20, "Added field: %s" %field.name)
+        
         # Returning the field object is useful for testing
         return field
 

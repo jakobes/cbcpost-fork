@@ -238,7 +238,7 @@ def test_pvd_save(mesh, casedir):
         assert os.path.isdir(pp.get_savedir(mf.name))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), "metadata.db"))
         assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+".pvd"))
-        if MPI.num_processes() == 1:
+        if MPI.size(mpi_comm_world()) == 1:
             assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"%0.6d.vtu" %0))
             assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"%0.6d.vtu" %1))
             assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"%0.6d.vtu" %2))
@@ -247,7 +247,7 @@ def test_pvd_save(mesh, casedir):
             assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"%0.6d.pvtu" %1))
             assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"%0.6d.pvtu" %2))
             
-            for i in range(MPI.num_processes()):
+            for i in range(MPI.size(mpi_comm_world())):
                 assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"_p%d_%0.6d.vtu" %(i,0)))
                 assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"_p%d_%0.6d.vtu" %(i,1)))
                 assert os.path.isfile(os.path.join(pp.get_savedir(mf.name), mf.name+"_p%d_%0.6d.vtu" %(i,2)))
@@ -259,7 +259,7 @@ def test_pvd_save(mesh, casedir):
         assert 'pvd' in md["2"]       
         assert md['saveformats'] == ['pvd']
         
-        assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3+int(MPI.num_processes()!=1)*MPI.num_processes()*3
+        assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3+int(MPI.size(mpi_comm_world())!=1)*MPI.size(mpi_comm_world())*3
     
 def test_get_casedir(casedir):
     pp = PostProcessor(dict(casedir=casedir))
@@ -308,7 +308,7 @@ def test_store_mesh(casedir):
     # Read mesh back
     mesh2 = Mesh()
     f = HDF5File(mpi_comm_world(), os.path.join(pp.get_casedir(), "mesh.hdf5"), 'r')
-    f.read(mesh2, "Mesh")
+    f.read(mesh2, "Mesh", False)
     
     celldomains2 = CellFunction("size_t", mesh2)
     f.read(celldomains2, "CellDomains")

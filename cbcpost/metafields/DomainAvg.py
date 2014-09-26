@@ -29,9 +29,19 @@ class DomainAvg(MetaField):
             if indicator != None:
                 cbcwarning("Indicator specified, but no domains. Will dompute average over entire domain.")
             self.dI = measure
-
-        if label == None and str(self.dI) != "dxeverywhere":
-            label = str(self.dI)[:2]
+        #import ipdb; ipdb.set_trace()
+        #if label == None and str(self.dI) != "dxeverywhere":
+        if label == None and not (self.dI.integral_type() == "cell" and self.dI.subdomain_id() == "everywhere"):
+            
+            if self.dI.integral_type() == "cell":
+                label = "dx"
+            elif self.dI.integral_type() == "exterior_facet":
+                label = "ds"
+            elif self.dI.integral_type() == "interior_facet":
+                label = "dS"
+            else:
+                label = self.dI.integral_type()
+            
             if self.dI.subdomain_id() != "everywhere":
                 label += str(self.dI.subdomain_id())
         MetaField.__init__(self, value, params, name, label)

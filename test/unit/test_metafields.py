@@ -53,11 +53,6 @@ def problem(request):
 def set_problem_params(request, problem):
     problem.params.dt = request.getfuncargvalue('dt')
 
-@pytest.fixture(scope="module")
-def spacepool(problem):
-    #return NSSpacePoolSplit(problem.mesh, 1, 1)
-    return SpacePool(problem.mesh)
-
 @pytest.fixture(scope="function")
 def pp(problem):
     return PostProcessor(params=dict(initial_dt=problem.params.dt))
@@ -176,7 +171,7 @@ def test_TimeIntegral(problem, pp, start_time, end_time, dt):
     I = 0.5*(end_time**2-start_time**2)
     assert max( [ abs(x1-x0) for x1,x0 in zip(pp.get("TimeIntegral_MockTupleField"), (I, 3*I, end_time-start_time+5*I) ) ] ) < 1e-8
 
-def test_TimeAverage(problem, spacepool, pp, start_time, end_time, dt):
+def test_TimeAverage(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)
     spacepool = SpacePool(problem.mesh)
@@ -320,6 +315,7 @@ def test_Maximum(problem, pp, start_time, end_time, dt):
         MockVectorFunctionField(V),
         MockTupleField(),
     ])
+    
 
     pp.add_fields([
         Maximum("t"),
@@ -332,7 +328,7 @@ def test_Maximum(problem, pp, start_time, end_time, dt):
     ymax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,1]))
     if problem.D > 2:
         zmax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,2]))
-    
+ 
      # Update postprocessor for a number of timesteps, this is where the main code under test is
     for timestep, t in enumerate(timesteps, start_timestep):
         # Run postprocessing step
@@ -362,7 +358,7 @@ def test_Minimum(problem, pp, start_time, end_time, dt):
     spacepool = SpacePool(problem.mesh)
     Q = spacepool.get_space(1,0)
     V = spacepool.get_space(1,1)
-    
+
     pp.add_fields([
         MockFunctionField(Q),
         MockVectorFunctionField(V),
@@ -397,6 +393,7 @@ def test_Minimum(problem, pp, start_time, end_time, dt):
     assert abs(pp.get("Minimum_MockFunctionField") - (1+xmin*ymin*t)) < 1e-8
     assert abs(pp.get("Minimum_MockVectorFunctionField") - (1+xmin*t)) < 1e-8
     assert abs(pp.get("Minimum_MockTupleField") - t) < 1e-8
+
     
 def test_Norm(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
@@ -468,7 +465,7 @@ def test_Norm(problem, pp, start_time, end_time, dt):
     assert abs(pp.get("Norm_l4_MockTupleField") - (t**4+(3*t)**4+(1+5*t)**4)**(0.25)) < 1e-14
     assert abs(pp.get("Norm_linf_MockTupleField") - (1+5*t)) < 1e-14
     
-@pytest.mark.skipif(MPI.num_processes() != 1, reason="Currently not supported in parallel")    
+@pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")    
 def test_PointEval(problem, pp, start_time, end_time, dt):   
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)
@@ -809,7 +806,7 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
         uvr = pp.get("Restrict_MockVectorFunctionField")
         assert abs(assemble(inner(uv,uv)*dx(1), cell_domains=cell_domains) - assemble(inner(uvr, uvr)*dx)) < 1e-8
 
-@pytest.mark.skipif(MPI.num_processes() != 1, reason="Currently not supported in parallel")    
+@pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")    
 def test_SubFunction(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)

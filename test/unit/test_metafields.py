@@ -806,7 +806,6 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
         uvr = pp.get("Restrict_MockVectorFunctionField")
         assert abs(assemble(inner(uv,uv)*dx(1), cell_domains=cell_domains) - assemble(inner(uvr, uvr)*dx)) < 1e-8
 
-@pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")    
 def test_SubFunction(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)

@@ -22,9 +22,9 @@ def broadcast(array, from_process):
     cpp_code = '''
     
     namespace dolfin {
-        std::vector<double> broadcast(const Array<double>& inarray, int from_process)
+        std::vector<double> broadcast(MPI_Comm mpi_comm, const Array<double>& inarray, int from_process)
         {
-            int this_process = dolfin::MPI::process_number();
+            int this_process = dolfin::MPI::rank(mpi_comm);
     
             std::vector<double> outvector(inarray.size());
     
@@ -34,9 +34,9 @@ def broadcast(array, from_process):
                     outvector[i] = inarray[i];
                 }
             }
-            dolfin::MPI::barrier();
+            dolfin::MPI::barrier(mpi_comm);
             
-            dolfin::MPI::broadcast(outvector, from_process);
+            dolfin::MPI::broadcast(mpi_comm, outvector, from_process);
             
             return outvector;
         }
@@ -44,18 +44,18 @@ def broadcast(array, from_process):
     '''
     array = np.array(array, dtype=np.float)
     cpp_module = compile_extension_module(cpp_code, additional_system_headers=["dolfin/common/MPI.h"])
-    out_array = cpp_module.broadcast(array, from_process)
+    out_array = cpp_module.broadcast(mpi_comm_world(), array, from_process)
     return out_array
 
 def distribution(number):
     "Get distribution of number on all processes"
     cpp_code = '''
     namespace dolfin {
-        std::vector<unsigned int> distribution(int number)
+        std::vector<unsigned int> distribution(MPI_Comm mpi_comm, int number)
         {
             // Variables to help in synchronization
-            int num_processes = dolfin::MPI::num_processes();
-            int this_process = dolfin::MPI::process_number();
+            int num_processes = dolfin::MPI::size(mpi_comm);
+            int this_process = dolfin::MPI::rank(mpi_comm);
             
             std::vector<uint> distribution(num_processes);
         
@@ -63,8 +63,8 @@ def distribution(number):
                 if(i==this_process) {
                     distribution[i] = number;
                 }
-                dolfin::MPI::barrier();
-                dolfin::MPI::broadcast(distribution, i);    
+                dolfin::MPI::barrier(mpi_comm);
+                dolfin::MPI::broadcast(mpi_comm, distribution, i);    
             }
             return distribution;
       }
@@ -72,18 +72,18 @@ def distribution(number):
     '''
     
     cpp_module = compile_extension_module(cpp_code, additional_system_headers=["dolfin/common/MPI.h"])
-    return cpp_module.distribution(number)
+    return cpp_module.distribution(mpi_comm_world(), number)
 
 
 def gather(array, on_process=0, flatten=False):
     "Gather array from all processes on a single process"
     cpp_code = '''
     namespace dolfin {
-        std::vector<double> gather(const Array<double>& inarray, int on_process)
+        std::vector<double> gather(MPI_Comm mpi_comm, const Array<double>& inarray, int on_process)
         {
-            int this_process = dolfin::MPI::process_number();
+            int this_process = dolfin::MPI::rank(mpi_comm);
     
-            std::vector< std::vector<double> > outvector(dolfin::MPI::num_processes());
+            std::vector< std::vector<double> > outvector(dolfin::MPI::size(mpi_comm));
             std::vector<double> invector(inarray.size());
             
             for(int i=0; i<inarray.size(); i++)
@@ -91,10 +91,10 @@ def gather(array, on_process=0, flatten=False):
                 invector[i] = inarray[i];
             }
 
-            dolfin::MPI::gather(invector, outvector, on_process);
+            dolfin::MPI::gather(mpi_comm, invector, outvector, on_process);
 
             std::vector<double> flat_outvector;
-            for(int i=0; i<dolfin::MPI::num_processes(); i++)
+            for(int i=0; i<dolfin::MPI::size(mpi_comm); i++)
             {
                 for(int j=0; j<outvector[i].size(); j++)
                 {
@@ -109,7 +109,7 @@ def gather(array, on_process=0, flatten=False):
     
     cpp_module = compile_extension_module(cpp_code, additional_system_headers=["dolfin/common/MPI.h"])
     array = np.array(array, dtype=np.float)
-    out_array = cpp_module.gather(array, on_process)
+    out_array = cpp_module.gather(mpi_comm_world(), array, on_process)
 
     if flatten:
         return out_array

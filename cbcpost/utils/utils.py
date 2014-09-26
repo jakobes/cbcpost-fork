@@ -60,7 +60,7 @@ class _HDF5Link:
     def __init__(self):
         cpp_link_code = '''
         #include <hdf5.h>
-        void link_dataset(mpi_comm_world comm,
+        void link_dataset(MPI_Comm comm,
                           const std::string hdf5_filename,
                           const std::string link_from,
                           const std::string link_to, bool use_mpiio)
@@ -78,7 +78,7 @@ class _HDF5Link:
     
     def link(self, hdf5filename, link_from, link_to):
         use_mpiio = MPI.num_processes() > 1
-        self.cpp_link_module.link_dataset(mpi_comm_world, link_from, link_to, use_mpiio)
+        self.cpp_link_module.link_dataset(mpi_comm_world(), link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
 
 

@@ -32,8 +32,8 @@ class DomainAvg(MetaField):
         
         if label == None and str(self.dI) != "dxeverywhere":
             label = str(self.dI)[:2]
-            if self.dI.domain_id() != "everywhere":
-                label += str(self.dI.domain_id())
+            if self.dI.subdomain_id() != "everywhere":
+                label += str(self.dI.subdomain_id())
         MetaField.__init__(self, value, params, name, label)
         
     

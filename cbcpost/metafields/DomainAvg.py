@@ -29,7 +29,7 @@ class DomainAvg(MetaField):
             if indicator != None:
                 cbcwarning("Indicator specified, but no domains. Will dompute average over entire domain.")
             self.dI = measure
-        
+
         if label == None and str(self.dI) != "dxeverywhere":
             label = str(self.dI)[:2]
             if self.dI.subdomain_id() != "everywhere":
@@ -49,19 +49,23 @@ class DomainAvg(MetaField):
         else:
             mesh = problem.mesh
         
+        if not self.dI.domain():
+            self.dI = self.dI.reconstruct(domain=mesh)
+        assert self.dI.domain()
+        
         # Calculate volume
         if not hasattr(self, "volume"):
-            self.volume = assemble(Constant(1)*self.dI, mesh=mesh)
+            self.volume = assemble(Constant(1)*self.dI)
             assert self.volume > 0
         
         if u.rank() == 0:
-            value = assemble(u*self.dI, mesh=mesh)/self.volume
+            value = assemble(u*self.dI)/self.volume
         elif u.rank() == 1:
-            value = [assemble(u[i]*self.dI, mesh=mesh)/self.volume for i in xrange(u.value_size())]
+            value = [assemble(u[i]*self.dI)/self.volume for i in xrange(u.value_size())]
         elif u.rank() == 2:
             value = []
             for i in xrange(u.shape()[0]):
                 for j in xrange(u.shape()[1]):
-                    value.append(assemble(u[i,j]*self.dI, mesh=mesh)/self.volume)
+                    value.append(assemble(u[i,j]*self.dI)/self.volume)
 
         return value

@@ -4,7 +4,7 @@ from time import time
 from dolfin import compile_extension_module, MPI, MPI_Comm, log, warning
 
 def on_master_process():
-    return MPI.process_number() == 0
+    return MPI.rank(MPI_Comm()) == 0
 
 def in_serial():
     return MPI.num_processes() == 1

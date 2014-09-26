@@ -85,7 +85,7 @@ class Slice(Mesh):
         # Assign global indices
         # TODO: Assign global indices properly
         dist = distribution(index)
-        global_idx = sum(dist[:MPI.process_number()])
+        global_idx = sum(dist[:MPI.rank(MPI_Comm())])
         vertices = {}
         for idx, p in indexes.values():
             vertices[idx] = (global_idx, p)

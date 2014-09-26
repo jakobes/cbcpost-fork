@@ -5,7 +5,7 @@ from setuptools import setup
 
 # Version number
 major = 1
-minor = 3
+minor = 4
 maintenance = 0
 
 with open("README", 'r') as file:

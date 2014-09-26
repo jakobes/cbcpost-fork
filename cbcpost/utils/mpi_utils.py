@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-from dolfin import MPI, compile_extension_module
+from dolfin import MPI, MPI_Comm, compile_extension_module
 import numpy as np
 
 def broadcast(array, from_process):
@@ -160,10 +160,10 @@ def distribute_meshdata(cells, vertices):
                     vertices.pop(max(vertices))
             
             cells.pop(0)
-        MPI.barrier()
+        MPI.barrier(MPI_Comm())
         # Broadcast vertices in cell[0] on from_process
         v_in = broadcast(v_out, from_process)
-        MPI.barrier()
+        MPI.barrier(MPI_Comm())
         # Create cell and vertices on to_process
         if MPI.process_number() == to_process:
             for i in xrange(v_per_cell):
@@ -172,7 +172,7 @@ def distribute_meshdata(cells, vertices):
             assert len(cells) == 0
             cells = [range(v_per_cell)]
 
-        MPI.barrier()
+        MPI.barrier(MPI_Comm())
         
         # Update distribution
         global_cell_distribution = distribution(len(cells))

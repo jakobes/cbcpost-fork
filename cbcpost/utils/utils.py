@@ -1,7 +1,7 @@
 import keyword
 import os
 from time import time
-from dolfin import compile_extension_module, MPI, log, warning
+from dolfin import compile_extension_module, MPI, MPI_Comm, log, warning
 
 def on_master_process():
     return MPI.process_number() == 0
@@ -60,11 +60,12 @@ class _HDF5Link:
     def __init__(self):
         cpp_link_code = '''
         #include <hdf5.h>
-        void link_dataset(const std::string hdf5_filename,
-                                  const std::string link_from,
-                                  const std::string link_to, bool use_mpiio)
+        void link_dataset(MPI_Comm comm,
+                          const std::string hdf5_filename,
+                          const std::string link_from,
+                          const std::string link_to, bool use_mpiio)
         {
-            hid_t hdf5_file_id = HDF5Interface::open_file(hdf5_filename, "a", use_mpiio);
+            hid_t hdf5_file_id = HDF5Interface::open_file(comm, hdf5_filename, "a", use_mpiio);
             herr_t status = H5Lcreate_hard(hdf5_file_id, link_from.c_str(), H5L_SAME_LOC,
                                 link_to.c_str(), H5P_DEFAULT, H5P_DEFAULT);
             dolfin_assert(status != HDF5_FAIL);
@@ -77,7 +78,7 @@ class _HDF5Link:
     
     def link(self, hdf5filename, link_from, link_to):
         use_mpiio = MPI.num_processes() > 1
-        self.cpp_link_module.link_dataset(hdf5filename, link_from, link_to, use_mpiio)
+        self.cpp_link_module.link_dataset(MPI_Comm, link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
 
 
@@ -94,7 +95,7 @@ def safe_mkdir(dir):
 
     # Wait for all processes to finish, hopefully somebody
     # managed to create the directory...
-    MPI.barrier()
+    MPI.barrier(MPI_Comm())
 
     # Warn if this failed
     if not os.path.isdir(dir):

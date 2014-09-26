@@ -16,7 +16,7 @@
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 
 from cbcpost.fieldbases.Field import Field
-from dolfin import Function, VectorFunctionSpace, FunctionSpace, project, as_vector, MPI, FunctionAssigner
+from dolfin import Function, VectorFunctionSpace, FunctionSpace, project, as_vector, MPI, MPI_Comm, FunctionAssigner
 
 from dolfin import plot, interpolate, interactive, norm, errornorm
 
@@ -78,13 +78,13 @@ class SubFunction(Field):
             U = []
             for _u in u:
                 U.append(self._ft.interpolate_nonmatching_mesh(_u, self.us.function_space()))
-            MPI.barrier()
+            MPI.barrier(MPI_Comm())
             
             self.assigner.assign(self.u, U)
 
         elif u.rank() == 0:
             U = self._ft.interpolate_nonmatching_mesh(u, self.u.function_space())
-            MPI.barrier()
+            MPI.barrier(MPI_Comm())
             
             # FIXME: This gives a PETSc-error (VecCopy). Unnecessary interpolation used instead.
             #self.u.assign(U)

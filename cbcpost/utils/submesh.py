@@ -17,7 +17,7 @@
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
 from cbcpost.utils import cbc_warning
-from dolfin import MPI, Mesh, MeshEditor, LocalMeshData
+from dolfin import MPI, MPI_Comm, Mesh, MeshEditor, LocalMeshData
 import numpy as np  
 
 def create_submesh(mesh, markers, marker):
@@ -157,13 +157,13 @@ if __name__ == '__main__':
         else:
             submesh = create_submesh(mesh, cell_domains, 1)
         
-        #MPI.barrier()
+        #MPI.barrier(MPI_Comm())
         #continue
         V = FunctionSpace(submesh, "CG", 2)
         expr = Expression("x[0]*x[1]*x[1]+4*x[2]")
         u = project(expr, V)
         
-        MPI.barrier()
+        MPI.barrier(MPI_Comm())
         
         s0 = submesh.size_global(0)
         s3 = submesh.size_global(submesh.ufl_cell().topological_dimension())

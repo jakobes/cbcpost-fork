@@ -15,12 +15,12 @@ import pickle
 @pytest.fixture(scope="function")
 def casedir():
     casedir = "test_saver"
-    MPI.barrier()
+    MPI.barrier(MPI_Comm())
     try:
         shutil.rmtree(casedir)
     except:
         pass
-    MPI.barrier()
+    MPI.barrier(MPI_Comm())
     return casedir
 
 

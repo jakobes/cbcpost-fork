@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-from dolfin import Constant, MeshEditor, Mesh, MPI, compile_extension_module
+from dolfin import Constant, MeshEditor, Mesh, MPI, MPI_Comm, compile_extension_module
 from cbcpost.utils.mpi_utils import broadcast, distribute_meshdata, distribution, gather
 import numpy as np
 
@@ -80,7 +80,7 @@ class Slice(Mesh):
                     
                     
             add_cell(cells, cell)
-        MPI.barrier()
+        MPI.barrier(MPI_Comm())
         
         # Assign global indices
         # TODO: Assign global indices properly

@@ -789,7 +789,7 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
     cell_domains.set_all(0)
     subdomains = AutoSubDomain(lambda x: x[0]<0.5)
     subdomains.mark(cell_domains, 1)
-    MPI.barrier()
+    MPI.barrier(MPI_Comm())
     submesh = create_submesh(mesh, cell_domains, 1)
     
     pp.add_fields([

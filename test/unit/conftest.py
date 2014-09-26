@@ -1,5 +1,5 @@
 import pytest
-from dolfin import MPI, Function, Expression, set_log_level, UnitCubeMesh, UnitSquareMesh
+from dolfin import MPI, MPI_Comm, Function, Expression, set_log_level, UnitCubeMesh, UnitSquareMesh
 set_log_level(40)
 import shutil
 from cbcpost import Field
@@ -14,7 +14,7 @@ def mesh(request):
 @pytest.fixture(scope="function")
 def casedir():
     casedir = "test_saver"
-    MPI.barrier()
+    MPI.barrier(MPI_Comm())
     try:
         shutil.rmtree(casedir)
     except:

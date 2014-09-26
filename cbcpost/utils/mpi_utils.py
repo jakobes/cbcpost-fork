@@ -83,7 +83,7 @@ def gather(array, on_process=0, flatten=False):
         {
             int this_process = dolfin::MPI::rank(mpi_comm);
     
-            std::vector< std::vector<double> > outvector(dolfin::MPI::size(mpi_comm));
+            std::vector<double> outvector(dolfin::MPI::size(mpi_comm)*dolfin::MPI::sum(mpi_comm, inarray.size()));
             std::vector<double> invector(inarray.size());
             
             for(int i=0; i<inarray.size(); i++)
@@ -92,17 +92,7 @@ def gather(array, on_process=0, flatten=False):
             }
 
             dolfin::MPI::gather(mpi_comm, invector, outvector, on_process);
-
-            std::vector<double> flat_outvector;
-            for(int i=0; i<dolfin::MPI::size(mpi_comm); i++)
-            {
-                for(int j=0; j<outvector[i].size(); j++)
-                {
-                    flat_outvector.push_back(outvector[i][j]);
-                    
-                }
-            }
-            return flat_outvector;
+            return outvector;
         }
     }
     '''

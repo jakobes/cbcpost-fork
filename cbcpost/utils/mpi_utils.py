@@ -133,8 +133,8 @@ def distribute_meshdata(cells, vertices):
         x_per_v = len(vertices.values()[0][1])
         v_per_cell = len(cells[0])
 
-    x_per_v = int(MPI.max(x_per_v))
-    v_per_cell = int(MPI.max(v_per_cell))
+    x_per_v = int(MPI.max(mpi_comm_world(), x_per_v))
+    v_per_cell = int(MPI.max(mpi_comm_world(), v_per_cell))
     
     # Move a single cell to process with no cells
     while 0 in global_cell_distribution:

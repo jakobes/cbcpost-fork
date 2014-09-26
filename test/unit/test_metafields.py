@@ -328,10 +328,10 @@ def test_Maximum(problem, pp, start_time, end_time, dt):
         Maximum("MockTupleField"),
         ])
     
-    xmax = MPI.max(max(problem.mesh.coordinates()[:,0]))
-    ymax = MPI.max(max(problem.mesh.coordinates()[:,1]))
+    xmax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,0]))
+    ymax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,1]))
     if problem.D > 2:
-        zmax = MPI.max(max(problem.mesh.coordinates()[:,2]))
+        zmax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,2]))
     
      # Update postprocessor for a number of timesteps, this is where the main code under test is
     for timestep, t in enumerate(timesteps, start_timestep):
@@ -376,10 +376,10 @@ def test_Minimum(problem, pp, start_time, end_time, dt):
         Minimum("MockTupleField"),
         ])
     
-    xmin = MPI.min(min(problem.mesh.coordinates()[:,0]))
-    ymin = MPI.min(min(problem.mesh.coordinates()[:,1]))
+    xmin = MPI.min(mpi_comm_world(), min(problem.mesh.coordinates()[:,0]))
+    ymin = MPI.min(mpi_comm_world(), min(problem.mesh.coordinates()[:,1]))
     if problem.D > 2:
-        zmin = MPI.min(min(problem.mesh.coordinates()[:,2]))
+        zmin = MPI.min(mpi_comm_world(), min(problem.mesh.coordinates()[:,2]))
     
      # Update postprocessor for a number of timesteps, this is where the main code under test is
     for timestep, t in enumerate(timesteps, start_timestep):
@@ -484,15 +484,15 @@ def test_PointEval(problem, pp, start_time, end_time, dt):
 
     D = problem.mesh.geometry().dim()
     
-    xmin = MPI.min(min(problem.mesh.coordinates()[:,0]))
-    ymin = MPI.min(min(problem.mesh.coordinates()[:,1]))
+    xmin = MPI.min(mpi_comm_world(), min(problem.mesh.coordinates()[:,0]))
+    ymin = MPI.min(mpi_comm_world(), min(problem.mesh.coordinates()[:,1]))
     if problem.D > 2:
-        zmin = MPI.min(min(problem.mesh.coordinates()[:,2]))
+        zmin = MPI.min(mpi_comm_world(), min(problem.mesh.coordinates()[:,2]))
         
-    xmax = MPI.max(max(problem.mesh.coordinates()[:,0]))
-    ymax = MPI.max(max(problem.mesh.coordinates()[:,1]))
+    xmax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,0]))
+    ymax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,1]))
     if problem.D > 2:
-        zmax = MPI.max(max(problem.mesh.coordinates()[:,2]))
+        zmax = MPI.max(mpi_comm_world(), max(problem.mesh.coordinates()[:,2]))
         
     points = []
     #for i in range(5):

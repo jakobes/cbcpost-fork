@@ -26,11 +26,11 @@ class Maximum(MetaField):
             return None
         
         if isinstance(u, Function):
-            return MPI.max(numpy.max(u.vector().array()))
+            return MPI.max(mpi_comm_world(), numpy.max(u.vector().array()))
         elif hasattr(u, "__len__"):
-            return MPI.max(max(u))
+            return MPI.max(mpi_comm_world(), max(u))
         elif isinstance(u, (float,int,long)):
-            return MPI.max(u)
+            return MPI.max(mpi_comm_world(), u)
         else:
             raise Exception("Unable to take max of %s" %str(u))
         

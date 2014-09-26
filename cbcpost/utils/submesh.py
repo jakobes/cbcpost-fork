@@ -31,7 +31,7 @@ def create_submesh(mesh, markers, marker):
                      mesh.ufl_cell().geometric_dimension())
     
     # Return empty mesh if no matching markers
-    if MPI.sum(int(marker in markers.array())) == 0:
+    if MPI.sum(mpi_comm_world(), int(marker in markers.array())) == 0:
         cbc_warning("Unable to find matching markers in meshfunction. Submesh is empty.")
         mesh_editor.close()
         return submesh
@@ -63,7 +63,7 @@ def create_submesh(mesh, markers, marker):
     
     
     shared_base_to_sub_global_indices = {}
-    idx = int(MPI.max(float(max(base_to_sub_global_indices.values()+[-1e16])))+1)
+    idx = int(MPI.max(mpi_comm_world(), float(max(base_to_sub_global_indices.values()+[-1e16])))+1)
     if MPI.rank(mpi_comm_world()) == 0:
         for gi in all_shared_global_indices:
             shared_base_to_sub_global_indices[int(gi)] = idx
@@ -98,8 +98,8 @@ def create_submesh(mesh, markers, marker):
     global_cell_distribution = distribution(len(sub_cells))
     global_vertex_distribution = distribution(len(sub_vertices))
     
-    global_num_cells = MPI.sum(len(sub_cells))
-    global_num_vertices = sum(unshared_vertices_dist)+MPI.sum(len(all_shared_global_indices))
+    global_num_cells = MPI.sum(mpi_comm_world(), len(sub_cells))
+    global_num_vertices = sum(unshared_vertices_dist)+MPI.sum(mpi_comm_world(), len(all_shared_global_indices))
 
     
     

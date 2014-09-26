@@ -92,8 +92,8 @@ class Slice(Mesh):
             global_idx += 1
 
         
-        global_num_cells = MPI.sum(len(cells))
-        global_num_vertices = MPI.sum(len(vertices))
+        global_num_cells = MPI.sum(mpi_comm_world(), len(cells))
+        global_num_vertices = MPI.sum(mpi_comm_world(), len(vertices))
 
         # Return empty mesh if no intersections were found
         if global_num_cells == 0:

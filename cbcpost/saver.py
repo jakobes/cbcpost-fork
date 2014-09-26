@@ -184,7 +184,7 @@ class Saver():
         local_hash.update(str(MPI.num_processes()))
         
         # Global hash (same on all processes), 10 digits long
-        hash = str(int(MPI.sum(int(local_hash.hexdigest(), 16))%1e10)).zfill(10)
+        hash = str(int(MPI.sum(mpi_comm_world(), int(local_hash.hexdigest(), 16))%1e10)).zfill(10)
         
         #key = (field_name, saveformat)
         #datafile = self._datafile_cache.get(key)

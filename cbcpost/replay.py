@@ -142,7 +142,7 @@ class Replay(Parameterized):
             # Read mesh
             meshfilename = os.path.join(self.postproc.get_casedir(), "mesh.hdf5")
             assert os.path.isfile(meshfilename), "Unable to find mesh file!"
-            meshfile = HDF5File(meshfilename, 'r')
+            meshfile = HDF5File(mpi_comm_world(), meshfilename, 'r')
             self._mesh = Mesh()
             meshfile.read(self._mesh, "Mesh")
             del meshfile
@@ -163,7 +163,7 @@ class Replay(Parameterized):
         # Load mesh
         if saveformat == 'hdf5':    
             mesh = Mesh()
-            hdf5file = HDF5File(os.path.join(self.postproc.get_casedir(),fieldname, fieldname+'.hdf5'), 'r')
+            hdf5file = HDF5File(mpi_comm_world(), os.path.join(self.postproc.get_casedir(),fieldname, fieldname+'.hdf5'), 'r')
             hdf5file.read(mesh, "Mesh")
             del hdf5file
         elif saveformat == 'xml' or saveformat == 'xml.gz':

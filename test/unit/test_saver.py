@@ -104,7 +104,7 @@ def test_hdf5_save(mesh, casedir):
         assert len(os.listdir(pp.get_savedir(mf.name))) == 2
     
         # Read back
-        hdf5file = HDF5File(os.path.join(pp.get_savedir(mf.name), mf.name+".hdf5"), 'r')
+        hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(mf.name), mf.name+".hdf5"), 'r')
         f = Function(FS)
         for i in ["0", "1", "2"]:
             hdf5file.read(f, mf.name+i)
@@ -307,7 +307,7 @@ def test_store_mesh(casedir):
     
     # Read mesh back
     mesh2 = Mesh()
-    f = HDF5File(os.path.join(pp.get_casedir(), "mesh.hdf5"), 'r')
+    f = HDF5File(mpi_comm_world(), os.path.join(pp.get_casedir(), "mesh.hdf5"), 'r')
     f.read(mesh2, "Mesh")
     
     celldomains2 = CellFunction("size_t", mesh2)

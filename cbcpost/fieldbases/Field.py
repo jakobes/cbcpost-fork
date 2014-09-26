@@ -109,7 +109,7 @@ class Field(Parameterized):
             saveformat = pp._solution[self.name]["format"]
             if saveformat == 'hdf5':
                 hdf5filepath = join(get_casedir(), self.name, self.name+".hdf5")
-                hdf5file = HDF5File(hdf5filepath, 'r')
+                hdf5file = HDF5File(mpi_comm_world(), hdf5filepath, 'r')
                 dataset = self.name+str(timestep)
                 hdf5file.read(pp._solution[self.name]["function"], dataset)
                 pp._solution[self.name] = pp._solution[self.name]["function"]

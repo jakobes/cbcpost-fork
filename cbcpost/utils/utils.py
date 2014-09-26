@@ -78,7 +78,7 @@ class _HDF5Link:
     
     def link(self, hdf5filename, link_from, link_to):
         use_mpiio = MPI.num_processes() > 1
-        self.cpp_link_module.link_dataset(mpi_comm_world(), link_from, link_to, use_mpiio)
+        self.cpp_link_module.link_dataset(mpi_comm_world(), hdf5filename, link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
 
 
@@ -120,7 +120,7 @@ class Loadable():
     def __call__(self):
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
         if self.saveformat == 'hdf5':
-            hdf5file = HDF5File(self.filename, 'r')
+            hdf5file = HDF5File(mpi_comm_world(), self.filename, 'r')
             hdf5file.read(self.function, self.fieldname+str(self.timestep))
             del hdf5file
             data = self.function
@@ -145,12 +145,12 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     # Load mesh
     if saveformat == 'hdf5':    
         mesh = Mesh()
-        hdf5file = HDF5File(os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5'), 'r')
+        hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5'), 'r')
         hdf5file.read(mesh, "Mesh")
         del hdf5file
     elif saveformat == 'xml' or saveformat == 'xml.gz':
         mesh = Mesh()
-        hdf5file = HDF5File(os.path.join(pp.get_savedir(fieldname), "mesh.hdf5"), 'r')
+        hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(fieldname), "mesh.hdf5"), 'r')
         hdf5file.read(mesh, "Mesh")
         del hdf5file
 

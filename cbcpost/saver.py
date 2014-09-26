@@ -164,7 +164,7 @@ class Saver():
         key = (field_name, saveformat)
         datafile = self._datafile_cache.get(key)
         if datafile is None:
-            datafile = XDMFFile(fullname)
+            datafile = XDMFFile(mpi_comm_world(), fullname)
             datafile.parameters["rewrite_function_mesh"] = False
             datafile.parameters["flush_output"] = True
             self._datafile_cache[key] = datafile
@@ -189,14 +189,14 @@ class Saver():
         #key = (field_name, saveformat)
         #datafile = self._datafile_cache.get(key)
         #if datafile is None:
-        #    datafile = HDF5File(fullname, 'w')
+        #    datafile = HDF5File(mpi_comm_world(), fullname, 'w')
         #    self._datafile_cache[key] = datafile
         
         # Open HDF5File
         if not os.path.isfile(fullname):
-            datafile = HDF5File(fullname, 'w')
+            datafile = HDF5File(mpi_comm_world(), fullname, 'w')
         else:
-            datafile = HDF5File(fullname, 'a')
+            datafile = HDF5File(mpi_comm_world(), fullname, 'a')
         
         # Write to hash-dataset if not yet done
         if not datafile.has_dataset(hash) or not datafile.has_dataset(hash+"/"+field_name):
@@ -222,7 +222,7 @@ class Saver():
         fullname, metadata = self._get_datafile_name(field_name, saveformat, timestep)
         meshfile = os.path.join(self.get_savedir(field_name), "mesh.hdf5")
         if not os.path.isfile(meshfile):
-            hdf5file = HDF5File(meshfile, 'w')
+            hdf5file = HDF5File(mpi_comm_world(), meshfile, 'w')
             hdf5file.write(data.function_space().mesh(), "Mesh")
             del hdf5file
         datafile = File(fullname)
@@ -234,7 +234,7 @@ class Saver():
         fullname, metadata = self._get_datafile_name(field_name, saveformat, timestep)
         meshfile = os.path.join(self.get_savedir(field_name), "mesh.hdf5")
         if not os.path.isfile(meshfile):
-            hdf5file = HDF5File(meshfile, 'w')
+            hdf5file = HDF5File(mpi_comm_world(), meshfile, 'w')
             hdf5file.write(data.function_space().mesh(), "Mesh")
             del hdf5file
         datafile = File(fullname)
@@ -302,7 +302,7 @@ class Saver():
     def store_mesh(self, mesh, cell_domains=None, facet_domains=None):
         "Store mesh in casedir to mesh.hdf5 (dataset Mesh) in casedir."
         casedir = self.get_casedir()
-        meshfile = HDF5File(os.path.join(casedir, "mesh.hdf5"), 'w')
+        meshfile = HDF5File(mpi_comm_world(), os.path.join(casedir, "mesh.hdf5"), 'w')
         meshfile.write(mesh, "Mesh")
         if cell_domains != None:
             meshfile.write(cell_domains, "CellDomains")

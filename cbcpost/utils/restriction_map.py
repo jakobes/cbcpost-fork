@@ -18,7 +18,7 @@ import numpy as np
 from cbcpost.utils.mpi_utils import broadcast
 from cbcpost.utils import cbc_warning
 from scipy.spatial.ckdtree import cKDTree as KDTree
-from dolfin import MPI
+from dolfin import MPI, mpi_comm_world
 
 def restriction_map(V, Vb):
     "Return a map between dofs in Vb to dofs in V. Vb's mesh should be a submesh of V's Mesh."
@@ -29,8 +29,10 @@ def restriction_map(V, Vb):
     
     if V.ufl_element().family() != "Lagrange":
         cbc_warning("This function is only tested for CG-spaces.")
+    assert V.ufl_element().family() == Vb.ufl_element().family(), "ufl elements differ in the two spaces"
+    assert V.ufl_element().degree() == Vb.ufl_element().degree(), "ufl elements differ in the two spaces"
+    assert V.ufl_element().cell() == Vb.ufl_element().cell(), "ufl elements differ in the two spaces"
     
-    assert V.ufl_element() == Vb.ufl_element(), "ufl elements differ in the two spaces"
     
     # Recursively call this function if V has sub-spaces
     if V.num_sub_spaces() > 0:

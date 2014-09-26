@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-from dolfin import MPI, MPI_Comm, compile_extension_module
+from dolfin import MPI, mpi_comm_world, compile_extension_module
 import numpy as np
 
 def broadcast(array, from_process):
@@ -143,7 +143,7 @@ def distribute_meshdata(cells, vertices):
         
         # Extract vertices and remove cells[0] on from_process
         v_out = np.zeros((1+x_per_v)*v_per_cell)
-        if MPI.rank(MPI_Comm()) == from_process:
+        if MPI.rank(mpi_comm_world()) == from_process:
             # Structure v_out as (ind0, x0, y0, .., ind1, x1, .., )
             for i, v in enumerate(cells[0]):
                 v_out[i*(x_per_v+1)] = vertices[v][0]
@@ -160,19 +160,19 @@ def distribute_meshdata(cells, vertices):
                     vertices.pop(max(vertices))
             
             cells.pop(0)
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         # Broadcast vertices in cell[0] on from_process
         v_in = broadcast(v_out, from_process)
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         # Create cell and vertices on to_process
-        if MPI.rank(MPI_Comm()) == to_process:
+        if MPI.rank(mpi_comm_world()) == to_process:
             for i in xrange(v_per_cell):
                 vertices[i] = (int(v_in[i*(x_per_v+1)]), v_in[i*(x_per_v+1)+1:(i+1)*(x_per_v+1)])
 
             assert len(cells) == 0
             cells = [range(v_per_cell)]
 
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         
         # Update distribution
         global_cell_distribution = distribution(len(cells))

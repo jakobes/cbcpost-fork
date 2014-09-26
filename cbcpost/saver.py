@@ -1,5 +1,5 @@
 from hashlib import sha1
-from dolfin import Function, MPI, MPI_Comm, plot, File, HDF5File, XDMFFile, error
+from dolfin import Function, MPI, mpi_comm_world, plot, File, HDF5File, XDMFFile, error
 
 from cbcpost.utils import safe_mkdir, hdf5_link
 from cbcpost.fieldbases import Field
@@ -62,7 +62,7 @@ class Saver():
                     for f in ["mesh.hdf5", "play.db", "params.txt", "params.pickle"]:
                         if os.path.isfile(os.path.join(self.get_casedir(), f)):
                             os.remove(os.path.join(self.get_casedir(), f))
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
 
     def _create_casedir(self):
         casedir = self._casedir

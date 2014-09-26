@@ -1,10 +1,10 @@
 import keyword
 import os
 from time import time
-from dolfin import compile_extension_module, MPI, MPI_Comm, log, warning
+from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning
 
 def on_master_process():
-    return MPI.rank(MPI_Comm()) == 0
+    return MPI.rank(mpi_comm_world()) == 0
 
 def in_serial():
     return MPI.num_processes() == 1
@@ -60,7 +60,7 @@ class _HDF5Link:
     def __init__(self):
         cpp_link_code = '''
         #include <hdf5.h>
-        void link_dataset(MPI_Comm comm,
+        void link_dataset(mpi_comm_world comm,
                           const std::string hdf5_filename,
                           const std::string link_from,
                           const std::string link_to, bool use_mpiio)
@@ -78,7 +78,7 @@ class _HDF5Link:
     
     def link(self, hdf5filename, link_from, link_to):
         use_mpiio = MPI.num_processes() > 1
-        self.cpp_link_module.link_dataset(MPI_Comm, link_from, link_to, use_mpiio)
+        self.cpp_link_module.link_dataset(mpi_comm_world, link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
 
 
@@ -95,7 +95,7 @@ def safe_mkdir(dir):
 
     # Wait for all processes to finish, hopefully somebody
     # managed to create the directory...
-    MPI.barrier(MPI_Comm())
+    MPI.barrier(mpi_comm_world())
 
     # Warn if this failed
     if not os.path.isdir(dir):

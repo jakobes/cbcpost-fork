@@ -17,7 +17,7 @@
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
 from cbcpost.utils import cbc_warning
-from dolfin import MPI, MPI_Comm, Mesh, MeshEditor, LocalMeshData
+from dolfin import MPI, mpi_comm_world, Mesh, MeshEditor, LocalMeshData
 import numpy as np  
 
 def create_submesh(mesh, markers, marker):
@@ -50,7 +50,7 @@ def create_submesh(mesh, markers, marker):
     unshared_vertices_dist = distribution(len(unshared_global_indices))
     
     # Number unshared vertices on separate process
-    idx = sum(unshared_vertices_dist[:MPI.rank(MPI_Comm())])
+    idx = sum(unshared_vertices_dist[:MPI.rank(mpi_comm_world())])
     base_to_sub_global_indices = {}
     for gi in unshared_global_indices:
         base_to_sub_global_indices[gi] = idx
@@ -64,7 +64,7 @@ def create_submesh(mesh, markers, marker):
     
     shared_base_to_sub_global_indices = {}
     idx = int(MPI.max(float(max(base_to_sub_global_indices.values()+[-1e16])))+1)
-    if MPI.rank(MPI_Comm()) == 0:
+    if MPI.rank(mpi_comm_world()) == 0:
         for gi in all_shared_global_indices:
             shared_base_to_sub_global_indices[int(gi)] = idx
             idx += 1
@@ -157,19 +157,19 @@ if __name__ == '__main__':
         else:
             submesh = create_submesh(mesh, cell_domains, 1)
         
-        #MPI.barrier(MPI_Comm())
+        #MPI.barrier(mpi_comm_world())
         #continue
         V = FunctionSpace(submesh, "CG", 2)
         expr = Expression("x[0]*x[1]*x[1]+4*x[2]")
         u = project(expr, V)
         
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         
         s0 = submesh.size_global(0)
         s3 = submesh.size_global(submesh.ufl_cell().topological_dimension())
         a = assemble(u*dx)
         v = assemble(Constant(1)*dx, mesh=submesh)
-        if MPI.rank(MPI_Comm()) == 0:
+        if MPI.rank(mpi_comm_world()) == 0:
             print "Num vertices: ", s0
             print "Num cells: ", s3
             print "assemble(u*dx): ", a

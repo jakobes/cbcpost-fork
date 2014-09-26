@@ -54,8 +54,8 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
             for v_idx in boundary_cell.entities(0):
                 #if v_idx in boundary.topology().shared_entities(0):
                     #print boundary.topology().shared_entities(0)[v_idx]
-                    #if boundary.topology().shared_entities(0)[v_idx] == MPI.rank(MPI_Comm()):
-                    #if MPI.rank(MPI_Comm()) in boundary.topology().shared_entities(0)[v_idx]:
+                    #if boundary.topology().shared_entities(0)[v_idx] == MPI.rank(mpi_comm_world()):
+                    #if MPI.rank(mpi_comm_world()) in boundary.topology().shared_entities(0)[v_idx]:
                         #print "hei"
                         #continue
                 

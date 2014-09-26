@@ -87,7 +87,7 @@ def restriction_map(V, Vb):
     
     # Re-order all requested dofs
     # Remove items coming from this process
-    all_request_dofs[MPI.rank(MPI_Comm())] = []
+    all_request_dofs[MPI.rank(mpi_comm_world())] = []
     all_request_dofs = np.hstack(all_request_dofs)
     
     all_request_dofs = all_request_dofs.reshape(len(all_request_dofs)/(D+1), D+1)

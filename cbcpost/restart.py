@@ -83,7 +83,7 @@ import os, shelve, subprocess
 from collections import Iterable, defaultdict
 from numpy import array, where, inf
 
-from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module, MPI, parameters, MPI_Comm
+from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module, MPI, parameters, mpi_comm_world
 from commands import getstatusoutput
 
 def find_solution_presence(pp, play_log, fields):
@@ -357,7 +357,7 @@ class Restart(Parameterized):
                 subprocess.call("h5repack %s %s" %(hdf5filename, hdf5tmpfilename), shell=True)
                 os.remove(hdf5filename)
                 os.rename(hdf5tmpfilename, hdf5filename)
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         
     def _clean_files(self, fieldname, del_metadata):
         for k, v in del_metadata.items():
@@ -370,7 +370,7 @@ class Restart(Parameterized):
                 fullpath = os.path.join(self._pp.get_savedir(fieldname), i['filename'])
                 if on_master_process():
                     os.remove(fullpath)
-                MPI.barrier(MPI_Comm())
+                MPI.barrier(mpi_comm_world())
             """
             #print k,v
             if not 'filename' in v:
@@ -405,7 +405,7 @@ class Restart(Parameterized):
                 if 'shelve' in v:
                     shelvefile.pop(str(k))
             shelvefile.close()
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
     
     def _clean_xdmf(self, fieldname, del_metadata):
         basename = os.path.join(self._pp.get_savedir(fieldname), fieldname)
@@ -429,7 +429,7 @@ class Restart(Parameterized):
             new_f = open(xdmf_filename, 'w')
             new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
             new_f.close()
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
     
     def _clean_pvd(self, fieldname, del_metadata):
         if os.path.isfile(os.path.join(self._pp.get_savedir(fieldname), fieldname+'.pvd')):

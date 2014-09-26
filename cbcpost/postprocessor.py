@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 
-from dolfin import Function, MPI, MPI_Comm
+from dolfin import Function, MPI, mpi_comm_world
 
 #from cbcpost.parameterized import Parameterized
 #from cbcpost.paramdict import ParamDict
@@ -397,7 +397,7 @@ class PostProcessor(Parameterized):
 
     def update_all(self, solution, t, timestep):
         "Updates cache, plan, play log and executes plan."
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         # TODO: Better design solution to making these variables accessible the right places?
         self._solution = solution
 
@@ -429,7 +429,7 @@ class PostProcessor(Parameterized):
         
         
         self._update_all_count += 1
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
 
     def finalize_all(self):
         "Finalize all Fields after last timestep has been computed."
@@ -445,19 +445,19 @@ class PostProcessor(Parameterized):
         
         self._saver.update(t, timestep, self._cache[0], finalized)
         self._plotter.update(t, timestep, self._cache[0], finalized)
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
 
 
     def store_mesh(self, mesh, cell_domains=None, facet_domains=None):
         self._saver.store_mesh(mesh, cell_domains, facet_domains)
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
 
     def _clean_casedir(self):
         self._saver._clean_casedir()
 
     def store_params(self, params):
         self._saver.store_params(params)
-        MPI.barrier(MPI_Comm())
+        MPI.barrier(mpi_comm_world())
         
     def get_casedir(self):
         return self._saver.get_casedir()

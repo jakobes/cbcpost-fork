@@ -301,7 +301,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 assert sorted(data.keys()) == sorted(st)
             elif sf == "txt":
                 data = open(os.path.join(filled_casedir, d, d+".txt"), 'r').readlines()
-                print MPI.rank(MPI_Comm()), data, st
+                print MPI.rank(mpi_comm_world()), data, st
                 assert len(data) == len(st)
             elif sf == "pvd":
                 pass

@@ -152,7 +152,7 @@ if __name__ == '__main__':
         subdomains = AutoSubDomain(lambda x: x[0]<0.5)
         subdomains.mark(cell_domains, 1)
         
-        if MPI.num_processes() == 1:
+        if MPI.size(mpi_comm_world()) == 1:
             submesh = SubMesh(mesh, cell_domains, 1)
         else:
             submesh = create_submesh(mesh, cell_domains, 1)

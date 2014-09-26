@@ -83,8 +83,8 @@ def restriction_map(V, Vb):
             request_dofs = np.append(request_dofs, add_dofs)
 
     # Scatter all dofs not found on current process to all processes
-    all_request_dofs = [None]*MPI.num_processes()
-    for j in xrange(MPI.num_processes()):
+    all_request_dofs = [None]*MPI.size(mpi_comm_world())
+    for j in xrange(MPI.size(mpi_comm_world())):
         all_request_dofs[j] = broadcast(request_dofs, j)
     
     # Re-order all requested dofs
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     u2 = Function(Vb)
     u2.vector()[mapping.keys()] = u.vector()[mapping.values()]
     
-    print assemble(u*dx(1), cell_domains=markers), assemble(u2*dx)
+    print assemble(u*dx(1, subdomain_data=markers)), assemble(u2*dx)
     
     V = VectorFunctionSpace(mesh, "CG", 1)
     Vb = VectorFunctionSpace(mesh2, "CG", 1)
@@ -156,4 +156,4 @@ if __name__ == '__main__':
     u2 = Function(Vb)
     u2.vector()[mapping.keys()] = u.vector()[mapping.values()]
     
-    print assemble(inner(u,u)*dx(1), cell_domains=markers), assemble(inner(u2,u2)*dx)
+    print assemble(inner(u,u)*dx(1, subdomain_data=markers)), assemble(inner(u2,u2)*dx)

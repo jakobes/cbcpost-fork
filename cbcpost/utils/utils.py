@@ -7,7 +7,7 @@ def on_master_process():
     return MPI.rank(mpi_comm_world()) == 0
 
 def in_serial():
-    return MPI.num_processes() == 1
+    return MPI.size(mpi_comm_world()) == 1
 
 def strip_code(code):
     """Strips code of unnecessary spaces, comments etc."""
@@ -77,7 +77,7 @@ class _HDF5Link:
         self.cpp_link_module = compile_extension_module(cpp_link_code, additional_system_headers=["dolfin/io/HDF5Interface.h"])
     
     def link(self, hdf5filename, link_from, link_to):
-        use_mpiio = MPI.num_processes() > 1
+        use_mpiio = MPI.size(mpi_comm_world()) > 1
         self.cpp_link_module.link_dataset(mpi_comm_world(), hdf5filename, link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
 
@@ -146,12 +146,12 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     if saveformat == 'hdf5':    
         mesh = Mesh()
         hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5'), 'r')
-        hdf5file.read(mesh, "Mesh")
+        hdf5file.read(mesh, "Mesh", False)
         del hdf5file
     elif saveformat == 'xml' or saveformat == 'xml.gz':
         mesh = Mesh()
         hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(fieldname), "mesh.hdf5"), 'r')
-        hdf5file.read(mesh, "Mesh")
+        hdf5file.read(mesh, "Mesh", False)
         del hdf5file
 
     shape = eval(metadata["element_value_shape"])

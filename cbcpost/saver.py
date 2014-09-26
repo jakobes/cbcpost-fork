@@ -181,7 +181,7 @@ class Saver():
         local_hash.update(str(data.function_space().mesh().num_cells()))
         local_hash.update(str(data.function_space().ufl_element()))
         local_hash.update(str(data.function_space().dim()))
-        local_hash.update(str(MPI.num_processes()))
+        local_hash.update(str(MPI.size(mpi_comm_world())))
         
         # Global hash (same on all processes), 10 digits long
         hash = str(int(MPI.sum(mpi_comm_world(), int(local_hash.hexdigest(), 16))%1e10)).zfill(10)

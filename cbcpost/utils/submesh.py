@@ -115,8 +115,8 @@ def create_submesh(mesh, markers, marker):
 
     mesh_editor.close()
 
-    submesh.topology().init_global(0, global_num_vertices)
-    submesh.topology().init_global(mesh.ufl_cell().topological_dimension(), global_num_cells)
+    submesh.topology().init(0, len(sub_vertices), global_num_vertices)
+    submesh.topology().init(mesh.ufl_cell().topological_dimension(), len(sub_cells), global_num_cells)
     
     # FIXME: Set up shared entities
     # What damage does this do?

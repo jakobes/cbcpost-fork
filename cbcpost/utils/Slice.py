@@ -125,10 +125,9 @@ class Slice(Mesh):
             mesh_editor.add_vertex_global(int(local_index), int(global_index), coordinates)
         
         mesh_editor.close()
-        
-        self.topology().init_global(0, global_num_vertices)
-        self.topology().init_global(2, global_num_cells)
-        
+        self.topology().init(0, len(vertices), global_num_vertices)
+        self.topology().init(2, len(cells), global_num_cells)
+
         
 if __name__ == '__main__':
     from dolfin import UnitCubeMesh, plot

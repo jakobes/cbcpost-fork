@@ -2,7 +2,6 @@
 
 from dolfin import UnitSquareMesh
 from cbcpost import SpacePool, get_grad_space
-#from cbcflow.utils.core import SpacePool, NSSpacePool, NSSpacePoolMixed, NSSpacePoolSplit, NSSpacePoolSegregated
 
 def test_spacepool_base_functionality(mesh):
     p = SpacePool(mesh)

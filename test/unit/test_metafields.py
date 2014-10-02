@@ -1,6 +1,6 @@
 #!/usr/bin/env py.test
 """
-Tests of postprocessing framework in cbcflow.
+Tests of the different metafields (through the PostProcessor).
 """
 from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField, MockScalarField
 from collections import defaultdict
@@ -28,9 +28,6 @@ class MockProblem(Parameterized):
             self.mesh = UnitSquareMesh(6,6)
         elif D == 3:
             self.mesh = UnitCubeMesh(3,3,3)
-        elif D == 'complex':
-            self.mesh = Mesh("../cbcflow-data/dog_mesh_37k.xml.gz")
-        #self.initialize_geometry(mesh)
 
     @classmethod
     def default_params(cls):
@@ -670,18 +667,18 @@ def test_Boundary(problem, pp, start_time, end_time, dt):
     pp.finalize_all()
     assert errornorm(
              pp.get("Boundary_MockFunctionField"),
-             interpolate(Expression("1+x[0]*x[1]*t", t=end_time), Qb)
+             interpolate(Expression("1+x[0]*x[1]*t", t=t), Qb)
         ) < 1e-8
      
     if D == 2:
         assert errornorm(
             pp.get("Boundary_MockVectorFunctionField"),
-            interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=end_time), Vb)
+            interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), Vb)
         ) < 1e-8
     else:
         assert errornorm(
             pp.get("Boundary_MockVectorFunctionField"),
-            interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=end_time), Vb)
+            interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), Vb)
         ) < 1e-8
 
 def test_DomainAvg(problem, pp, start_time, end_time, dt):

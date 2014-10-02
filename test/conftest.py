@@ -1,6 +1,7 @@
-
-#from cbcflow import *
-from numpy.random import random
+from numpy.random import random, seed, randint
+#from random import random, seed, randint
+from sys import maxsize
+from dolfin import MPI, mpi_comm_world
 
 def pytest_addoption(parser):
     parser.addoption("--all", action="store_true",
@@ -11,6 +12,10 @@ def pytest_generate_tests(metafunc):
     if 'dim' in metafunc.fixturenames:
         metafunc.parametrize("dim", [2, 3])
 
+    # Set random seed
+    new_seed = MPI.sum(mpi_comm_world(), randint(0,1e6))/MPI.size(mpi_comm_world())
+    seed(new_seed)
+    
     # TODO: Make options to select all or subset of schemes for this factory,
     #       copy from or look at regression conftest,
     if 'scheme_factory' in metafunc.fixturenames:

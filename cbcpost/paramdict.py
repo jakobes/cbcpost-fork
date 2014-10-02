@@ -14,11 +14,19 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+ParamDict is an extension to the standard python dict-type. It has support for
+multilevel dicts, and access and assignment through dot-notation (similar to
+accessing attributes).
+"""
+
 from __future__ import division
 
 import re
+import copy
 
 class ParamDict(dict):
+    "The base class extending the standard python dict."
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
         self._keys = []
@@ -37,8 +45,8 @@ class ParamDict(dict):
     # --- Recursive ParamDict aware copy and update functions
 
     def copy_recursive(self):
-        "Copy ParamDict hierarchy recursively, using copy.deepcopy() to copy values."
-        import copy
+        "Copy ParamDict hierarchy recursively, using copy.deepcopy() to copy \
+        values."
         keys = list(self.iterkeys())
         items = []
         for k in keys:
@@ -47,7 +55,7 @@ class ParamDict(dict):
                 v2 = v.copy_recursive()
             else:
                 v2 = copy.deepcopy(v)
-            items.append((k,v2))
+            items.append((k, v2))
         return ParamDict(items)
 
     def replace_shallow(self, params=None, **kwparams):
@@ -55,7 +63,8 @@ class ParamDict(dict):
         if params:
             unknown = set(params.iterkeys()) - set(self.iterkeys())
             if unknown:
-                raise RuntimeError("Trying to replace non-existing entries: %s" % (sorted(unknown),))
+                raise RuntimeError("Trying to replace non-existing entries: %s"
+                                   % (sorted(unknown),))
             for k, v in params.iteritems():
                 self[k] = v
         if kwparams:
@@ -67,7 +76,8 @@ class ParamDict(dict):
         "Perform a recursive update where no new keys are allowed."
         def handle(k, v):
             if k not in self:
-                raise RuntimeError("Trying to replace non-existing entry: %s" % (k,))
+                raise RuntimeError("Trying to replace non-existing entry: %s"
+                                   % (k,))
             if isinstance(v, ParamDict):
                 # If it's a ParamDict, recurse
                 self[k].replace_recursive(v)
@@ -140,16 +150,21 @@ class ParamDict(dict):
             return self[name]
 
     def __setattr__(self, name, value):
-        "Insert item with attribute notation, only allows changing a value with existing key."
+        """Insert item with attribute notation, only allows changing a value 
+        with existing key.
+        
+        """
         if name.startswith("_"):
             self.__dict__[name] = value
         else:
             if name not in self:
-                raise RuntimeError("Trying to update non-existing entry: %s" % (name,))
+                raise RuntimeError("Trying to update non-existing entry: %s"
+                                   % (name,))
             self[name] = value
 
     def pop(self, name, default=None):
-        ''' Returns Paramdict[name] if the key exists. If the key does not exist the default value is returned. '''
+        """ Returns Paramdict[name] if the key exists. If the key does not
+        exist the default value is returned. """
         if self.has_key(name):
             v = self[name]
             del self[name]
@@ -171,12 +186,15 @@ class ParamDict(dict):
     # --- String rendering
 
     def __repr__(self):
-        return "ParamDict([%s])" % ", ".join("(%r, %r)" % (k, self[k]) for k in self._keys)
+        return "ParamDict([%s])" % ", ".join("(%r, %r)"
+                % (k, self[k]) for k in self._keys)
 
     def __str__(self):
+        "Return formatted string representing the dict"
         return '\n'.join(self._str())
 
     def _str(self, level=0):
+        "Format dict string recursively"
         indent = (level+1)*4*" "
         if level == 0:
             lines = ["Parameters:"]
@@ -221,9 +239,11 @@ class ParamDict(dict):
             else:
                 yield (k, v)
 
-    # --- Commandline argument translation (should perhaps be placed outside class?)
+    # --- Commandline argument translation
+    # (should perhaps be placed outside class?)
 
     def arg_assign(self, name, value):
+        "Assign value recursively to self"
         subs = name.split('.')
         subs, vname = subs[:-1], subs[-1]
         p = self
@@ -232,9 +252,11 @@ class ParamDict(dict):
         p[vname] = eval(value)
 
     def parse_args(self, args):
+        "Parse command line arguments into self"
         m = re.findall(r'([^ =]+)=([^ ]+)', args)
         for k, v in m:
             self.arg_assign(k, v)
 
     def render_args(self):
-        return "  ".join("%s=%r" % (k,v) for k, v in self.iterdeep())
+        "Render arguments (inverse of parse_args)"
+        return "  ".join("%s=%r" % (k, v) for k, v in self.iterdeep())

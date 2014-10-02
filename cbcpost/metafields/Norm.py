@@ -14,35 +14,56 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-r'''
-Computes the norm of a Field. If the Field returns a Vector or Function, the computation is forwarded to
-the dolfin function *norm*. Otherwise a float list-type object is expected, and the :math:'l^p'-norm is computed as
+"""Field for calculating the (spatial) norm of a Field."""
 
-.. math:: ||\mathbf{x}||_p := \left( \sum_i=1^n |x_i|^p \right)^{1/p}.
-
-The :math:'\infty'-norm is computed as
-
-.. math:: ||\mathbf{x}||_\infty := max(|x_1|, |x_2|, ..., |x_n|)
-
-'''
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import Function, Vector, norm
 
 class Norm(MetaField):
+    r'''Computes the norm of a Field. If the Field returns a Vector or Function, the computation is forwarded to
+    the dolfin function *norm*. Otherwise a float list-type object is expected, and the :math:`l^p`-norm is computed as
+    
+    .. math::
+            
+            ||\mathbf{x}||_p := \left( \sum_i=1^n |x_i|^p \right)^{1/p}.
+    
+    The :math:`\infty`-norm is computed as
+    
+    .. math::
+    
+            ||\mathbf{x}||_\infty := max(|x_1|, |x_2|, ..., |x_n|)
+    
+    '''
     @classmethod
     def default_params(cls):
+        """
+        Default parameters are:
+        
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                                              |
+        +======================+=======================+===========================================================================================+
+        | norm_type            | 'default'             | The norm type to choose. For dolfin.Function or dolfin.Vector,                            |
+        |                      |                       | refer to dolfin.norm for valid norm types. Otherwise, p-norm is                           |
+        |                      |                       | supported. Invoke using 'l2', 'l3' etc, or 'linf' for max-norm.                           |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        
+        """
         params = MetaField.default_params()
         params.update(
             norm_type='default',
             )
         return params
     
+    
     @property
     def name(self):
-        n = "%s" % (self.__class__.__name__)
-        if self.params.norm_type != "default": n += "_"+self.params.norm_type
-        n += "_"+self.valuename
-        if self.label: n += "_"+self.label
+        if self._name == "default":
+            n = "%s" % (self.__class__.__name__)
+            if self.params.norm_type != "default": n += "_"+self.params.norm_type
+            n += "_"+self.valuename
+            if self.label: n += "_"+self.label
+        else:
+            n = self._name
         return n
     
     def compute(self, get):

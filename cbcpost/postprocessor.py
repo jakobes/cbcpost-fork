@@ -14,11 +14,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-
+"""
+The main module of cbcpost, which, for basic functionality, is the only
+interface necessary for the user.
+"""
 from dolfin import Function, MPI, mpi_comm_world
 
-#from cbcpost.parameterized import Parameterized
-#from cbcpost.paramdict import ParamDict
 from cbcpost import ParamDict, Parameterized
 from cbcpost.plotter import Plotter
 from cbcpost.planner import Planner
@@ -32,6 +33,7 @@ from collections import defaultdict
 
 
 class DependencyException(Exception):
+    "Common Exception-class to handle all exceptions related to dependency handling"
     def __init__(self, fieldname=None, dependency=None, timestep=None, original_exception_msg=None):
         message = []
         if fieldname:
@@ -39,7 +41,9 @@ class DependencyException(Exception):
         if dependency:
             message += ["Dependency %s not functioning." % dependency]
         if timestep:
-            message += ["Relative timestep is %d. Are you trying to calculate time-derivatives at t=0?" % (timestep)]
+            message += ["Relative timestep is %d. Are you trying to calculate \
+                        time-derivatives at t=0 without setting a correct \
+                        initial dt?" % (timestep)]
         if original_exception_msg:
             message += ["\nOriginal exception was: " + original_exception_msg]
         message = ' '.join(message)
@@ -48,10 +52,70 @@ class DependencyException(Exception):
 # Fields available through get(name) even though they have no Field class
 builtin_fields = ("t", "timestep")
 
-#class PostProcessor():
-#    def __init__(self, casedir='.', timer=False, extrapolate=True, initial_dt=1e-5):
+def find_dependencies(field):
+    "Read dependencies from source code in field.compute function"
+    
+    # Get source of compute and after_last_compute
+    s = inspect.getsource(field.compute)
+    s += inspect.getsource(field.after_last_compute)
+    s = strip_code(s) # Removes all comments, empty lines etc.
+
+    # Remove comment blocks
+    s = s.split("'''")
+    s = s[0::2]
+    s = ''.join(s)
+    s = s.split('"""')
+    s = s[0::2]
+    s = ''.join(s)
+    s = strip_code(s)
+
+    # Get argument names for the compute function
+    args = inspect.getargspec(field.compute)[0]
+    self_arg = args[0]
+    get_arg = args[1]
+
+    # Read the code for dependencies
+    deps = []
+    deps_raw = re.findall(get_arg+"\((.+)\)", s)
+    for dep in deps_raw:
+        # Split into arguments (name, timestep)
+        dep = dep.split(',')
+
+        # Append default 0 if dependent timestep not specified
+        if len(dep) == 1:
+            dep.append(0)
+
+        # Convert timestep to int
+        dep[1] = int(dep[1])
+
+        # Get field name from string literal or through string variable
+        dep[0] = dep[0].strip(' ').replace('"', "'")
+        if "'" in dep[0]:
+            # If get('Velocity')
+            dep[0] = dep[0].replace("'","")
+        else:
+            # If get(self.somevariable), get the string hiding at self.somevariable
+            dep[0] = eval(dep[0].replace(self_arg, "field", 1))
+
+            # TODO: Test alternative solution without eval (a matter of principle) and with better check:
+            #s, n = dep[0].split(".")
+            #assert s == self_arg, "Only support accessing strings through self."
+            #dep[0] = getattr(field, n)
+
+            # TODO: Possible to get variable in other cases through more introspection?
+            #       Probably not necessary, just curious.
+
+        # Append to dependencies
+        deps.append(tuple(dep))
+    
+    # Make unique (can happen that deps are repeated in rare cases)
+    return sorted(set(deps))
+
+
 class PostProcessor(Parameterized):
-    #def __init__(self, timer=None, params=None):
+    """
+    All basic user interface is gathered here.
+    """
     def __init__(self, params=None, timer=None):
         Parameterized.__init__(self, params)
         if isinstance(timer, Timer):
@@ -73,8 +137,8 @@ class PostProcessor(Parameterized):
         for depname in builtin_fields:
             self._dependencies[depname] = []
             self._full_dependencies[depname] = []
-            
-        #import ipdb; ipdb.set_trace()
+
+        # Create instances required for plotting, saving and planning
         #self._reverse_dependencies = {} # TODO: Need this?
         self._plotter = Plotter(self._timer)
         self._saver = Saver(self._timer, self.params.casedir)
@@ -101,7 +165,6 @@ class PostProcessor(Parameterized):
         if self.params.clean_casedir: self._saver._clean_casedir()
         
         """
-        
         # Callback to be called with fields where the 'callback' action is enabled
         # Signature: ppcallback(field, data, t, timestep)
         self._callback = None
@@ -114,6 +177,37 @@ class PostProcessor(Parameterized):
     
     @classmethod
     def default_params(cls):
+        """
+        Default parameters are:
+        
+        ===============       ==============   =========================================================================
+        Key                   Default value    Description
+        ===============       ==============   =========================================================================
+        casedir               '.'              Case directory - relative path to use for saving
+        enable_timer          False            Enable timer
+        extrapolate           True             Constant extrapolation of fields prior to first update call
+        initial_dt            1e-5             Initial timestep. Only used in planning algorithm at first update call.
+        clean_casedir         False            Clean out case directory prior to update.
+        ===============       ==============   =========================================================================
+        
+        
+        Trying with a different table format:
+        
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                                              |
+        +======================+=======================+===========================================================================================+
+        | casedir              | '.'                   | Case directory - relative path to use for saving                                          |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        | enable_timer         | False                 | Enable timer                                                                              |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        | extrapolate          | True                  | Constant extrapolation of fields prior to first update call                               |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        | initial_dt           | 1e-5                  | Initial timestep. Only used in planning algorithm at first update call.                   |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        | clean_casedir        | False                 | Clean out case directory prior to update.                                                 |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        
+        """
         params = ParamDict(
             casedir=".",
             enable_timer=False,
@@ -131,70 +225,12 @@ class PostProcessor(Parameterized):
             return
 
         # Find largest index of dependencies in sorted list
-        deps = [dep[0] for dep in self._dependencies[fieldname] if dep[0] not in builtin_fields]
+        deps = [dep[0] for dep in self._dependencies[fieldname]
+                if dep[0] not in builtin_fields]
         max_index = max([-1]+[self._sorted_fields_keys.index(dep) for dep in deps])
 
         # Insert item after all its dependencies
         self._sorted_fields_keys.insert(max_index+1, fieldname)
-
-    def _find_dependencies(self, field):
-        "Read dependencies from source code in field.compute function"
-        
-        # Get source of compute and after_last_compute
-        s = inspect.getsource(field.compute)
-        s += inspect.getsource(field.after_last_compute)
-        s = strip_code(s) # Removes all comments, empty lines etc.
-
-        # Remove comment blocks
-        s = s.split("'''")
-        s = s[0::2]
-        s = ''.join(s)
-        s = s.split('"""')
-        s = s[0::2]
-        s = ''.join(s)
-        s = strip_code(s)
-
-        # Get argument names for the compute function
-        args = inspect.getargspec(field.compute)[0]
-        self_arg = args[0]
-        get_arg = args[1]
-
-        # Read the code for dependencies
-        deps = []
-        deps_raw = re.findall(get_arg+"\((.+)\)", s)
-        for dep in deps_raw:
-            # Split into arguments (name, timestep)
-            dep = dep.split(',')
-
-            # Append default 0 if dependent timestep not specified
-            if len(dep) == 1:
-                dep.append(0)
-
-            # Convert timestep to int
-            dep[1] = int(dep[1])
-
-            # Get field name from string literal or through string variable
-            dep[0] = dep[0].strip(' ').replace('"', "'")
-            if "'" in dep[0]:
-                # If get('Velocity')
-                dep[0] = dep[0].replace("'","")
-            else:
-                # If get(self.somevariable), get the string hiding at self.somevariable
-                dep[0] = eval(dep[0].replace(self_arg, "field", 1))
-
-                # TODO: Test alternative solution without eval (a matter of principle) and with better check:
-                #s, n = dep[0].split(".")
-                #assert s == self_arg, "Only support accessing strings through self."
-                #dep[0] = getattr(field, n)
-
-                # TODO: Possible to get variable in other cases through more introspection?
-                #       Probably not necessary, just curious.
-
-            # Append to dependencies
-            deps.append(tuple(dep))
-        
-        # Make unique (can happen that deps are repeated in rare cases)
-        return sorted(set(deps))
 
     def add_field(self, field):
         "Add field to postprocessor."
@@ -211,14 +247,10 @@ class PostProcessor(Parameterized):
         self.add_fields(field.add_fields())
 
         # Analyze dependencies of field through source inspection
-        deps = self._find_dependencies(field)
+        deps = find_dependencies(field)
         for dep in deps:
             if dep[0] not in self._fields and dep[0] not in builtin_fields:
                 raise DependencyException(fieldname=field.name, dependency=dep[0])
-
-        # Add dependent fields to self._fields (this will add known fields by name)
-        #for depname in set(d[0] for d in deps) - set(self._fields.keys()):
-        #    self.add_field(depname)
 
         # Build full dependency list
         full_deps = []
@@ -279,7 +311,8 @@ class PostProcessor(Parameterized):
                 c[name] = data
             else:
                 raise RuntimeError("Unable to get data from before update was started. \
-                                   (%s, relative_timestep: %d, update_all_count: %d)" %(name, relative_timestep, self._update_all_count))
+                                   (%s, relative_timestep: %d, update_all_count: %d)"
+                                   %(name, relative_timestep, self._update_all_count))
         # Cache miss?
         if data == "N/A":
             field = self._fields[name]
@@ -287,11 +320,10 @@ class PostProcessor(Parameterized):
                 # Ensure before_first_compute is always called once initially
                 if self._compute_counts[field.name] == 0:
                     init_data = field.before_first_compute(self.get)
-                    """
-                    if init_data is not None and field.params["save"]:
-                        self._init_metadata_file(name, init_data)
-                    """
                     self._timer.completed("PP: before first compute %s" %name)
+                    if init_data != None:
+                        cbc_warning("Did not expect a return value from \
+                                    %s.before_first_compute." %field.__class__)
 
                 # Compute value
                 if name in self._solution:
@@ -341,7 +373,8 @@ class PostProcessor(Parameterized):
         "Check plan and compute fields in plan."
         
         # Initialize cache for current timestep
-        assert not self._cache[0], "Not expecting cached computations at this timestep before plan execution!"
+        assert not self._cache[0], "Not expecting cached computations at this \
+                                    timestep, before plan execution!"
         self._cache[0] = {
             "t": t,
             "timestep": timestep,
@@ -355,8 +388,6 @@ class PostProcessor(Parameterized):
                 compute = False
             
             field = self._fields[name]    
-            #if self._should_finalize_at_this_time(field, t, timestep):
-            #finalize = True if name in self._finalize_plan else False
             
             if name in self._finalize_plan:# and name not in self._finalized:
                 finalize = True
@@ -369,15 +400,6 @@ class PostProcessor(Parameterized):
             
             # Execute computation through get call
             data = self.get(name, compute=compute, finalize=finalize)
-            
-            # Apply action if it was triggered directly this timestep (not just indirectly)
-            #if (data is not None) and (self._last_trigger_time[name][1] == timestep):
-            """
-            if self._last_trigger_time[name][1] == timestep or finalize:
-                for action in ["save", "plot", "callback"]:
-                    if field.params[action]:
-                        self._apply_action(action, field, data)
-            """
     
     def _update_cache(self, t, timestep):
         "Update cache, remove what can be removed"
@@ -390,7 +412,8 @@ class PostProcessor(Parameterized):
             # Only keep what we have planned to cache
             for name, ttk in plan.iteritems():
                 if ttk > 0:
-                    # Cache should contain old cached values at ts<0 and newly computed values at ts=0
+                    # Cache should contain old cached values at ts<0
+                    # and newly computed values at ts=0
                     data = self._cache[ts].get(name, "N/A")
                     assert data is not "N/A", "Missing cache data!"
                     # Insert data in new cache at position ts-1
@@ -400,6 +423,7 @@ class PostProcessor(Parameterized):
     def update_all(self, solution, t, timestep):
         "Updates cache, plan, play log and executes plan."
         MPI.barrier(mpi_comm_world())
+
         # TODO: Better design solution to making these variables accessible the right places?
         self._solution = solution
 
@@ -410,10 +434,8 @@ class PostProcessor(Parameterized):
         self._update_cache(t, timestep)
 
         # Plan what we need to compute now and in near future based on action triggers and dependencies
-        #self._plan = self._planner._update_plan(self._plan, t, timestep)
-        #self._compute_plan, self._finalize_plan = self._planner._update_plan(t, timestep)
         self._plan, self._finalize_plan, self._last_trigger_time = \
-            self._planner._update(self._fields, self._full_dependencies, self._dependencies, t, timestep)
+            self._planner.update(self._fields, self._full_dependencies, self._dependencies, t, timestep)
         self._timer.completed("PP: updated plan.")
 
         # Compute what's needed according to plan
@@ -421,10 +443,9 @@ class PostProcessor(Parameterized):
         
         triggered_or_finalized = []
         for name in self._cache[0]:
-            if name in self._finalize_plan or self._last_trigger_time[name][1] == timestep:
+            if (name in self._finalize_plan
+                or self._last_trigger_time[name][1] == timestep):
                 triggered_or_finalized.append(self._fields[name])
-        
-        #triggered_or_finalized = [name if name in self._finalize_plan or self._last_trigger_time[name][1] == timestep for name in self._cache[0]]
         
         self._saver.update(t, timestep, self._cache[0], triggered_or_finalized)
         self._plotter.update(t, timestep, self._cache[0], triggered_or_finalized)
@@ -451,21 +472,46 @@ class PostProcessor(Parameterized):
 
 
     def store_mesh(self, mesh, cell_domains=None, facet_domains=None):
+        """Store mesh in casedir to mesh.hdf5 (dataset Mesh) in casedir.
+        
+        Forwarded to a Saver-instance.
+        """
         self._saver.store_mesh(mesh, cell_domains, facet_domains)
         MPI.barrier(mpi_comm_world())
 
-    def _clean_casedir(self):
+    def clean_casedir(self):
+        """Cleans out all files produced by cbcpost in the current casedir.
+        
+        Forwarded to a Saver-instance.
+        """
         self._saver._clean_casedir()
 
     def store_params(self, params):
+        """Store parameters in casedir as params.pickle and params.txt.
+        
+        Forwarded to a Saver-instance.
+        """
         self._saver.store_params(params)
         MPI.barrier(mpi_comm_world())
         
     def get_casedir(self):
+        """Return case directory.
+        
+        Forwarded to a Saver-instance.
+        """
         return self._saver.get_casedir()
     
     def get_savedir(self, fieldname):
+        """Returns save directory for given field name
+        
+        Forwarded to a Saver-instance.
+        """
         return self._saver.get_savedir(fieldname)
     
     def get_playlog(self):
+        """
+        Get play log from disk (which is stored as a shelve-object).
+        
+        Forwarded to a Saver-instance.
+        """
         return self._saver._fetch_play_log()

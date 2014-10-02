@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-
+"""Common functionality and interface for all Field-implementations."""
 from os.path import join
 
 from dolfin import Function, TestFunction, assemble, inner, dx, project, HDF5File, error
@@ -22,6 +22,12 @@ import shelve
 from cbcpost import ParamDict, Parameterized
 
 class Field(Parameterized):
+    """ Base class for all fields.
+    
+    :param name: Specify name for field. If default, a name will be created based on class-name.
+    :param label: Specify a label. The label will be added to the name, if name is default.
+    
+    """
     def __init__(self, params=None, name="default", label=None):
         Parameterized.__init__(self, params)
         if label:
@@ -34,6 +40,7 @@ class Field(Parameterized):
 
     @classmethod
     def default_save_as(cls):
+        """ Specify default save formats for field. Default is *determined_by_data*."""
         return "determined by data"
 
     @classmethod
@@ -75,7 +82,9 @@ class Field(Parameterized):
 
     @property
     def name(self):
-        "Return name of field, by default the classname but can be overloaded in subclass."
+        """Return name of field, by default this is *classname-label*,
+        but can be overloaded in subclass.
+        """
         if self._name == "default":
             n = self.__class__.__name__
             if self.label: n += "-"+self.label
@@ -89,47 +98,23 @@ class Field(Parameterized):
         return []
 
     def before_first_compute(self, get):
-        "Called prior to the simulation timeloop."
+        "Called before first call to compute."
         pass
 
     def after_last_compute(self, get):
-        "Called after the simulation timeloop."
+        "Called after last call to compute."
         return "N/A"
 
     def compute(self, get):
         "Called each time the quantity should be computed."
         raise NotImplementedError("A Field must implement the compute function!")
-    """
-    def convert(self, pp, spaces, problem):
-        
-        # Load data from disk (this is used in replay functionality)
-        # The structure of the dict pp._solution[self.name] is determined in nsreplay.py
-        if isinstance(pp._solution[self.name], dict):
-            timestep = get("timestep")
-            saveformat = pp._solution[self.name]["format"]
-            if saveformat == 'hdf5':
-                hdf5filepath = join(get_casedir(), self.name, self.name+".hdf5")
-                hdf5file = HDF5File(mpi_comm_world(), hdf5filepath, 'r')
-                dataset = self.name+str(timestep)
-                hdf5file.read(pp._solution[self.name]["function"], dataset)
-                pp._solution[self.name] = pp._solution[self.name]["function"]
-            elif saveformat in ["xml", "xml.gz"]:
-                xmlfilename = self.name+str(timestep)+"."+saveformat
-                xmlfilepath = join(get_casedir(), self.name, xmlfilename)
-                function = pp._solution[self.name]["function"]
-                function.assign(Function(function.function_space(), xmlfilepath))
-                pp._solution[self.name] = pp._solution[self.name]["function"]
-            elif saveformat == "shelve":
-                shelvefilepath = join(get_casedir(), self.name, self.name+".db")
-                shelvefile = shelve.open(shelvefilepath)
-                pp._solution[self.name] = shelvefile[str(timestep)]
 
-        return pp._solution[self.name]
-    """
     # --- Helper functions
 
     def expr2function(self, expr, function):
-
+        """ Convert an expression into a function. How this is done is
+        determined by the parameters (assemble, project or interpolate).
+        """
         space = function.function_space()
 
         if self.params.assemble:

@@ -14,11 +14,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Calculates the maximum of a Field."""
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import Function, MPI, mpi_comm_world
 import numpy
 
 class Maximum(MetaField):
+    """Computes the maximum of a Field."""
     def compute(self, get):
         u = get(self.valuename)
         

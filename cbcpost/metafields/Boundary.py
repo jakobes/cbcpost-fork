@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality for evaluating a field at the mesh boundary """
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
 from cbcpost import SpacePool
@@ -21,7 +22,13 @@ from cbcpost import SpacePool
 from dolfin import Function, ds, dx, assemble
 
 class Boundary(MetaField):
-
+    """Extracts the boundary values of a Function and returns a Function object
+    living on the equivalent FunctionSpace on boundary mesh.
+    
+    .. warning::
+        Only CG1 and DG0 spaces currently functioning.
+    
+    """
     def before_first_compute(self, get):
         u = get(self.valuename)
         

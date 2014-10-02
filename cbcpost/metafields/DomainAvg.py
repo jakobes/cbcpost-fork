@@ -14,10 +14,24 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality for calculating the average of a specified domain."""
+
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import assemble, dx, Function, Constant, Measure
 
 class DomainAvg(MetaField):
+    """Compute the domain average for a specified domain. Default to computing
+    the average over the entire domain.
+    
+    Parameters used to describe the domain are:
+        
+    :param measure: Measure describing the domain (default: dx())
+    :param  cell_domains: A CellFunction describing the domains
+    :param facet_domains: A FacetFunction describing the domains
+    :param indicator: Domain id corresponding to cell_domains or facet_domains
+        
+    If cell_domains/facet_domains and indicator given, this overrides given measure.
+    """
     def __init__(self, value, params=None, name="default", label=None, measure=dx(), cell_domains=None, facet_domains=None, indicator=None):
         assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
         
@@ -29,8 +43,7 @@ class DomainAvg(MetaField):
             if indicator != None:
                 cbcwarning("Indicator specified, but no domains. Will dompute average over entire domain.")
             self.dI = measure
-        #import ipdb; ipdb.set_trace()
-        #if label == None and str(self.dI) != "dxeverywhere":
+
         if label == None and not (self.dI.integral_type() == "cell" and self.dI.subdomain_id() == "everywhere"):
             
             if self.dI.integral_type() == "cell":

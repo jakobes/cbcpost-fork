@@ -14,8 +14,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Parameterized represents a suggested interface to create classes/objects with
+associated parameters.
+"""
 from __future__ import division
 
+#pylint: disable=R0921
 class Parameterized(object):
     "Core functionality for parameterized subclassable components."
     def __init__(self, params):
@@ -25,16 +30,17 @@ class Parameterized(object):
         # Assert for each subclass that we have all keys,
         # i.e. no default_params functions have been skipped
         # in the inheritance chain
-        ps = set(self.params.keys())
-        for cl in type(self).mro()[:-2]: # Skip object and Parameterized
-            assert len(set(cl.default_params().keys()) - ps) == 0
+        pkeys = set(self.params.keys())
+        for cls in type(self).mro()[:-2]: # Skip object and Parameterized
+            assert len(set(cls.default_params().keys()) - pkeys) == 0
 
     # --- Default parameter functions ---
 
     @classmethod
     def default_params(cls):
         "Merges base and user params into one ParamDict."
-        raise NotImplementedError("Missing default_params implementation for class %s" % (cls,))
+        raise NotImplementedError("Missing default_params implementation for \
+                                  class %s" % (cls,))
 
     # --- Name functions ---
 
@@ -50,11 +56,11 @@ class Parameterized(object):
         """Get a one-sentence description of what the class represents.
 
         By default uses first line of class docstring."""
-        d = cls.__doc__
-        if d is None:
+        doc = cls.__doc__
+        if doc is None:
             return "Missing description."
         else:
-            return d.split('\n')[0]
+            return doc.split('\n')[0]
 
     def __str__(self):
         return "%s: %s" % (self.shortname(), self.description())

@@ -14,21 +14,27 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-r'''
-Computes the norm of two Fields. If the Fields Function-objects, the computation is forwarded to
-the dolfin function *errornorm*. Otherwise two float list-type object is expected, and the :math:'l^p'-norm is computed as
+"""Field for calculating the (spatial) error norm of a Field."""
 
-.. math:: ||\mathbf{x}||_p := \left( \sum_i=1^n |x_i|^p \right)^{1/p}.
 
-The :math:'\infty'-norm is computed as
-
-.. math:: ||\mathbf{x}||_\infty := max(|x_1|, |x_2|, ..., |x_n|)
-
-'''
 from cbcpost.fieldbases.MetaField2 import MetaField2
 from dolfin import Function, Vector, errornorm
 
 class ErrorNorm(MetaField2):
+    r'''Computes the error norm of two Fields. If the Fields Function-objects, the computation is forwarded to
+    the dolfin function *errornorm*. Otherwise two float list-type object is expected, and the :math:`l^p`-norm is computed as
+    
+    .. math::
+    
+        ||\mathbf{x-y}||_p := \left( \sum_i=1^n |x_i-y_i|^p \right)^{1/p}.
+    
+    The :math:`\infty`-norm is computed as
+    
+    .. math::
+    
+        ||\mathbf{x-y}||_\infty := max(|x_1-y_1|, |x_2-y_2|, ..., |x_n-y_n|)
+
+    '''
     @classmethod
     def default_params(cls):
         params = MetaField2.default_params()
@@ -37,15 +43,7 @@ class ErrorNorm(MetaField2):
             degree_rise=3,
             )
         return params
-    """
-    @property
-    def name(self):
-        n = "%s" % (self.__class__.__name__)
-        if self.params.norm_type != "default": n += "_"+self.params.norm_type
-        n += "_"+self.valuename1+"_"+self.valuename2
-        if self.label: n += "_"+self.label
-        return n
-    """
+
     def compute(self, get):
         u = get(self.valuename1)
         uh = get(self.valuename2)

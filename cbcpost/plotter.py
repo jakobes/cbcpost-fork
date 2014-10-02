@@ -1,3 +1,29 @@
+# Copyright (C) 2010-2014 Simula Research Laboratory
+#
+# This file is part of CBCPOST.
+#
+# CBCPOST is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CBCPOST is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Handle plotting of all fields where this is requested.
+
+Uses dolfin.plot to plot dolfin-objects (typically Functions), and pylab.plot
+to plot single scalars (float, int).
+
+This code is intended for internal usage, and is called from a PostProcessor
+instance.
+"""
+
 from cbcpost.utils import in_serial, cbc_warning
 import os
 
@@ -29,7 +55,7 @@ def import_pylab():
                 import pylab
                 pylab.ion()
                 import_pylab.value = pylab
-            except:
+            except ImportError:
                 cbc_warning("Unable to load pylab. Disabling pylab plotting.")
                 import_pylab.value = None
     return import_pylab.value
@@ -37,6 +63,9 @@ import_pylab.value = "init"
 
 
 class Plotter():
+    """Class to handle plotting of objects.
+    
+    Plotting is done using pylab or dolfin, depending on object type."""
     def __init__(self, timer):
         self._timer = timer
         
@@ -83,7 +112,8 @@ class Plotter():
             newmax = max(ydata)
 
             plot_object, = pylab.plot(xdata, ydata)
-            self._plot_cache[field.name] = plot_object, figure_number, newmin, newmax
+            self._plot_cache[field.name] = (plot_object, figure_number,
+                                            newmin, newmax)
         else:
             plot_object, figure_number, oldmin, oldmax = plot_data
             pylab.figure(figure_number)
@@ -95,8 +125,9 @@ class Plotter():
             newmin = 1.2*min(ydata)
             newmax = 1.2*max(ydata)
 
-            # Heuristics to avoid changing axis bit by bit, which results in fluttering plots
-            # (Based on gut feeling, feel free to adjust these if you have a use case it doesnt work for)
+            # Heuristics to avoid changing axis bit by bit, which results in
+            # fluttering plots. (Based on gut feeling, feel free to adjust
+            # these if you have a use case it doesnt work for)
             if newmin < oldmin:
                 # If it has decreased, decrease by at least this factor
                 #ymin = min(newmin, oldmin*0.8) # TODO: Negative numbers?
@@ -111,15 +142,19 @@ class Plotter():
                 ymax = newmax
 
             # Need to store min/max for the heuristics to work
-            self._plot_cache[field.name] = plot_object, figure_number, ymin, ymax
+            self._plot_cache[field.name] = (plot_object, figure_number,
+                                            ymin, ymax)
 
             plot_object.set_xdata(xdata)
             plot_object.set_ydata(ydata)
 
-            pylab.axis([xdata[0], 1.2*xdata[-1], ymin, ymax])
+            pylab.axis([xdata[0], xdata[-1], ymin, ymax])
         
         # Set title and show
-        title = "%s, t=%0.4g, timestep=%d, min=%.2g, max=%.2g" % (field.name, t, timestep, newmin, newmax)
+        title = "%s, t=%0.4g, timestep=%d, min=%.2g, max=%.2g" % (field.name,
+                                                                  t, timestep,
+                                                                  newmin,
+                                                                  newmax)
         plot_object.get_axes().set_title(title)
         pylab.xlabel("t")
         pylab.ylabel(field.name)
@@ -138,15 +173,15 @@ class Plotter():
         elif isinstance(data, float):
             self._plot_pylab(t, timestep, field, data)
         else:
-            cbc_warning("Unable to plot object %s of type %s." % (field.name, type(data)))
+            cbc_warning("Unable to plot object %s of type %s."
+                        % (field.name, type(data)))
         self._timer.completed("PP: plot %s" %field.name)
 
 
 
     def update(self, t, timestep, cache, triggered_or_finalized):
-        #print cache, triggered_or_finalized
-        #self.t = t
-        #self.timestep = timestep
+        """Update plot windows with fields that have been triggered or finalized
+        at the current timestep."""
         for field in triggered_or_finalized:
             #print name, cache[name]
             if field.params.plot:

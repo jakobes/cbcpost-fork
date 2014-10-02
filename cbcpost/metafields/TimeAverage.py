@@ -14,10 +14,23 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Functionality for computing time averages.
+"""
+
 from cbcpost.metafields.TimeIntegral import TimeIntegral
 from dolfin import Function
 
 class TimeAverage(TimeIntegral):
+    """
+    Compute the time average of a field :math:`F` as
+    
+    .. math::
+    
+        \\frac{1}{T1-T0} \int_{T0}^{T1} F dt
+    
+    Computes a :class:`.TimeIntegral`, and scales it.
+    """
     def compute(self, get):
         
         ti = super(TimeAverage, self).compute(get)
@@ -44,6 +57,7 @@ class TimeAverage(TimeIntegral):
 
 
     def scale(self, ti):
+        """Scale the TimeIntegral with :math:`1/(T1-T0)`. """
         if ti == None:
             return None
         

@@ -1,7 +1,34 @@
+# Copyright (C) 2010-2014 Simula Research Laboratory
+#
+# This file is part of CBCPOST.
+#
+# CBCPOST is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CBCPOST is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Module to handle the planning of Field computations of cbcpost.
+
+Plans for computations to be executed at future timesteps by inspecting and
+trigger computation of dependent Fields when required. This is required for
+time-dependent Fields, such as TimeDerivative or TimeIntegral.
+
+This code is intended for internal usage, and is called from a PostProcessor
+instance.
+"""
+
 from collections import defaultdict
 
-
 class Planner():
+    "Planner class to plan for all computations."
     def __init__(self, timer, initial_dt):
         self._timer = timer
         self._plan = defaultdict(lambda: defaultdict(int))
@@ -10,7 +37,7 @@ class Planner():
         self._initial_dt = initial_dt
         
         # Keep track of last (time, timestep) computation of each field was triggered directly
-        self._last_trigger_time = defaultdict(lambda: (-1e16,-1e16))
+        self._last_trigger_time = defaultdict(lambda: (-1e16, -1e16))
     
     def _should_compute_at_this_time(self, field, t, timestep):
         "Check if field is to be computed at current time"
@@ -52,10 +79,10 @@ class Planner():
         #    return False
         
         # Finalize if that is default for field
+        # FIXME: This shouldn't be necessary. Required today to return a "running" timeintegral,
+        # while also making sure that end-points are included.
         if not field.__class__.default_params()["finalize"] and not fp["finalize"]:
             return False
-        
-        
         
         # Already finalized
         #if field.name in self._finalized:
@@ -74,7 +101,7 @@ class Planner():
         # Not completed
         return False
 
-    def _rollback_plan(self, t, timestep):
+    def _rollback_plan(self):
         "Roll plan one timestep and countdown how long to keep stuff."
         tss = sorted(self._plan.keys())
         new_plan = defaultdict(lambda: defaultdict(int))
@@ -86,14 +113,19 @@ class Planner():
                     new_plan[ts-1][name] = ttk - 1
         self._plan = new_plan
 
-    def _update(self, fields, full_dependencies, dependencies, t, timestep):
-        "Update plan for new timestep."
+    def update(self, fields, full_dependencies, dependencies, t, timestep):
+        """Update plan for new timestep. Will trigger fields that are to be
+        computed at this time to plan. Will estimate timestep (delta t), to
+        prepare for computations at coming timestep by triggering dependencies
+        to be computed at the required time.
+        """
+        #"Update plan for new timestep."
         # ttk = timesteps to keep
         #self._plan[-1][name] = ttk # How long to cache what's already computed
         #self._plan[0][name] = ttk  # What to compute now and how long to cache it
         #self._plan[1][name] = ttk  # What to compute in future and how long to cache it
 
-        self._rollback_plan(t, timestep)
+        self._rollback_plan()
 
         # TODO: Allow for varying timestep
         #min_dt_factor = 0.5
@@ -103,7 +135,6 @@ class Planner():
             dt = self._initial_dt
         else:
             dt = t-self._t_prev
-        #print "dt=", dt
         self._t_prev = t
         
         finalize_fields = []
@@ -133,12 +164,6 @@ class Planner():
             #field = self._fields[name]    
             if self._should_finalize_at_this_time(field, t, timestep):
                 finalize_fields.append(name)
-            #    finalize = True
-            #else:
-            #    finalize = False
-        
-        
-        #if self._should_finalize_at_this_time(field, t, timestep)
         
         return self._plan, finalize_fields, self._last_trigger_time
 
@@ -147,11 +172,10 @@ class Planner():
         deps = dependencies[name]
         for depname, ts in deps:
             # Find time-to-keep (FIXME: Is this correct? Optimal?)
+            # What about: ttk = max(oldttk, offset-ts)
             oldttk = self._plan[ts+offset].get(depname, 0)
             ttk = max(oldttk, offset-min([_ts for _depname, _ts in deps if _depname==depname])+ts)
-            #if depname == "timestep":
-            #    print depname, offset+ts, ttk
-            #ttk = max(oldttk, offset)
+            
 
             # Insert in plan if able to compute
             if offset+ts >= 0:
@@ -159,3 +183,4 @@ class Planner():
             
                 new_offset = offset+ts
                 self._insert_deps_in_plan(dependencies, depname, new_offset)
+        

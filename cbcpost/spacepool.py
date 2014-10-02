@@ -76,6 +76,8 @@ class SpacePool(object):
         self._boundary = None
 
     def get_custom_space(self, family, degree, shape, boundary=False):
+        """Get a custom function space. """
+        
         if boundary:
             mesh = self.BoundaryMesh
             key = (family, degree, shape, boundary)
@@ -97,11 +99,20 @@ class SpacePool(object):
         return space
 
     def get_space(self, degree, rank, family="auto", boundary=False):
+        """ Get function space. If family == "auto", Lagrange is chosen
+        (DG if degree == 0).
+        """
         family = decide_family(family, degree)
         shape = (self.gdim,)*rank
         return self.get_custom_space(family, degree, shape, boundary)
     
     def get_grad_space(self, V, family="auto", degree="auto", shape="auto"):
+        """Get gradient space of FunctionSpace V.
+        
+        .. warning::
+            This is experimental and currently only designed to work with CG-spaces.
+        
+        """
         element = V.ufl_element()
 
         if degree == "auto":

@@ -14,11 +14,22 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+""" Functionality for computing time integrals. """
+
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import Function
 EPS = 1e-10
 
 class TimeIntegral(MetaField):
+    r""" 
+    Compute a time integral of a field :math:`F` by the backward trapezoidal method:
+    
+    .. math::
+    
+        \int_{T0}^{T1} F dt \approx \sum_ {n=1}^{n=N} \frac{F(t_{n-1})+F(t_n)}{2} (t_{n-1}-t_n)
+    
+    where :math:`t_0 = T0` and :math:`t_N = T1`.
+    """    
     @classmethod
     def default_params(cls):
         params = MetaField.default_params()

@@ -14,16 +14,24 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-
+"""Functionality to operate on a different Field."""
 from cbcpost.fieldbases.Field import Field
 
 class MetaField(Field):
+    """ Base class for all Fields that operate on a different Field.
+    
+    :param value: Field or fieldname to operate on
+    
+    """
     def __init__(self, value, params=None, name="default", label=None):
         Field.__init__(self, params, name, label)
         self.valuename = value.name if isinstance(value, Field) else value
     
     @property
     def name(self):
+        """Return name of field. By default this is *classname_valuename-label*,
+        but can be overloaded in subclass.
+        """
         if self._name == "default":
             n = self.__class__.__name__+"_"+self.valuename
             if self.label: n += "-"+self.label

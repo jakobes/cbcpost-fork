@@ -20,7 +20,7 @@ from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import Function, Vector, norm
 
 class Norm(MetaField):
-    r'''Computes the norm of a Field. If the Field returns a Vector or Function, the computation is forwarded to
+    r'''Computes a norm of a Field. If the Field returns a Vector or Function, the computation is forwarded to
     the dolfin function *norm*. Otherwise a float list-type object is expected, and the :math:`l^p`-norm is computed as
     
     .. math::
@@ -61,7 +61,7 @@ class Norm(MetaField):
             n = "%s" % (self.__class__.__name__)
             if self.params.norm_type != "default": n += "_"+self.params.norm_type
             n += "_"+self.valuename
-            if self.label: n += "_"+self.label
+            if self.label: n += "-"+self.label
         else:
             n = self._name
         return n

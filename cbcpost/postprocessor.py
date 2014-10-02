@@ -180,26 +180,6 @@ class PostProcessor(Parameterized):
         """
         Default parameters are:
         
-
-        ===============       ==============   ============================
-        Key                   Default value    Description
-        ===============       ==============   ============================
-        casedir               '.'              Case directory - relative
-                                               path to use for saving
-        enable_timer          False            Enable timer
-        extrapolate           True             Constant extrapolation of
-                                               fields prior to first
-                                               update call
-        initial_dt            1e-5             Initial timestep. Only used
-                                               in planning algorithm
-                                               at first update call.
-        clean_casedir         False            Clean out case directory
-                                               prior to update.
-        ===============       ==============   ============================
-        
-        
-        Trying with a different table format:
-        
         +----------------------+-----------------------+--------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                 |
         +======================+=======================+==============================================================+

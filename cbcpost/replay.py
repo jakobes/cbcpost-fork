@@ -59,6 +59,17 @@ class Replay(Parameterized):
     
     @classmethod
     def default_params(cls):
+        """
+        Default parameters are:
+        
+        +----------------------+-----------------------+--------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                 |
+        +======================+=======================+==============================================================+
+        | timer_frequency      | 0                     | Frequency to report timing                                   |
+        +----------------------+-----------------------+--------------------------------------------------------------+
+        
+        """
+        
         params = ParamDict(
             timer_frequency=0,
         )
@@ -141,49 +152,7 @@ class Replay(Parameterized):
                     continue
                 checks.append(self._recursive_dependency_check(plan, key, dep_field))
             return all(checks)
-    """
-    def _get_mesh(self):
-        if not hasattr(self, "_mesh"):       
-            # Read mesh
-            meshfilename = os.path.join(self.postproc.get_casedir(), "mesh.hdf5")
-            assert os.path.isfile(meshfilename), "Unable to find mesh file!"
-            meshfile = HDF5File(mpi_comm_world(), meshfilename, 'r')
-            self._mesh = Mesh()
-            meshfile.read(self._mesh, "Mesh")
-            del meshfile
 
-        return self._mesh
-    
-    def _get_boundarymesh(self):
-        if not hasattr(self, "_boundarymesh"):
-            self._boundarymesh = BoundaryMesh(self._get_mesh(), 'exterior')
-
-        return self._boundarymesh
-    """
-    
-    """
-    def _create_function_from_metadata(self, fieldname, metadata, saveformat):
-        assert metadata['type'] == 'Function'
-        
-        # Load mesh
-        if saveformat == 'hdf5':    
-            mesh = Mesh()
-            hdf5file = HDF5File(mpi_comm_world(), os.path.join(self.postproc.get_casedir(),fieldname, fieldname+'.hdf5'), 'r')
-            hdf5file.read(mesh, "Mesh")
-            del hdf5file
-        elif saveformat == 'xml' or saveformat == 'xml.gz':
-            mesh = Mesh(os.path.join(self.postproc.get_casedir(), fieldname, "mesh."+saveformat))
-        
-        shape = eval(metadata["element_value_shape"])
-        degree = eval(metadata["element_degree"])
-        family = eval(metadata["element_family"])
-        
-        # Get space from existing function spaces if mesh is the same
-        spaces = SpacePool(mesh)
-        space = spaces.get_custom_space(family, degree, shape)
-
-        return Function(space, name=fieldname)
-    """
 
     def _get_function(self, fieldname, metadata, saveformat):
         if fieldname not in self._functions:
@@ -197,8 +166,7 @@ class Replay(Parameterized):
         postprocessors = []
         for fieldname, field in self.postproc._fields.items():
             if not (field.params.save
-                    or field.params.plot
-                    or field.params.callback):
+                    or field.params.plot):
                 continue
             
             keys = self._check_field_coverage(replay_plan, fieldname)

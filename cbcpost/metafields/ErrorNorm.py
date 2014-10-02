@@ -37,6 +37,19 @@ class ErrorNorm(MetaField2):
     '''
     @classmethod
     def default_params(cls):
+        """
+        Default parameters are:
+        
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                                              |
+        +======================+=======================+===========================================================================================+
+        | norm_type            | 'default'             | The norm type to choose. For dolfin.Function or dolfin.Vector,                            |
+        |                      |                       | refer to dolfin.norm for valid norm types. Otherwise, p-norm is                           |
+        |                      |                       | supported. Invoke using 'l2', 'l3' etc, or 'linf' for max-norm.                           |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        | degree_rise          | 3                     | Parameter to be passed to dolfin.errornorm                                                |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        """
         params = MetaField2.default_params()
         params.update(
             norm_type='default',

@@ -45,6 +45,42 @@ class Field(Parameterized):
 
     @classmethod
     def default_params(cls):
+        """
+        Default params are:
+        
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                                                        |
+        +======================+=======================+=====================================================================================================+
+        | start_timestep       | -1e16                 | Timestep to start computation                                                                       |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | end_timestep         | 1e16                  | Timestep to end computation                                                                         |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | stride_timestep      | 1                     | Number of steps between each computation                                                            |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | start_time           | -1e16                 | Time to start computation                                                                           |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | end_time             | 1e16                  | Time to end computation                                                                             |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | stride_time          | 1e-16                 | Time between each computation                                                                       |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | plot                 | False                 | Plot Field after a directly triggered computation                                                   |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+        
+        | plot_args            | {}                    | Keyword arguments to pass to dolfin.plot.                                                           |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | save                 | False                 | Save Field after a directly triggered computation                                                   |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | save_as              | 'determined by data'  | Format to save in.                                                                                  |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | expr2function        | 'assemble'            | How to convert Expression to Function. Allowed values:                                              |
+        |                      |                       | - 'assemble'                                                                                        |
+        |                      |                       | - 'project'                                                                                         |
+        |                      |                       | - 'interpolate'                                                                                     |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        | finalize             | False                 | Switch whether to finalize if Field. This is especially useful when a costly computation is only    |
+        |                      |                       | interesting at the end time.                                                                        |
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        
+        """ 
         params = ParamDict(
             # Configure direct compute requests through timestep counting
             start_timestep = -1e16,
@@ -56,25 +92,20 @@ class Field(Parameterized):
             end_time = 1e16,
             stride_time = 1e-16,
 
-            # Trigger action after each direct compute request
+            # Trigger and configure action after each direct compute request
             plot = False,
+            plot_args={},
             save = False,
-            callback = False,
-
-            # Configure computing
-            project = False, # This is the safest approach
-            assemble = True, # This is faster but only works for for DG0
-            interpolate = False, # This will be the best when properly implemented in fenics
-
-            # Configure saving
             save_as = cls.default_save_as(),
 
-            # Configure plotting
-            plot_args={},
-            
-            # Solution switch
-            is_solution = False,
-            
+            #callback = False,
+
+            # Configure computing
+            expr2function = "assemble",
+            #project = False, # This is the safest approach
+            #assemble = True, # This is faster but only works for for DG0
+            #interpolate = False, # This will be the best when properly implemented in fenics
+
             # Finalize field?
             finalize = False,
             )
@@ -117,7 +148,8 @@ class Field(Parameterized):
         """
         space = function.function_space()
 
-        if self.params.assemble:
+        #if self.params.assemble:
+        if self.params.expr2function == "assemble":
             # Compute average values of expr for each cell and place in a DG0 space
 
             # TODO: Get space from pool
@@ -130,12 +162,14 @@ class Field(Parameterized):
             assemble(scale*inner(expr, test)*dx(), tensor=function.vector())
             return function
 
-        elif self.params.project:
+        #elif self.params.project:
+        elif self.params.expr2function == "project":
             # TODO: Avoid superfluous function creation by allowing project(expr, function=function) or function.project(expr)
             function.assign(project(expr, space))
             return function
 
-        elif self.params.interpolate:
+        #elif self.params.interpolate:
+        elif self.params.expr2function == "interpolate":
             # TODO: Need interpolation with code generated from expr, waiting for uflacs work.
             function.interpolate(expr) # Currently only works if expr is a single Function
             return function

@@ -44,8 +44,24 @@ if not os.path.isdir('_static'): os.mkdir('_static')
 
 # on_rtd is whether we are on readthedocs.org
 # Insert cwd in path to be able to import from generate_api_doc
+
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd: sys.path.insert(0, os.getcwd())
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+else:
+    sys.path.insert(0, os.getcwd())
+#on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+#if on_rtd: sys.path.insert(0, os.getcwd())
+
+
+html_static_path = ['_static']
+
+def setup(app):
+    # overrides for wide tables in RTD theme
+    app.add_stylesheet('theme_overrides.css') # path relative to _static
 
 # Insert .. to import cbcpost
 sys.path.insert(0, os.path.abspath('..'))
@@ -136,31 +152,32 @@ modindex_common_prefix = ["cbcpost."]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+#html_theme = 'default'
 #html_theme = 'agogo_mod'
 
 
-headerbg = """
-background: {0}; /* Old browsers */
-background: -moz-linear-gradient(top, {0} 0%, {1} 44%, {2} 100%); /* FF3.6+ */
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,{0}), color-stop(44%,{1}), color-stop(100%,{2})); /* Chrome,Safari4+ */
-background: -webkit-linear-gradient(top, {0} 0%,{1} 44%,{2} 100%); /* Chrome10+,Safari5.1+ */
-background: -o-linear-gradient(top, {0} 0%,{1} 44%,{2} 100%); /* Opera 11.10+ */
-background: -ms-linear-gradient(top, {0} 0%,{1} 44%,{2} 100%); /* IE10+ */
-background: linear-gradient(to bottom, {0} 0%,{1} 44%,{2} 100%); /* W3C */
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='{0}', endColorstr='{2}',GradientType=0 ); /* IE6-9 */
-""".format("#aa1133", "#8f0222", "#6d0019")
+#headerbg = """
+#background: {0}; /* Old browsers */
+#background: -moz-linear-gradient(top, {0} 0%, {1} 44%, {2} 100%); /* FF3.6+ */
+#background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,{0}), color-stop(44%,{1}), color-stop(100%,{2})); /* Chrome,Safari4+ */
+#background: -webkit-linear-gradient(top, {0} 0%,{1} 44%,{2} 100%); /* Chrome10+,Safari5.1+ */
+#background: -o-linear-gradient(top, {0} 0%,{1} 44%,{2} 100%); /* Opera 11.10+ */
+#background: -ms-linear-gradient(top, {0} 0%,{1} 44%,{2} 100%); /* IE10+ */
+#background: linear-gradient(to bottom, {0} 0%,{1} 44%,{2} 100%); /* W3C */
+#filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='{0}', endColorstr='{2}',GradientType=0 ); /* IE6-9 */
+#""".format("#aa1133", "#8f0222", "#6d0019")
 
-
+"""
 def swap(text, ch1, ch2):
     text = text.replace(ch2, '!',)
     text = text.replace(ch1, ch2)
     text = text.replace('!', ch1)
     return text
+"""
   
 #footerbg = swap(headerbg, "top", "bottom")
-footerbg = headerbg
-headerbg = swap(headerbg, "top", "bottom")
+#footerbg = headerbg
+#headerbg = swap(headerbg, "top", "bottom")
 
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -199,7 +216,7 @@ agogo – A theme created by Andi Albrecht. The following options are supported:
 
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['.']
+#html_theme_path = ['.']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

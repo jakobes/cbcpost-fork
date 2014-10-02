@@ -14,16 +14,16 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Evaluate spatial points in Field."""
+
 from cbcpost.fieldbases.MetaField import MetaField
+from cbcpost.utils.utils import import_fenicstools
 import numpy as np
 from dolfin import Point
 from itertools import chain
 
-def import_fenicstools():
-    import fenicstools
-    return fenicstools
-
 def points_in_square(center, radius, resolution):
+    """Return points uniformly distributed in square."""
     points = []
     for i in range(resolution):
         for j in range(resolution):
@@ -32,7 +32,8 @@ def points_in_square(center, radius, resolution):
             points.append(tuple(x))
     return tuple(points)
 
-def points_in_box(center, radius, resolution):
+def points_in_cube(center, radius, resolution):
+    """Return points uniformly distributed in cube."""
     points = []
     for i in range(resolution):
         for j in range(resolution):
@@ -44,6 +45,7 @@ def points_in_box(center, radius, resolution):
     return tuple(points)
 
 def points_in_circle(center, radius, resolution):
+    """Return points distributed in circle."""
     points = []
     for i in range(resolution):
         for j in range(resolution):
@@ -55,6 +57,7 @@ def points_in_circle(center, radius, resolution):
     return tuple(points)
 
 def points_in_ball(center, radius, resolution):
+    """Return points distributed in ball."""
     points = []
     for i in range(resolution):
         for j in range(resolution):
@@ -68,16 +71,16 @@ def points_in_ball(center, radius, resolution):
     return tuple(points)
 
 class PointEval(MetaField):
-    def __init__(self, value, points, params=None, label=None):
-        MetaField.__init__(self, value, params, label)
+    """Evaluate a Field in points.
+    
+    :param points: List of Points or tuples
+    
+    """
+    
+    def __init__(self, value, points, params=None, name="default", label=None):
+        MetaField.__init__(self, value, params, name, label)
         self.points = points
         self._ft = import_fenicstools()
-
-    @property
-    def name(self):
-        n = "%s_%s" % (self.__class__.__name__, self.valuename)
-        if self.label: n += "_%s" %self.label
-        return n
 
     def before_first_compute(self, get):
         u = get(self.valuename)

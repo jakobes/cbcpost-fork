@@ -14,18 +14,16 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-
+"""Functionality to construct a subfunction of a Field."""
 from cbcpost.fieldbases.Field import Field
+from cbcpost.utils.utils import import_fenicstools
+
 from dolfin import Function, VectorFunctionSpace, FunctionSpace, project, as_vector, MPI, mpi_comm_world, FunctionAssigner
 
 from dolfin import plot, interpolate, interactive, norm, errornorm
 
-def import_fenicstools():
-    import fenicstools
-    return fenicstools
-
 class SubFunction(Field):
-    "SubFunction is used to interpolate a Field on a non-matching mesh"
+    """SubFunction is used to interpolate a Field on a non-matching mesh."""
     def __init__(self, field, mesh, params=None, label=None):
         Field.__init__(self, params, label)
         

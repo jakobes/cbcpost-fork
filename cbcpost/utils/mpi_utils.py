@@ -14,6 +14,11 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Utilities for providing a very simple interface to functions in dolfin.MPI
+that are not exposed in the python interface of dolfin, in addition to some
+communcation used internally.
+"""
+
 from dolfin import MPI, mpi_comm_world, compile_extension_module
 import numpy as np
 

@@ -14,8 +14,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"A collection of utilities used across cbcpost. "
 
-#from mpi_utils import *
 from utils import *
 from restriction_map import restriction_map
 from submesh import create_submesh

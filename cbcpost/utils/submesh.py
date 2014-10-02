@@ -14,6 +14,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality for creating SubMesh.
+
+.. note::
+    
+    This functionality is supported in serial, *but not in parallel*, in dolfin.SubMesh.
+"""
+
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
 from cbcpost.utils import cbc_warning

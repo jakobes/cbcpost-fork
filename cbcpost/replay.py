@@ -14,7 +14,15 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Replaying a problem
+-----------------------------------
+By replaying a problem, we mean using stored data from a simulation
+to compute any requested additional data.
 
+For usage of this refer to :ref:`Replay`.
+
+"""
 import pickle
 import os
 import shelve
@@ -23,13 +31,10 @@ from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
 from cbcpost.utils import cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata
 
 from dolfin import HDF5File, Mesh, Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh
-"""
-def print_replay_plan(plan):
-    for timestep in sorted(plan.keys()):
-        print timestep, plan[timestep].keys()
-"""
 
 def have_necessary_deps(solution, pp, field):
+    """Check if field have necessary dependencies within given solution
+    and postprocessor."""
     if field in solution:
         return True
     

@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality to (spatially) restrict a Field."""
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.restriction_map import restriction_map
 from cbcpost.utils import cbc_warning
@@ -22,10 +23,16 @@ from dolfin import Function, FunctionSpace, VectorFunctionSpace, TensorFunctionS
 from numpy import array, uint
 
 class Restrict(MetaField):
-    "Restrict is used to restrict a Field to a submesh of the mesh associated with the Field."
+    """Restrict is used to restrict a Field to a submesh of the
+    mesh associated with the Field.
+    
+    .. warning::
+    
+        This has only been tested for CG spaces and DG spaces of degree 0.
+    
+    """
     def __init__(self, field, submesh, params={}, name="default", label=None):
         MetaField.__init__(self, field, params, name, label)
-        
         self.submesh = submesh
         
     @property

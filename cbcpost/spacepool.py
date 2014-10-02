@@ -14,18 +14,40 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Pooling of function spaces
+-----------------------------
+When using many different functions across a large function, it may be useful to
+reuse FunctionSpace definitions. This has two basic advantages:
+
+- Reduced memory consumption
+- Reduced computational cost
+
+Space pools are grouped according to mesh, with *Mesh.id()* used as keys in
+a *weakref.WeakValueDictionary*. Once a mesh is out of focus in the program,
+the related SpacePool is removed.
+"""
+
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,
                     grad, Coefficient)
 import weakref, gc
 from dolfin import Function, MPI, mpi_comm_world
 
 def galerkin_family(degree):
+    "Returns CG if degree>0, else DG."
     return "CG" if degree > 0 else "DG"
 
 def decide_family(family, degree):
+    "Helper function to decide family."
     return galerkin_family(degree) if family == "auto" else family
 
 def get_grad_space(u, family="auto", degree="auto", shape="auto"):
+    """Get gradient space of Function.
+        
+        .. warning::
+            This is experimental and currently only designed to work with CG-spaces.
+        
+        """
     V = u.function_space()
     spaces = SpacePool(V.mesh())
     return spaces.get_grad_space(V, family, degree, shape)

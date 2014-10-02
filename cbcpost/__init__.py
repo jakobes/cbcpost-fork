@@ -14,6 +14,10 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+cbcpost is a postprocessing framework designed for time-dependent problems solved using the
+FEniCS project.
+"""
 
 # Helper functionality
 from spacepool import SpacePool, get_grad_space

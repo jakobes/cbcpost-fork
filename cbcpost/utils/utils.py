@@ -14,15 +14,24 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Smaller utilities used across cbcpost."""
+
 import keyword
 import os
 from time import time
 from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning
 
+def import_fenicstools():
+    "Import fenicstools helper function. TODO: Move."
+    import fenicstools
+    return fenicstools
+
 def on_master_process():
+    """Return True if on process number 0."""
     return MPI.rank(mpi_comm_world()) == 0
 
 def in_serial():
+    """Return True if running in serial."""
     return MPI.size(mpi_comm_world()) == 1
 
 def strip_code(code):
@@ -72,6 +81,7 @@ def strip_code(code):
 
 # --- I/O stuff ---
 class _HDF5Link:
+    """Helper class for creating links in HDF5-files."""
     cpp_link_module = None
     def __init__(self):
         cpp_link_code = '''
@@ -93,6 +103,7 @@ class _HDF5Link:
         self.cpp_link_module = compile_extension_module(cpp_link_code, additional_system_headers=["dolfin/io/HDF5Interface.h"])
     
     def link(self, hdf5filename, link_from, link_to):
+        "Create link in hdf5file."
         use_mpiio = MPI.size(mpi_comm_world()) > 1
         self.cpp_link_module.link_dataset(mpi_comm_world(), hdf5filename, link_from, link_to, use_mpiio)
 hdf5_link = _HDF5Link().link
@@ -123,6 +134,19 @@ loadable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
 from dolfin import HDF5File, Function
 import shelve
 class Loadable():
+    """Create an instance that reads a Field from file as specified by the
+    parameters. Requires that the file is written in cbcpost (or in the same format).
+    
+    :param filename: Filename where function is stored
+    :param fieldname: Name of Field
+    :param timestep: Timestep to load
+    :param time: Time
+    :param saveformat: Saveformat of field
+    :params function: Function to load Field into
+    
+    This class is used internally from :class:'.Replay' and :class:'Restart',
+    and made to be passed to *PostProcessor.update_all*.
+    """
     def __init__(self, filename, fieldname, timestep, time, saveformat, function):
         self.filename = filename
         self.fieldname = fieldname
@@ -134,6 +158,7 @@ class Loadable():
         assert self.saveformat in loadable_formats
         
     def __call__(self):
+        """Load file"""
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
         if self.saveformat == 'hdf5':
             hdf5file = HDF5File(mpi_comm_world(), self.filename, 'r')
@@ -185,14 +210,17 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
 # --- Logging ---
 
 def cbc_warning(msg):
+    "Raise warning on master process."
     if on_master_process():
         warning(msg)
 
 def cbc_print(msg):
+    "Print on master process."
     if on_master_process():
         print msg
 
 def cbc_log(level, msg):
+    "Log on master process."
     if on_master_process():
         log(level, msg)
 
@@ -215,6 +243,11 @@ def get_memory_usage():
 # --- Timing ---
 
 class Timer:
+    """Class to perform timing.
+    
+    :param frequency: Frequency which to report timings.
+    
+    """
     def __init__(self, frequency=0):
         self._frequency = frequency
         self._timer = time()
@@ -223,6 +256,7 @@ class Timer:
         self._N = 0
 
     def completed(self, key, summables={}):
+        "Called when *key* is completed."
         if self._frequency == 0:
             return
         
@@ -259,6 +293,7 @@ class Timer:
         self._timer = time()
     
     def _print_summary(self):
+        "Print a summary of timing"
         cbc_print("Timings summary: ")
         
         for key in self._keys:
@@ -286,17 +321,20 @@ class Timer:
             cbc_print(s)
     
     def _reset(self):
+        "Reset timings"
         self._timings = {}
         self._keys = []
         self._N = 0
         
     def increment(self):
+        "Increment timer"
         self._N += 1
         if self._frequency > 1 and self._N % self._frequency == 0:
             self._print_summary()
             self._reset()
 
 def timeit(t0=None, msg=None):
+    "Simple timer"
     if t0 is None:
         return time()
     else:

@@ -103,7 +103,7 @@ from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolat
 from commands import getstatusoutput
 
 def find_solution_presence(pp, play_log, fields):
-    "Searcg play-log to find where solution items are saved in a loadable format"
+    "Search play-log to find where solution items are saved in a loadable format"
     present_solution = defaultdict(list)
 
     functions = dict()
@@ -185,8 +185,9 @@ def find_restart_items(restart_times, present_solution):
     return loadables
 
 class Restart(Parameterized):
-    def __init__(self, params=None):
-        Parameterized.__init__(self, params)
+    """Class to fetch restart conditions through."""
+    #def __init__(self, params=None):
+    #    Parameterized.__init__(self, params)
     
     @classmethod
     def default_params(cls):

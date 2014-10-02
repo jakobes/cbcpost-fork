@@ -14,11 +14,28 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality for slicing a mesh."""
 from dolfin import Constant, MeshEditor, Mesh, MPI, mpi_comm_world, compile_extension_module
 from cbcpost.utils.mpi_utils import broadcast, distribute_meshdata, distribution, gather
 import numpy as np
 
 class Slice(Mesh):
+    """Create a slicemesh from a basemesh.
+    
+    :param basemesh: Mesh to slice
+    :param point: Point in slicing plane
+    :param normal: Normal to slicing plane
+    
+    .. note::
+    
+        Only 3D-meshes currently supported for slicing.
+    
+    .. warning::
+    
+        Slice-instances are intended for visualization only, and may produce erronous
+        results if used for computations.
+    
+    """
     def __init__(self, basemesh, point, normal):
         Mesh.__init__(self)
         

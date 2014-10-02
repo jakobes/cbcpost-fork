@@ -14,10 +14,18 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality for computing time derivatives."""
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import Function
 
 class TimeDerivative(MetaField):
+    r"""Compute the time derivative of a Field :math:`F` through an explicit difference formula:
+    
+    .. math ::
+    
+        F'(t_n) \approx \frac{F(t_n)-F(t_{n-1})}{t_n-t_{n-1}}
+    
+    """
     def compute(self, get):
         u1 = get(self.valuename)
         u0 = get(self.valuename, -1)

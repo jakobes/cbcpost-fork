@@ -22,7 +22,7 @@ from time import time
 from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning
 
 def import_fenicstools():
-    "Import fenicstools helper function. TODO: Move."
+    "Import fenicstools helper function."
     import fenicstools
     return fenicstools
 

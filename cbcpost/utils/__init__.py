@@ -24,3 +24,6 @@ from submesh import create_submesh
 from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
 from Slice import Slice
 
+
+from inspect import getmodule as _getmodule
+__all__ = [k for k,v in locals().items() if "cbcpost.utils" in getattr(_getmodule(v), "__name__", "")]

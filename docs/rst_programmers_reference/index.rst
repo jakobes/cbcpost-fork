@@ -1,3 +1,5 @@
+.. _programmers-reference:
+
 Programmer's reference
 =============================
 
@@ -15,4 +17,5 @@ Programmer's reference
     spacepool
     fieldbases
     metafields
+    utilities
 

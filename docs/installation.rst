@@ -23,11 +23,10 @@ Dependencies
 __________________________________
 
 The installation of cbcpost requires the following environment:
-    * (`FEniCS <http://fenicsproject.org>`_) 1.4.0
     * Python 2.7
     * Numpy
     * Scipy
-    * dbhash
+    * (`FEniCS <http://fenicsproject.org>`_) 1.4.0
 
 To install FEniCS, please refer to the `FEniCS download page
 <http://fenicsproject.org/download/>`_. cbcpost follows the same version numbering

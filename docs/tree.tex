@@ -1,0 +1,88 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usetikzlibrary{trees}
+\begin{document}
+\begin{tikzpicture}[every tree node/.style={},
+   level distance=2.5cm,sibling distance=2cm,
+   edge from parent path={(\tikzparentnode) -- (\tikzchildnode)}]
+\Tree
+[.$\dfrac{\partial \sigma}{\partial t}\approx\dfrac{\sigma(\mathbf{u}, p; t_n) - \sigma(\mathbf{u},p; t_{n-1})}{t_n-t_{n-1}}$
+    \edge node[auto=right] {$n-1$};
+    [ 
+       [.$t_{n-1}$ ]
+       [.$\sigma(\mathbf{u},p;t_{n-1})$
+           [.$\mathbf{u}(\mathbf{x},t_{n-1})$ ]
+           [.$p(\mathbf{x},t_{n-1})$ ]       
+       ]
+       ]
+    \edge node[auto=left] {$n$};
+    [
+        [.$t_n$ ]
+        [.$\sigma(\mathbf{u},p;t_n)$
+           [.$\mathbf{u}(\mathbf{x},t_n)$ ]
+           [.$p(\mathbf{x},t_n)$ ]       
+       ]
+        ]
+]
+\end{tikzpicture}
+
+
+\begin{tikzpicture}[every tree node/.style={},
+   level distance=2.5cm,sibling distance=2cm,
+   edge from parent path={(\tikzparentnode) -- (\tikzchildnode)}]
+\Tree
+[.$\dfrac{\partial F}{\partial t}\approx\dfrac{F(t_n) - F(t_{n-1})}{t_n-t_{n-1}}$
+    \edge node[auto=right] {$n-1$};
+    [ 
+       [.$t_{n-1}$ ]
+       [.$F(t_{n-1})$   
+       ]
+       ]
+    \edge node[auto=left] {$n$};
+    [
+        [.$t_n$ ]
+        [.$F(t_n)$
+       ]
+        ]
+]
+\end{tikzpicture}
+
+
+
+\tikzstyle{every node}=[draw=black,thick,anchor=west,xshift=-0.7cm]
+\tikzstyle{selected}=[draw=red,fill=red!30]
+\tikzstyle{optional}=[dashed,fill=gray!50]
+\tikzstyle{file}=[draw=white]
+\begin{tikzpicture}[%
+  grow via three points={one child at (0.5,-0.7) and
+  two children at (0.5,-0.7) and (0.5,-1.4)},
+  edge from parent path={(\tikzparentnode.south west) |- (\tikzchildnode.west)}]
+  \node {Results}
+    child { node {Pressure}
+    	child {node [file] {metadata.db}}
+    	child {node [file] {Pressure.hdf5}}
+    	child {node [file] {Pressure.xdmf}}
+    	child {node [file] {Pressure.h5}}    	
+    }
+    child [missing] {}				
+    child [missing] {}			
+    child [missing] {}				
+    child [missing] {}						
+    child { node {Norm\_Pressure}
+    	child {node [file,xshift=-0.5cm] {metadata.db}}
+    	child {node [file,xshift=-0.5cm] {Norm\_Pressure.db}}
+    	child {node [file,xshift=-0.5cm] {Norm\_Pressure.txt}}
+    }
+    child [missing] {}				
+    child [missing] {}				
+    child [missing] {}						
+    child { node [file] {mesh.hdf5}}
+    child { node [file] {params.pickle}}
+    child { node [file] {params.txt}}    
+    child { node [file] {play.db}};        
+\end{tikzpicture}
+
+\end{document}

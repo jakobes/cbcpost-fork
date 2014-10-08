@@ -67,8 +67,8 @@ def setup(app):
 sys.path.insert(0, os.path.abspath('..'))
 
 # Generate all rst files
-from generate_api_doc import generate_dolfin_doc
-generate_dolfin_doc("..", "cbcpost")
+#from generate_api_doc import generate_dolfin_doc
+#generate_dolfin_doc("..", "cbcpost")
 
 # -- General configuration -----------------------------------------------------
 
@@ -294,7 +294,7 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': '\usepackage{amsmath}\n\usepackage{amssymb}\n',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

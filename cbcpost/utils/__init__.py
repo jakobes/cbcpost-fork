@@ -18,7 +18,7 @@
 
 from utils import (import_fenicstools, on_master_process, in_serial, strip_code, hdf5_link,
                    safe_mkdir, Loadable, create_function_from_metadata, cbc_warning, cbc_log,
-                   cbc_print, get_memory_usage, Timer, timeit)
+                   cbc_print, get_memory_usage, Timer, timeit, loadable_formats)
 from restriction_map import restriction_map
 from submesh import create_submesh
 from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap

@@ -15,17 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """
-Pooling of function spaces
------------------------------
-When using many different functions across a large function, it may be useful to
-reuse FunctionSpace definitions. This has two basic advantages:
-
-- Reduced memory consumption
-- Reduced computational cost
-
-Space pools are grouped according to mesh, with *Mesh.id()* used as keys in
-a *weakref.WeakValueDictionary*. Once a mesh is out of focus in the program,
-the related SpacePool is removed.
+Pooling of function spaces to reduce computational cost and memory consumption for
+function spaces used several places in a program.
 """
 
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,

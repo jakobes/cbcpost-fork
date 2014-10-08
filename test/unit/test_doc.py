@@ -174,7 +174,6 @@ def test_function_docstring(member):
 def test_method_docstring(member):
     name, mem = member
     
-    #import ipdb; ipdb.set_trace()
     if hasattr(mem.im_class, "mro"):
         docs = [mem.__doc__]
         

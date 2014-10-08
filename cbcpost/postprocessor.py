@@ -15,8 +15,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """
-The main module of cbcpost, which, for basic functionality, is the only
+The PostProcessor works as the main interface of cbcpost. For basic functionality it's the only
 interface necessary for the user.
+
+Implementation
+-----------------------------------------------------
 """
 from dolfin import Function, MPI, mpi_comm_world
 
@@ -30,7 +33,6 @@ from cbcpost.utils import Timer, cbc_log, cbc_warning, strip_code
 
 import inspect, re
 from collections import defaultdict
-
 
 class DependencyException(Exception):
     "Common Exception-class to handle all exceptions related to dependency handling"
@@ -188,10 +190,10 @@ class PostProcessor(Parameterized):
         | enable_timer         | False                 | Enable timer                                                 |
         +----------------------+-----------------------+--------------------------------------------------------------+
         | extrapolate          | True                  | Constant extrapolation of fields prior to first              |
-        |                      |                       | | update call                                                |
+        |                      |                       | update call                                                  |
         +----------------------+-----------------------+--------------------------------------------------------------+
         | initial_dt           | 1e-5                  | Initial timestep. Only used in planning algorithm at first   |
-        |                      |                       | | update call.                                               |
+        |                      |                       | update call.                                                 |
         +----------------------+-----------------------+--------------------------------------------------------------+
         | clean_casedir        | False                 | Clean out case directory prior to update.                    |
         +----------------------+-----------------------+--------------------------------------------------------------+

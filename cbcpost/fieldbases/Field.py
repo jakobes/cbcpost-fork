@@ -69,9 +69,16 @@ class Field(Parameterized):
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
         | save                 | False                 | Save Field after a directly triggered computation                                                   |
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | save_as              | 'determined by data'  | Format to save in.                                                                                  |
+        | save_as              | 'determined by data'  | Format(s) to save in. Allowed save formats:                                                         |
+        |                      |                       |                                                                                                     |
+        |                      |                       | The default values are:                                                                             |
+        |                      |                       |                                                                                                     |
+        |                      |                       | - ['hdf5', 'xdmf'] if data is dolfin.Function                                                       |
+        |                      |                       | - ['txt', 'shelve'] if data is float, int, list, tuple or dict                                      |
+        |                      |                       |                                                                                                     |
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
         | expr2function        | 'assemble'            | How to convert Expression to Function. Allowed values:                                              |
+        |                      |                       |                                                                                                     |
         |                      |                       | - 'assemble'                                                                                        |
         |                      |                       | - 'project'                                                                                         |
         |                      |                       | - 'interpolate'                                                                                     |

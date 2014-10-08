@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """
-Replaying a problem
------------------------------------
 By replaying a problem, we mean using stored data from a simulation
 to compute any requested additional data.
 

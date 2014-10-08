@@ -15,84 +15,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """
-Restarting a problem
------------------------------------------
-If we want to restart any problem, where a solution has been stored by cbcpost, we can simply point to the
-case directory: ::
-
-    from cbcpost import *
-    restart = Restart(dict(casedir='Results/'))
-    restart_data = restart.get_restart_conditions()
-    
-If you for instance try to restart the simple case of the heat equation, *restart_data* will be a *dict* of
-the format {t0: {"Temperature": U0}}. If you try to restart for example a (Navier-)Stokes-problem, it will take
-a format of {t0: {"Velocity": U0, "Pressure": P0}}.
-
-There are several options for fetching the restart conditions.
-
-Specify restart time
-#########################################
-
-You can easily specify the restart time to fetch the solution from: ::
-
-    t0 = 2.5
-    restart = Restart(dict(casedir='Results/', restart_times=t0))
-    restart_data = restart.get_restart_conditions()
-    
-If the restart time does not match a solution time, it will do a linear interpolation between the closest
-existing solution times.
-
-Fetch multiple restart times
-#########################################
-
-For many problems (for example the wave equation), initial conditions are required at several time points
-prior to the desired restart time. This can also be handled through: ::
-
-    dt = 0.01
-    t1 = 2.5
-    t0 = t1-dt
-    restart = Restart(dict(casedir='Results/', restart_times=[t0,t1]))
-    restart_data = restart.get_restart_conditions()
-
-
-Rollback case directory for restart
-#########################################
-
-If you wish to write the restarted solution to the same case directory, you will need to clean up the case
-directory to avoid write errors. This is done by setting the parameter *rollback_casedir*: ::
-
-    t0 = 2.5
-    restart = Restart(dict(casedir='Results/', restart_times=t0, rollback_casedir=True))
-    restart_data = restart.get_restart_conditions()
-
-Specifying solution names to fetch
-#########################################
-
-By default, the Restart-module will search through the case directory for all data stored as a
-:class:`SolutionField`. However, you can also specify other fields to fetch as restart data: ::
-
-    solution_names = ["MyField", "MyField2"]
-    restart = Restart(dict(casedir='Results/', solution_names=solution_names))
-    restart_data = restart.get_restart_conditions()
-
-In this case, all :class:`SolutionField`-names will be ignored, and only restart conditions from fields
-named *MyField* and *MyField2* will be returned.
-
-
-Changing function spaces
-#########################################
-
-If you wish to restart the simulation using different function spaces, you can pass the function spaces
-to *get_restart_conditions*: ::
-
-    V = FunctionSpace(mesh, "CG", 3)
-    restart = Restart(dict(casedir='Results/'))
-    restart_data = restart.get_restart_conditions(spaces={"Temperature": V})
-
-.. todo:: Make this work for different meshes as well.
+The restart module let's users fetch restart conditions to use as initial conditions
+in a restarted simulation.
 """
 from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-from cbcpost.utils import cbc_log, Loadable, loadable_formats, create_function_from_metadata, cbc_warning, on_master_process
+from cbcpost.utils import (cbc_log, Loadable, loadable_formats,
+                           create_function_from_metadata, cbc_warning, on_master_process)
 
 
 import os, shelve, subprocess
@@ -476,4 +404,4 @@ class Restart(Parameterized):
     def _clean_pvd(self, fieldname, del_metadata):
         if os.path.isfile(os.path.join(self._pp.get_savedir(fieldname), fieldname+'.pvd')):
             cbc_warning("No functionality for cleaning pvd-files for restart. Will overwrite.")
-    
+

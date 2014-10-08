@@ -21,4 +21,4 @@ from SolutionField import SolutionField
 from MetaField import MetaField
 from MetaField2 import MetaField2
 
-__all__ = ["Field", "MetaField", "MetaField2"]
+__all__ = ["Field", "SolutionField", "MetaField", "MetaField2"]

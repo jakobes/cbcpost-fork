@@ -31,7 +31,6 @@ the related SpacePool is removed.
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,
                     grad, Coefficient)
 import weakref, gc
-from dolfin import Function, MPI, mpi_comm_world
 
 def galerkin_family(degree):
     "Returns CG if degree>0, else DG."

@@ -18,7 +18,7 @@
 
 
 from cbcpost.fieldbases.MetaField2 import MetaField2
-from dolfin import Function, Vector, errornorm
+from dolfin import Function, errornorm
 
 class ErrorNorm(MetaField2):
     r'''Computes the error norm of two Fields. If the Fields Function-objects, the computation is forwarded to

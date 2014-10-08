@@ -18,16 +18,17 @@
 The restart module let's users fetch restart conditions to use as initial conditions
 in a restarted simulation.
 """
-from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
-from cbcpost.utils import (cbc_log, Loadable, loadable_formats,
-                           create_function_from_metadata, cbc_warning, on_master_process)
+from cbcpost import Parameterized, ParamDict, PostProcessor
+from cbcpost.utils import (Loadable, loadable_formats, create_function_from_metadata,
+                           cbc_warning, on_master_process)
 
 
 import os, shelve, subprocess
 from collections import Iterable, defaultdict
 from numpy import array, where, inf
 
-from dolfin import Mesh, Function, HDF5File, tic, toc, norm, project, interpolate, compile_extension_module, MPI, parameters, mpi_comm_world
+from dolfin import (Function, project, interpolate, compile_extension_module,
+                    MPI, mpi_comm_world)
 from commands import getstatusoutput
 
 def find_solution_presence(pp, play_log, fields):

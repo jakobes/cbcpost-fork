@@ -51,7 +51,7 @@ class Magnitude(MetaField):
                 return self.f
             elif u.rank() >= 1:
                 self.f.assign(project(sqrt(inner(u,u)), self.f.function_space()))
-                return mag
+                return self.f
         else:
             # Don't know how to handle object
             cbc_warning("Don't know how to calculate magnitude of object of type %s. Returning object." %type(u))

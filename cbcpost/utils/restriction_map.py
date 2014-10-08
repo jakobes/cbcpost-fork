@@ -36,7 +36,6 @@ def restriction_map(V, Vb):
     
     # Recursively call this function if V has sub-spaces
     if V.num_sub_spaces() > 0:
-        mappings = {}
         mapping = {}
         for i in range(V.num_sub_spaces()):
             mapping.update(restriction_map(V.sub(i), Vb.sub(i)))
@@ -110,7 +109,8 @@ def restriction_map(V, Vb):
     return mapping
         
 if __name__ == '__main__':
-    from dolfin import *
+    from dolfin import (UnitCubeMesh, SubDomain, MeshFunction, tic, toc, VectorFunctionSpace,
+                        FunctionSpace, Function, assemble, Expression, project, dx, inner)
     N = 4
     mesh = UnitCubeMesh(N,N,N)
     

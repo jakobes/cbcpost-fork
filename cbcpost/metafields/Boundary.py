@@ -19,7 +19,7 @@ from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
 from cbcpost import SpacePool
 
-from dolfin import Function, ds, dx, assemble
+from dolfin import Function
 
 class Boundary(MetaField):
     """Extracts the boundary values of a Function and returns a Function object

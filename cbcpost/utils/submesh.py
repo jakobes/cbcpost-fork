@@ -24,7 +24,7 @@
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
 from cbcpost.utils import cbc_warning
-from dolfin import MPI, mpi_comm_world, Mesh, MeshEditor, LocalMeshData
+from dolfin import MPI, mpi_comm_world, Mesh, MeshEditor
 import numpy as np  
 
 def create_submesh(mesh, markers, marker):
@@ -102,8 +102,8 @@ def create_submesh(mesh, markers, marker):
 
     # Distribute meshdata on (if any) empty processes
     sub_cells, sub_vertices = distribute_meshdata(sub_cells, sub_vertices)
-    global_cell_distribution = distribution(len(sub_cells))
-    global_vertex_distribution = distribution(len(sub_vertices))
+    #global_cell_distribution = distribution(len(sub_cells))
+    #global_vertex_distribution = distribution(len(sub_vertices))
     
     global_num_cells = MPI.sum(mpi_comm_world(), len(sub_cells))
     global_num_vertices = sum(unshared_vertices_dist)+MPI.sum(mpi_comm_world(), len(all_shared_global_indices))
@@ -133,8 +133,8 @@ def create_submesh(mesh, markers, marker):
         
         
 if __name__ == '__main__':
-    from dolfin import (UnitCubeMesh, UnitSquareMesh, BoundaryMesh, MeshFunction, FunctionSpace, SubMesh,
-                        Expression, project, File, SubDomain, dx, assemble, Constant, CellFunction, AutoSubDomain)
+    from dolfin import (UnitCubeMesh, UnitSquareMesh, FunctionSpace, SubMesh, Expression,
+                        project, dx, assemble, Constant, CellFunction, AutoSubDomain)
     #mesh = UnitCubeMesh(3,1,1)
     #N = 16
     #mesh = UnitCubeMesh(N,N,N)
@@ -144,6 +144,7 @@ if __name__ == '__main__':
     for mesh in [UnitSquareMesh(8,8),UnitCubeMesh(6,6,6)]:
         #print mesh.num_cells()
         #exit()
+        # from dolfin import BoundaryMesh
         #mesh = BoundaryMesh(mesh, "exterior")
     
         #mf = MeshFunction("size_t", mesh, mesh.ufl_cell().topological_dimension())

@@ -21,14 +21,11 @@ to compute any requested additional data.
 For usage of this refer to :ref:`Replay`.
 
 """
-import pickle
 import os
 import shelve
 
-from cbcpost import Parameterized, ParamDict, PostProcessor, SpacePool
+from cbcpost import Parameterized, ParamDict, PostProcessor
 from cbcpost.utils import cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata
-
-from dolfin import HDF5File, Mesh, Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh
 
 def have_necessary_deps(solution, pp, field):
     """Check if field have necessary dependencies within given solution

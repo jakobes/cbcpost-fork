@@ -17,7 +17,9 @@
 """Functionality for calculating the average of a specified domain."""
 
 from cbcpost.fieldbases.MetaField import MetaField
+from cbcpost.utils.utils import cbc_warning
 from dolfin import assemble, dx, Function, Constant, Measure
+
 
 class DomainAvg(MetaField):
     """Compute the domain average for a specified domain. Default to computing
@@ -41,7 +43,7 @@ class DomainAvg(MetaField):
             self.dI = Measure("exterior_facet")[facet_domains](indicator)
         else:
             if indicator != None:
-                cbcwarning("Indicator specified, but no domains. Will dompute average over entire domain.")
+                cbc_warning("Indicator specified, but no domains. Will dompute average over entire domain.")
             self.dI = measure
 
         if label == None and not (self.dI.integral_type() == "cell" and self.dI.subdomain_id() == "everywhere"):
@@ -69,8 +71,6 @@ class DomainAvg(MetaField):
         # Find mesh/domain
         if isinstance(u, Function):
             mesh = u.function_space().mesh()
-        else:
-            mesh = problem.mesh
         
         if not self.dI.domain():
             self.dI = self.dI.reconstruct(domain=mesh)

@@ -18,9 +18,7 @@
 from cbcpost.fieldbases.Field import Field
 from cbcpost.utils.utils import import_fenicstools
 
-from dolfin import Function, VectorFunctionSpace, FunctionSpace, project, as_vector, MPI, mpi_comm_world, FunctionAssigner
-
-from dolfin import plot, interpolate, interactive, norm, errornorm
+from dolfin import Function, VectorFunctionSpace, FunctionSpace, MPI, mpi_comm_world, FunctionAssigner
 
 class SubFunction(Field):
     """SubFunction is used to interpolate a Field on a non-matching mesh."""
@@ -93,7 +91,8 @@ class SubFunction(Field):
 
 
 if __name__ == '__main__':
-    from dolfin import *
+    #from dolfin import *
+    from dolfin import (Expression, UnitSquareMesh, interpolate, errornorm)
     #expr_scalar = Expression("1+x[0]*x[1]")
     #expr_vector = Expression(("1+x[0]*x[1]", "x[1]-2"))
     expr_scalar = Expression("1+x[0]")

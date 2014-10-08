@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 
-from dolfin import Cell, Facet, MPI
+from dolfin import Cell, Facet
 from numpy import where
 
 def mesh_to_boundarymesh_dofmap(boundary, V, Vb):

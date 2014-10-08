@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """Functionality for slicing a mesh."""
-from dolfin import Constant, MeshEditor, Mesh, MPI, mpi_comm_world, compile_extension_module
-from cbcpost.utils.mpi_utils import broadcast, distribute_meshdata, distribution, gather
+from dolfin import Constant, MeshEditor, Mesh, MPI, mpi_comm_world
+from cbcpost.utils.mpi_utils import distribute_meshdata, distribution
 import numpy as np
 
 class Slice(Mesh):
@@ -125,8 +125,6 @@ class Slice(Mesh):
         
         # Distribute mesh if empty on any processors
         cells, vertices = distribute_meshdata(cells, vertices)       
-        global_cell_distribution = distribution(len(cells))
-        global_vertex_distribution = distribution(len(vertices))
         
         # Build mesh
         mesh_editor = MeshEditor()
@@ -147,7 +145,7 @@ class Slice(Mesh):
 
         
 if __name__ == '__main__':
-    from dolfin import UnitCubeMesh, plot
+    from dolfin import UnitCubeMesh#, plot
     mesh = UnitCubeMesh(4,4,4)
     #p = np.array([0.5, 0.3, 0.7])
     #n = np.array([3,2,1])

@@ -15,10 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """Common functionality and interface for all Field-implementations."""
-from os.path import join
 
-from dolfin import Function, TestFunction, assemble, inner, dx, project, HDF5File, error
-import shelve
+from dolfin import TestFunction, assemble, inner, dx, project, error
 from cbcpost import ParamDict, Parameterized
 
 class Field(Parameterized):

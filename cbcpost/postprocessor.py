@@ -378,8 +378,6 @@ class PostProcessor(Parameterized):
             else:
                 compute = False
             
-            field = self._fields[name]    
-            
             if name in self._finalize_plan:# and name not in self._finalized:
                 finalize = True
             else:
@@ -390,7 +388,7 @@ class PostProcessor(Parameterized):
                 continue
             
             # Execute computation through get call
-            data = self.get(name, compute=compute, finalize=finalize)
+            self.get(name, compute=compute, finalize=finalize)
     
     def _update_cache(self, t, timestep):
         "Update cache, remove what can be removed"

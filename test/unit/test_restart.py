@@ -267,7 +267,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
     #print os.path.isfile("test_saver/play.db")
     #return
     playlog = shelve.open(os.path.join(filled_casedir, "play.db"), 'r')
-    return
+    
     assert max([v["t"] for v in playlog.values()]) < t
     assert max([v["t"] for v in playlog.values()]) > t - 0.25 - 1e-14
 
@@ -309,13 +309,36 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 h5files = glob.glob1(os.path.join(filled_casedir, d),"*_RS0.h5")
                 assert h5files == [d+"_RS0.h5"]
             elif sf == "hdf5":
-                assert os.path.isfile(os.path.join(filled_casedir, d, d+".hdf5"))
-                datasets = [u''+d+i for i in st]+[u'Mesh']
-                try:
-                    import h5py
-                except:
-                    continue
-                f = h5py.File(os.path.join(filled_casedir, d, d+".hdf5"), 'r')
-                assert len(f.keys()) == len(st)+2
-                assert set(datasets).intersection(f.keys()) == set(datasets)
-                f.close()
+                filename = os.path.join(filled_casedir, d, d+".hdf5")
+                assert os.path.isfile(filename)
+                #datasets = [u''+d+i for i in st]+[u'Mesh']
+                datasets = [d+i for i in st]+['Mesh']
+                
+                cpp_code = """
+                #include <hdf5.h>
+                std::size_t size(MPI_Comm comm,
+                          const std::string hdf5_filename,
+                          bool use_mpiio)
+                {
+                    hid_t hdf5_file_id = HDF5Interface::open_file(comm, hdf5_filename, "r", use_mpiio);
+                    std::size_t num_datasets = HDF5Interface::num_datasets_in_group(hdf5_file_id, "/");
+                    HDF5Interface::close_file(hdf5_file_id);
+                    return num_datasets;
+                    //herr_t status = H5Lcreate_hard(hdf5_file_id, link_from.c_str(), H5L_SAME_LOC,
+                    //                    link_to.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+                    
+                    //dolfin_assert(status != HDF5_FAIL);
+                    
+                }                
+                """
+                
+                cpp_module = compile_extension_module(cpp_code, additional_system_headers=["dolfin/io/HDF5Interface.h"])
+                num_datasets = cpp_module.size(mpi_comm_world(), filename, MPI.size(mpi_comm_world()) > 1)
+                assert num_datasets == len(st)+2
+                
+                f = HDF5File(mpi_comm_world(), filename, 'r')
+                for ds in datasets:
+                    print ds
+                    assert f.has_dataset(ds)
+                del f
+                return

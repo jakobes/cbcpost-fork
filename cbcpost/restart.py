@@ -247,7 +247,7 @@ class Restart(Parameterized):
         self.restart_timestep = ts
         if self.params.rollback_casedir:
             self._correct_postprocessing(playlog, ts)
-        
+        playlog.close()
         return result
         
         
@@ -258,7 +258,7 @@ class Restart(Parameterized):
         for k,v in play_log.items():
             if int(k) >= restart_timestep:
                 play_log_to_remove[k] = play_log.pop(k)
-        
+
         all_fields_to_clean = []
                 
         for k,v in play_log_to_remove.items():
@@ -282,7 +282,7 @@ class Restart(Parameterized):
                 continue
             if k >= restart_timestep:
                 metadata_to_remove[str(k)] = metadata.pop(str(k))
-
+        metadata.close()
         # Remove files and data for all save formats
         self._clean_hdf5(fieldname, metadata_to_remove)
         self._clean_files(fieldname, metadata_to_remove)

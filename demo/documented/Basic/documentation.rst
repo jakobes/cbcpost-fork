@@ -115,7 +115,7 @@ Since we`re solving for temperature, we add a SolutionField to the postprocessor
                                     plot_args=dict(range_min=-params.amplitude, range_max=params.amplitude),
                                     )))
                                                    
-Note that we pass parameters, specifying that the field are to be saved in hdf5 and xdmf formats. These
+Note that we pass parameters, specifying that the field is to be saved in hdf5 and xdmf formats. These
 formats are default for dolfin.Function-type objects. We also ask for the Field to be plotted, with plot_args
 specifying the plot window. These arguments are passed directly to the dolfin.plot-command.
 

@@ -35,6 +35,7 @@ compatibility is not guaranteed (and quite unlikely).
 
 In addition, cbcpost can utlize other libraries for added functionality
    * fenicstools 1.4.0 (highly recommended, tools to inspect parts of a solution)
+   * mpi4py
    * pytest >2.4.0 (required to run test suite)
 
 fenicstools can be installed using pip:

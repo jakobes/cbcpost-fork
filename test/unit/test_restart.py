@@ -82,7 +82,7 @@ import pytest
 
 from cbcpost import *
 from dolfin import *
-import os, shelve, glob, h5py
+import os, shelve, glob
 from conftest import MockFunctionField
 
 @pytest.fixture(scope="function")
@@ -268,10 +268,9 @@ def test_rollback_casedir(filled_casedir, mesh, t):
     #return
     playlog = shelve.open(os.path.join(filled_casedir, "play.db"), 'r')
     return
-    
     assert max([v["t"] for v in playlog.values()]) < t
     assert max([v["t"] for v in playlog.values()]) > t - 0.25 - 1e-14
-    
+
     for d in os.listdir(filled_casedir):
         if not os.path.isdir(os.path.join(filled_casedir, d)):
             continue
@@ -312,6 +311,10 @@ def test_rollback_casedir(filled_casedir, mesh, t):
             elif sf == "hdf5":
                 assert os.path.isfile(os.path.join(filled_casedir, d, d+".hdf5"))
                 datasets = [u''+d+i for i in st]+[u'Mesh']
+                try:
+                    import h5py
+                except:
+                    continue
                 f = h5py.File(os.path.join(filled_casedir, d, d+".hdf5"), 'r')
                 assert len(f.keys()) == len(st)+2
                 assert set(datasets).intersection(f.keys()) == set(datasets)

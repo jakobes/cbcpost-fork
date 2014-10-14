@@ -340,7 +340,6 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 
                 f = HDF5File(mpi_comm_world(), filename, 'r')
                 for ds in datasets:
-                    print ds
                     assert f.has_dataset(ds)
                 del f
                 return

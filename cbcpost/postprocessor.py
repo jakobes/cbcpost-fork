@@ -280,6 +280,7 @@ class PostProcessor(Parameterized):
             self.add_fields(field)
         else:
             self.add_field(field)
+        return self
 
     def get(self, name, relative_timestep=0, compute=True, finalize=False):
         """Get the value of a named field at a particular relative_timestep.

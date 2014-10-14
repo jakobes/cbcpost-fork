@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from cbcpost import PostProcessor, SpacePool, ParamDict, Norm, SolutionField, Replay, TimeIntegral
 from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField, MockScalarField
 import os, shelve

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from dolfin import *
 
 """

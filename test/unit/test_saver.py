@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import pytest
 
 from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField, MockScalarField

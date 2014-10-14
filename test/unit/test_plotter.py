@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from cbcpost import PostProcessor, SpacePool
 #from conftest import MockScalarField
 from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField, MockScalarField

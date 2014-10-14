@@ -56,7 +56,7 @@ builtin_fields = ("t", "timestep")
 
 def find_dependencies(field):
     "Read dependencies from source code in field.compute function"
-    
+
     # Get source of compute and after_last_compute
     s = inspect.getsource(field.compute)
     s += inspect.getsource(field.after_last_compute)
@@ -109,7 +109,7 @@ def find_dependencies(field):
 
         # Append to dependencies
         deps.append(tuple(dep))
-    
+
     # Make unique (can happen that deps are repeated in rare cases)
     return sorted(set(deps))
 
@@ -126,7 +126,7 @@ class PostProcessor(Parameterized):
             self._timer = Timer(1)
         else:
             self._timer = Timer()
-            
+
         self._extrapolate = self.params.extrapolate
 
         # Storage of actual fields
@@ -145,27 +145,27 @@ class PostProcessor(Parameterized):
         self._plotter = Plotter(self._timer)
         self._saver = Saver(self._timer, self.params.casedir)
         self._planner = Planner(self._timer, self.params.initial_dt)
-        
+
         # Plan of what to compute now and in near future
         self._plan = defaultdict(lambda: defaultdict(int))
-        
+
         # Cache of computed values needed for planned computations
         self._cache = defaultdict(dict)
-        
+
         # Solution provided to update_all
         self._solution = dict()
-        
+
         # Keep track of which fields have been finalized
         self._finalized = {}
-        
+
         # Keep track of how many times update_all has been called
         self._update_all_count = 0
-        
+
         # Keep track of how many times .get has called each field.compute, for administration:
         self._compute_counts = defaultdict(int) # Actually only used for triggering "before_first_compute"
-        
+
         if self.params.clean_casedir: self._saver._clean_casedir()
-        
+
         """
         # Callback to be called with fields where the 'callback' action is enabled
         # Signature: ppcallback(field, data, t, timestep)
@@ -173,15 +173,15 @@ class PostProcessor(Parameterized):
 
         # Hack to make these objects available throughout during update... Move these to a struct?
         self._solution = None
-        
+
         self._timer = Timer()
         """
-    
+
     @classmethod
     def default_params(cls):
         """
         Default parameters are:
-        
+
         +----------------------+-----------------------+--------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                 |
         +======================+=======================+==============================================================+
@@ -197,7 +197,7 @@ class PostProcessor(Parameterized):
         +----------------------+-----------------------+--------------------------------------------------------------+
         | clean_casedir        | False                 | Clean out case directory prior to update.                    |
         +----------------------+-----------------------+--------------------------------------------------------------+
-        
+
         """
         params = ParamDict(
             casedir=".",
@@ -207,7 +207,7 @@ class PostProcessor(Parameterized):
             clean_casedir=False,
             )
         return params
-    
+
     def _insert_in_sorted_list(self, fieldname):
         # Topological ordering of all fields, so that all dependencies are taken care of
 
@@ -226,14 +226,14 @@ class PostProcessor(Parameterized):
     def add_field(self, field):
         "Add field to postprocessor."
         assert isinstance(field, Field)
-        
+
         # Note: If field already exists, replace anyway to overwrite params, this
         # typically happens when a fields has been created implicitly by dependencies.
         # This is a bit unsafe though, the user might add a field twice with different parameters...
         # Check that at least the same name is not used for different field classes:
         #assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
         assert type(field) == type(self._fields.get(field.name,field))
-        
+
         # Add fields explicitly specified by field
         self.add_fields(field.add_fields())
 
@@ -258,22 +258,30 @@ class PostProcessor(Parameterized):
                     full_deps.append(fdep)
             existing_full_deps.add(dep)
             full_deps.append(dep)
-        
+
         # Add field to internal data structures
         self._fields[field.name] = field
         self._dependencies[field.name] = deps
         self._full_dependencies[field.name] = full_deps
         self._insert_in_sorted_list(field.name)
-        
+
         cbc_log(20, "Added field: %s" %field.name)
-        
+
         # Returning the field object is useful for testing
         return field
 
     def add_fields(self, fields):
         "Add several fields at once."
         return [self.add_field(field) for field in fields]
-    
+
+    def __iadd__(self, field):
+        "Add field or list of fields to postprocessor."
+        if isinstance(field, (list, tuple)):
+            self.add_fields(field)
+        else:
+            self.add_field(field)
+        return self
+
     def get(self, name, relative_timestep=0, compute=True, finalize=False):
         """Get the value of a named field at a particular relative_timestep.
 
@@ -281,18 +289,18 @@ class PostProcessor(Parameterized):
         Values are computed at first request and cached.
         """
         cbc_log(20, "Getting: %s, %d (compute=%s, finalize=%s)" %(name, relative_timestep, compute, finalize))
-        
+
         # Check cache
         c = self._cache[relative_timestep]
         data = c.get(name, "N/A")
-        
+
         # Check if field has been finalized, and if so,
         # return finalized value
         if name in self._finalized and data == "N/A":
             if compute:
                 cbc_warning("Field %s has already been finalized. Will not call compute on field." %name)
             return self._finalized[name]
-        
+
         # Are we attempting to get value from before update was started?
         # Use constant extrapolation if allowed.
         if abs(relative_timestep) > self._update_all_count and data == "N/A":
@@ -362,7 +370,7 @@ class PostProcessor(Parameterized):
 
     def _execute_plan(self, t, timestep):
         "Check plan and compute fields in plan."
-        
+
         # Initialize cache for current timestep
         assert not self._cache[0], "Not expecting cached computations at this \
                                     timestep, before plan execution!"
@@ -377,19 +385,19 @@ class PostProcessor(Parameterized):
                 compute = True
             else:
                 compute = False
-            
+
             if name in self._finalize_plan:# and name not in self._finalized:
                 finalize = True
             else:
                 finalize = False
-            
+
             # If neither finalize or compute triggers, continue
             if not (finalize or compute):
                 continue
-            
+
             # Execute computation through get call
             self.get(name, compute=compute, finalize=finalize)
-    
+
     def _update_cache(self, t, timestep):
         "Update cache, remove what can be removed"
         new_cache = defaultdict(dict)
@@ -429,17 +437,17 @@ class PostProcessor(Parameterized):
 
         # Compute what's needed according to plan
         self._execute_plan(t, timestep)
-        
+
         triggered_or_finalized = []
         for name in self._cache[0]:
             if (name in self._finalize_plan
                 or self._last_trigger_time[name][1] == timestep):
                 triggered_or_finalized.append(self._fields[name])
-        
+
         self._saver.update(t, timestep, self._cache[0], triggered_or_finalized)
         self._plotter.update(t, timestep, self._cache[0], triggered_or_finalized)
-        
-        
+
+
         self._update_all_count += 1
         MPI.barrier(mpi_comm_world())
 
@@ -451,10 +459,10 @@ class PostProcessor(Parameterized):
             if field.params.finalize and name not in self._finalized:
                 self.get(name, compute=False, finalize=True)
                 finalized.append(field)
-        
+
         t = self._cache[0].get("t", -1e16)
         timestep = self._cache[0].get("timestep", -1e16)
-        
+
         self._saver.update(t, timestep, self._cache[0], finalized)
         self._plotter.update(t, timestep, self._cache[0], finalized)
         MPI.barrier(mpi_comm_world())
@@ -462,7 +470,7 @@ class PostProcessor(Parameterized):
 
     def store_mesh(self, mesh, cell_domains=None, facet_domains=None):
         """Store mesh in casedir to mesh.hdf5 (dataset Mesh) in casedir.
-        
+
         Forwarded to a Saver-instance.
         """
         self._saver.store_mesh(mesh, cell_domains, facet_domains)
@@ -470,37 +478,37 @@ class PostProcessor(Parameterized):
 
     def clean_casedir(self):
         """Cleans out all files produced by cbcpost in the current casedir.
-        
+
         Forwarded to a Saver-instance.
         """
         self._saver._clean_casedir()
 
     def store_params(self, params):
         """Store parameters in casedir as params.pickle and params.txt.
-        
+
         Forwarded to a Saver-instance.
         """
         self._saver.store_params(params)
         MPI.barrier(mpi_comm_world())
-        
+
     def get_casedir(self):
         """Return case directory.
-        
+
         Forwarded to a Saver-instance.
         """
         return self._saver.get_casedir()
-    
+
     def get_savedir(self, fieldname):
         """Returns save directory for given field name
-        
+
         Forwarded to a Saver-instance.
         """
         return self._saver.get_savedir(fieldname)
-    
+
     def get_playlog(self):
         """
         Get play log from disk (which is stored as a shelve-object).
-        
+
         Forwarded to a Saver-instance.
         """
         return self._saver._fetch_play_log()

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 def test_imports():
     # Core
     core = ["PostProcessor", "Restart", "Replay"]

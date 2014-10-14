@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from cbcpost import PostProcessor, ParamDict
 from cbcpost import SolutionField, Field, MetaField, MetaField2, Norm
 import os, pickle
@@ -14,20 +16,24 @@ cbcpost.PostProcessor.get_casedir     cbcpost.PostProcessor.update_all
 """
 
 
-
 def test_add_field():
     pp = PostProcessor()
+
     pp.add_field(SolutionField("foo"))
     assert "foo" in pp._fields.keys()
-    pp.add_field(SolutionField("bar"))
+
+    pp += SolutionField("bar")
     assert set(["foo", "bar"]) == set(pp._fields.keys())
-    
+
+    pp += [SolutionField("a"), SolutionField("b")]
+    assert set(["foo", "bar", "a", "b"]) == set(pp._fields.keys())
+
     pp.add_fields([
         MetaField("foo"),
         MetaField2("foo", "bar"),
     ])
-    
-    assert set(["foo", "bar", "MetaField_foo", "MetaField2_foo_bar"]) == set(pp._fields.keys())
+
+    assert set(["foo", "bar", "a", "b", "MetaField_foo", "MetaField2_foo_bar"]) == set(pp._fields.keys())
 
 def test_finalize_all(casedir):        
     pp = PostProcessor(dict(casedir=casedir))

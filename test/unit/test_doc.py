@@ -1,3 +1,4 @@
+#!/usr/bin/env py.test
 
 import pytest
 import inspect

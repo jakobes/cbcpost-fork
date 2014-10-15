@@ -22,7 +22,7 @@ The viscous stress tensor for a Newtonian fluid is computed as
 .. math::
 
     \sigma(\mathbf{u}, p) = -p\mathbb{I}+\mu(\nabla \mathbf{u}+\nabla \mathbf{u}^T)
-    
+
 where :math:`\mu` is the dynamic viscosity, :math:`\mathbf{u}` is the fluid velocity and :math:`p` is the pressure. A Field to compute this might be specified as the following:
 
 .. code-block:: python
@@ -35,14 +35,14 @@ where :math:`\mu` is the dynamic viscosity, :math:`\mathbf{u}` is the fluid velo
         def __init__(self, mu, params=None, name="default", label=None):
             Field.__init__(self, params, name, label)
             self.mu = mu
-        
+
         def before_first_compute(self, get):
             u = get("Velocity")
-            
+
             # Create Function container on space of velocity gradient
             V = get_grad_space(u)
             self._function = Function(V, name=self.name)
-    
+
         def compute(self, get):
             u = get("Velocity")
             p = get("Pressure")
@@ -51,7 +51,7 @@ where :math:`\mu` is the dynamic viscosity, :math:`\mathbf{u}` is the fluid velo
             expr = - p*Identity(u.cell().d) + mu*(grad(u)+grad(u)^T)
 
             return self.expr2function(expr, self._function)
-    
+
 
 Note that we have overridden three methods defined in :class:`.Field`:
 
@@ -74,7 +74,7 @@ In this next section, we demonstrate some more functionality one can take advant
 
     \tilde{p} := \max_{t \in [ 0,T ]} ( \max_{\mathbf{x} \in \Omega} p(\mathbf{x}, t) - \min_{\mathbf{x} \in \Omega} p(\mathbf{x}, t) )
 
-    
+
 A :class:`.Field`-class to compute this can be implemented as
 
 .. code-block:: python
@@ -86,22 +86,22 @@ A :class:`.Field`-class to compute this can be implemented as
     class PTilde(Field):
         def add_fields(self):
             return [ Maximum("Pressure"), Minimum("Pressure") ]
-        
+
         def before_first_compute(self, get):
             self._ptilde = 0.0
             self._tmax = 0.0
-    
+
         def compute(self, get):
             pmax = get("Maximum_Pressure")
             pmin = get("Minimum_Pressure")
             t = get("t")
-            
+
             if pmax-pmin > self._ptilde:
                 self._ptilde = pmax-pmin
                 self._tmax = t
-        
+
             return None
-        
+
         def after_last_compute(self, get):
             return (self._ptilde, self._tmax)
 

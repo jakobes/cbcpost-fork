@@ -41,7 +41,7 @@ class Alpha(Expression):
     def __init__(self, alpha0, alpha1):
         self.alpha0 = alpha0
         self.alpha1 = alpha1
-    
+
     def eval(self, value, x):
         if inside(x):
             value[0] = self.alpha1
@@ -94,8 +94,6 @@ while t <= params.T+DOLFIN_EPS:
 
 pp.finalize_all()
 interactive()
-    
-    
 
 
 
@@ -103,6 +101,8 @@ interactive()
 
 
 
-    
-    
-    
+
+
+
+
+

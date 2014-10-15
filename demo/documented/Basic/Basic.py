@@ -37,7 +37,7 @@ class Alpha(Expression):
     def __init__(self, alpha0, alpha1):
         self.alpha0 = alpha0
         self.alpha1 = alpha1
-    
+
     def eval(self, value, x):
         if inside(x):
             value[0] = self.alpha1
@@ -107,17 +107,17 @@ class TempDiff1(Field):
         self.domains = domains
         self.ind1 = ind1
         self.ind2 = ind2
-    
+
     def before_first_compute(self, get):
         self.V1 = assemble(Constant(1)*dx(self.ind1, subdomain_data=self.domains, domain=self.domains.mesh()))
         self.V2 = assemble(Constant(1)*dx(self.ind2, subdomain_data=self.domains, domain=self.domains.mesh()))
-        
+
     def compute(self, get):
-        u = get("Temperature")        
+        u = get("Temperature")
         T1 = 1.0/self.V1*assemble(u*dx(self.ind1, subdomain_data=self.domains))
         T2 = 1.0/self.V2*assemble(u*dx(self.ind2, subdomain_data=self.domains))
         return T1-T2
-        
+
 class TempDiff2(Field):
     def compute(self, get):
         T1 = get("DomainAvg_Temperature-inner")
@@ -158,8 +158,6 @@ while t <= params.T+DOLFIN_EPS:
 
 pp.finalize_all()
 interactive()
-    
-    
 
 
 
@@ -167,6 +165,8 @@ interactive()
 
 
 
-    
-    
-    
+
+
+
+
+

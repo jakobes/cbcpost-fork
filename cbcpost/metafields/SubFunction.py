@@ -25,7 +25,7 @@ class SubFunction(Field):
     """SubFunction is used to interpolate a Field on a non-matching mesh."""
     def __init__(self, field, mesh, params=None, label=None):
         Field.__init__(self, params, label)
-        
+
         import imp
         try:
             imp.find_module("mpi4py")
@@ -49,12 +49,12 @@ class SubFunction(Field):
 
     def before_first_compute(self, get):
         u = get(self.valuename)
-        
+
         V = u.function_space()
-        element = V.ufl_element()        
+        element = V.ufl_element()
         family = element.family()
         degree = element.degree()
-        
+
         if u.rank() == 1:
             FS = VectorFunctionSpace(self.mesh, family, degree)
             FS_scalar = FS.sub(0).collapse()
@@ -64,7 +64,7 @@ class SubFunction(Field):
             FS = FunctionSpace(self.mesh, family, degree)
         else:
             raise Exception("Does not support TensorFunctionSpace yet")
-        
+
         self.u = Function(FS, name=self.name)
 
     def compute(self, get):
@@ -76,18 +76,18 @@ class SubFunction(Field):
             for _u in u:
                 U.append(self._ft.interpolate_nonmatching_mesh(_u, self.us.function_space()))
             MPI.barrier(mpi_comm_world())
-            
+
             self.assigner.assign(self.u, U)
 
         elif u.rank() == 0:
             U = self._ft.interpolate_nonmatching_mesh(u, self.u.function_space())
             MPI.barrier(mpi_comm_world())
-            
+
             # FIXME: This gives a PETSc-error (VecCopy). Unnecessary interpolation used instead.
             #self.u.assign(U)
             self.u.assign(interpolate(U, self.u.function_space()))
         return self.u
-    
+
 
 
 
@@ -98,38 +98,38 @@ if __name__ == '__main__':
     #expr_vector = Expression(("1+x[0]*x[1]", "x[1]-2"))
     expr_scalar = Expression("1+x[0]")
     expr_vector = Expression(("1+x[0]", "x[1]-2"))
-    
+
     mesh = UnitSquareMesh(12,12)
-    
+
     submesh = UnitSquareMesh(6,6)
     submesh.coordinates()[:] /= 2.0
     submesh.coordinates()[:] += 0.2
-    
+
     Q = FunctionSpace(mesh, "CG", 1)
     V = VectorFunctionSpace(mesh, "CG", 1)
-    
+
     Q_sub = FunctionSpace(submesh, "CG", 1)
     V_sub = VectorFunctionSpace(submesh, "CG", 1)
-    
+
     u = interpolate(expr_scalar, Q)
     v = interpolate(expr_vector, V)
-    
+
     u_sub = interpolate(expr_scalar, Q_sub)
     v_sub = interpolate(expr_vector, V_sub)
-    
+
     from fenicstools import interpolate_nonmatching_mesh
     u_sub2 = interpolate_nonmatching_mesh(u, Q_sub)
     v_sub2 = interpolate_nonmatching_mesh(v, V_sub)
-    
+
     print errornorm(u_sub, u_sub2)
     print errornorm(v_sub, v_sub2)
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
 

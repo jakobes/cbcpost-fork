@@ -42,7 +42,7 @@ def find_solution_presence(pp, play_log, fields):
             # Continue if field in a format we can't read back
             if not any([saveformat in loadable_formats for saveformat in data["fields"][fieldname]["save_as"]]):
                 continue
-            
+
             # Check if field is present and part of solution we're searching for
             is_present = False
             if fields == "default" and data["fields"][fieldname]["type"] == "SolutionField":
@@ -62,14 +62,14 @@ def find_solution_presence(pp, play_log, fields):
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'hdf5', function))
                 elif 'xml' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+str(ts)+'.xml')
-                    
+
                     if fieldname in functions: function = functions[fieldname]
                     else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml'))
-                    
+
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'xml', function))
                 elif 'xml.gz' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+str(ts)+'.xml.gz')
-                    
+
                     if fieldname in functions: function = functions[fieldname]
                     else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml.gz'))
 
@@ -94,14 +94,14 @@ def find_restart_items(restart_times, present_solution):
         for fieldname in present_solution:
             sorted_ps = sorted(present_solution[fieldname], key=lambda l: l.time)
             present_times = array([l.time for l in sorted_ps])
-            
+
             # Find lower and upper limit
             limits = []
             lower = where(present_times <= restart_time)[0]
             if len(lower) > 0: limits.append((present_times[lower[-1]], sorted_ps[lower[-1]]))
             upper = where(present_times >= restart_time)[0]
             if len(upper) > 0 and upper[0] != lower[-1]: limits.append((present_times[upper[0]], sorted_ps[upper[0]]))
-            
+
             loadables[restart_time][fieldname] = limits
 
     for k, v in loadables.items():
@@ -117,12 +117,12 @@ class Restart(Parameterized):
     """Class to fetch restart conditions through."""
     #def __init__(self, params=None):
     #    Parameterized.__init__(self, params)
-    
+
     @classmethod
     def default_params(cls):
         """
         Default parameters are:
-        
+
         +----------------------+-----------------------+--------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                 |
         +======================+=======================+==============================================================+
@@ -138,7 +138,7 @@ class Restart(Parameterized):
         |                      |                       | largest restart time. This allows for saving data from a     |
         |                      |                       | restarted simulation in the same case directory.             |
         +----------------------+-----------------------+--------------------------------------------------------------+
-        
+
         """
         params = ParamDict(
                 casedir='.',
@@ -150,26 +150,26 @@ class Restart(Parameterized):
                 #dt=None,
             )
         return params
-    
+
     def get_restart_conditions(self, function_spaces="default"):
         """ Return restart conditions as requested.
-        
+
         :param dict function_spaces: A dict of dolfin.FunctionSpace on which to return the restart conditions with solution name as key.
 
         """
         self._pp = PostProcessor(dict(casedir=self.params.casedir, clean_casedir=False))
-        
+
         playlog = self._pp.get_playlog()
         assert playlog != {}, "Playlog is empty! Unable to find restart data."
-        
+
         loadable_solutions = find_solution_presence(self._pp, playlog, self.params.solution_names)
         loadables = find_restart_items(self.params.restart_times, loadable_solutions)
-        
+
         if function_spaces != "default":
             assert isinstance(function_spaces, dict), "Expecting function_spaces kwarg to be a dict"
             assert set(loadables.values()[0].keys()) == set(function_spaces.keys()), "Expecting a function space for each solution variable"
-        
-        
+
+
         def restart_conditions(spaces, loadables):
             # loadables[restart_time0][solution_name] = [(t0, Lt0)] # will load Lt0
             # loadables[restart_time0][solution_name] = [(t0, Lt0), (t1, Lt1)] # will interpolate to restart_time
@@ -178,24 +178,24 @@ class Restart(Parameterized):
                 functions[t] = dict()
                 for solution_name in loadables[t]:
                     assert len(loadables[t][solution_name]) in [1,2]
-                    
+
                     if len(loadables[t][solution_name]) == 1:
                         f = loadables[t][solution_name][0][1]()
                     elif len(loadables[t][solution_name]) == 2:
                         # Interpolate
                         t0, Lt0 = loadables[t][solution_name][0]
                         t1, Lt1 = loadables[t][solution_name][1]
-                        
+
                         assert t0 <= t <= t1
                         if Lt0.function != None:
-                            
+
                             # The copy-function raise a PETSc-error in parallel
                             #f = Function(Lt0())
                             f0 = Lt0()
                             f = Function(f0.function_space())
                             f.vector().axpy(1.0, f0.vector())
                             del f0
-    
+
                             df = Lt1().vector()
                             df.axpy(-1.0, f.vector())
                             f.vector().axpy((t-t0)/(t1-t0), df)
@@ -205,17 +205,17 @@ class Restart(Parameterized):
                             datatype = type(f0)
                             if not issubclass(datatype, Iterable):
                                 f0 = [f0]; f1 = [f1]
-                            
+
                             f = []
                             for _f0, _f1 in zip(f0, f1):
                                 val = _f0 + (t-t0)/(t1-t0)*(_f1-_f0)
                                 f.append(val)
-                            
+
                             if not issubclass(datatype, Iterable):
                                 f = f[0]
                             else:
                                 f = datatype(f)
-                     
+
                     if solution_name in spaces:
                         space = spaces[solution_name]
                         if space != f.function_space():
@@ -225,11 +225,11 @@ class Restart(Parameterized):
                                 f = interpolate(f, space)
                             except:
                                 f = project(f, space)
-                        
+
                     functions[t][solution_name] = f
 
             return functions
-        
+
         if function_spaces == "default":
             function_spaces = {}
             for fieldname in loadables.values()[0]:
@@ -238,7 +238,7 @@ class Restart(Parameterized):
                 except AttributeError:
                     # This was not a function field
                     pass
-        
+
         result = restart_conditions(function_spaces, loadables)
 
         ts = 0
@@ -249,8 +249,8 @@ class Restart(Parameterized):
             self._correct_postprocessing(playlog, ts)
         playlog.close()
         return result
-        
-        
+
+
 
     def _correct_postprocessing(self, play_log, restart_timestep):
         "Removes data from casedir found at timestep>restart_timestep."
@@ -260,7 +260,7 @@ class Restart(Parameterized):
                 play_log_to_remove[k] = play_log.pop(k)
 
         all_fields_to_clean = []
-                
+
         for k,v in play_log_to_remove.items():
             if not "fields" in v:
                 continue
@@ -270,7 +270,7 @@ class Restart(Parameterized):
 
         for fieldname in all_fields_to_clean:
             self._clean_field(fieldname, restart_timestep)
-    
+
     def _clean_field(self, fieldname, restart_timestep):
         "Deletes data from field found at timestep>restart_timestep."
         metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'w')
@@ -290,26 +290,26 @@ class Restart(Parameterized):
         self._clean_shelve(fieldname, metadata_to_remove)
         self._clean_xdmf(fieldname, metadata_to_remove)
         self._clean_pvd(fieldname, metadata_to_remove)
-    
-    def _clean_hdf5(self, fieldname, del_metadata):        
+
+    def _clean_hdf5(self, fieldname, del_metadata):
         delete_from_hdf5_file = '''
         namespace dolfin {
-            #include <hdf5.h>  
+            #include <hdf5.h>
             void delete_from_hdf5_file(std::string filename, std::string dataset)
             {
                 const hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
                 // Open file existing file for append
                 hid_t file_id = H5Fopen(filename.c_str(), H5F_ACC_RDWR, plist_id);
-                
+
                 H5Ldelete(file_id, dataset.c_str(), H5P_DEFAULT);
-                
+
                 herr_t status = H5Fclose(file_id);
             }
         }
         '''
 
         cpp_module = compile_extension_module(delete_from_hdf5_file)
-        
+
         hdf5filename = os.path.join(self._pp.get_savedir(fieldname), fieldname+'.hdf5')
         if not os.path.isfile(hdf5filename):
             return
@@ -329,7 +329,7 @@ class Restart(Parameterized):
                 os.remove(hdf5filename)
                 os.rename(hdf5tmpfilename, hdf5filename)
         MPI.barrier(mpi_comm_world())
-        
+
     def _clean_files(self, fieldname, del_metadata):
         for k, v in del_metadata.items():
             for i in v.values():
@@ -337,7 +337,7 @@ class Restart(Parameterized):
                     i["filename"]
                 except:
                     continue
-                
+
                 fullpath = os.path.join(self._pp.get_savedir(fieldname), i['filename'])
                 if on_master_process():
                     os.remove(fullpath)
@@ -355,29 +355,29 @@ class Restart(Parameterized):
         txtfilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".txt")
         if not os.path.isfile(txtfilename):
             return
-        
+
         txtfile = open(txtfilename, 'r')
         txtfilelines = txtfile.readlines()
         txtfile.close()
-        
+
         num_lines_to_strp = ['txt' in v for v in del_metadata.values()].count(True)
-        
+
         txtfile = open(txtfilename, 'w')
         [txtfile.write(l) for l in txtfilelines[:-num_lines_to_strp]]
         txtfile.close()
-        
+
     def _clean_shelve(self, fieldname, del_metadata):
         shelvefilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".db")
         if not os.path.isfile(shelvefilename):
             return
-        if on_master_process():           
+        if on_master_process():
             shelvefile = shelve.open(shelvefilename, 'c')
             for k,v in del_metadata.items():
                 if 'shelve' in v:
                     shelvefile.pop(str(k))
             shelvefile.close()
         MPI.barrier(mpi_comm_world())
-    
+
     def _clean_xdmf(self, fieldname, del_metadata):
         basename = os.path.join(self._pp.get_savedir(fieldname), fieldname)
         if not os.path.isfile(basename+".xdmf"):
@@ -388,20 +388,20 @@ class Restart(Parameterized):
             if not os.path.isfile(h5_filename):
                 break
             i = i + 1
-        
+
         xdmf_filename = basename+"_RS"+str(i)+".xdmf"
-        
+
         if on_master_process():
             os.rename(basename+".h5", h5_filename)
             os.rename(basename+".xdmf", xdmf_filename)
-            
+
             f = open(xdmf_filename, 'r').read()
-            
+
             new_f = open(xdmf_filename, 'w')
             new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
             new_f.close()
         MPI.barrier(mpi_comm_world())
-    
+
     def _clean_pvd(self, fieldname, del_metadata):
         if os.path.isfile(os.path.join(self._pp.get_savedir(fieldname), fieldname+'.pvd')):
             cbc_warning("No functionality for cleaning pvd-files for restart. Will overwrite.")

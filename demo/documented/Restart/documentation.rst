@@ -16,11 +16,11 @@ We change the parameters T0 and T to look at the interval :math:`t \in [3,6]`: :
     params.T = 6.0
 
 and we replace the initial condition, using the :class:`.Restart`-class: ::
-    
+
     # Get restart data
     restart = Restart(dict(casedir="../Basic/Results/"))
     restart_data = restart.get_restart_conditions()
-    
+
     # Initial condition
     U = restart_data.values()[0]["Temperature"]
 

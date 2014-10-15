@@ -17,12 +17,12 @@ Boundary conditions are in our example given as
 
 .. math::
     u(x,t) = Asin(2\pi tx_0), x \in \partial \Omega
-    
+
 and initial condition
 
 .. math::
     u(x,0) = 0.
-    
+
 We also use f=0, and solve the equations at the unit cube for :math:`t \in (0,3]`.
 
 Setting up the problem
@@ -34,7 +34,7 @@ We start by defininge a set of parameters for our problem: ::
     from cbcpost.utils import cbc_print
     from dolfin import *
     set_log_level(WARNING)
-    
+
     # Create parameters for problem
     params = ParamDict(
         T = 3.0,            # End time
@@ -53,45 +53,45 @@ We the use the parameters to set up the problem using FEniCS: ::
 
     # Create mesh
     mesh = UnitCubeMesh(21,21,21)
-    
+
     # Function spaces
     V = FunctionSpace(mesh, "CG", 1)
     u,v = TrialFunction(V), TestFunction(V)
-    
+
     # Time and time-stepping
     t = 0.0
     timestep = 0
     dt = Constant(params.dt)
-    
+
     # Initial condition
     U = Function(V)
-    
+
     # Define inner domain
     def inside(x):
         return (0.5 < x[0] < 0.8) and (0.3 < x[1] < 0.6) and (0.2 < x[2] < 0.7)
-    
+
     class Alpha(Expression):
         "Variable conductivity expression"
         def __init__(self, alpha0, alpha1):
             self.alpha0 = alpha0
             self.alpha1 = alpha1
-        
+
         def eval(self, value, x):
             if inside(x):
                 value[0] = self.alpha1
             else:
                 value[0] = self.alpha0
-    
+
     # Conductivity
     alpha = project(Alpha(params.alpha0, params.alpha1), V)
-    
+
     # Boundary condition
     u0 = Expression("ampl*sin(x[0]*2*pi*t)", t=t, ampl=params.amplitude)
     bc = DirichletBC(V, u0, "on_boundary")
-    
+
     # Source term
     f = Constant(0)
-    
+
     # Bilinear form
     a = 1.0/dt*inner(u,v)*dx() + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx()
     L = 1.0/dt*inner(U,v)*dx() + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx() + inner(f,v)*dx()
@@ -104,9 +104,9 @@ Setting up the PostProcessor
 __________________________________
 To set up the use case, we specify the case directory, and asks to clean out the case directory if there
 is any data remaining from a previous simulation: ::
-    
+
     pp = PostProcessor(dict(casedir="Results", clean_casedir=True))
-    
+
 Since we`re solving for temperature, we add a SolutionField to the postprocessor: ::
 
     pp.add_field(SolutionField("Temperature", dict(save=True,
@@ -114,7 +114,7 @@ Since we`re solving for temperature, we add a SolutionField to the postprocessor
                                     plot=True,
                                     plot_args=dict(range_min=-params.amplitude, range_max=params.amplitude),
                                     )))
-                                                   
+
 Note that we pass parameters, specifying that the field is to be saved in hdf5 and xdmf formats. These
 formats are default for dolfin.Function-type objects. We also ask for the Field to be plotted, with plot_args
 specifying the plot window. These arguments are passed directly to the dolfin.plot-command.
@@ -144,7 +144,7 @@ make sense to view some of the interior. We start by creating (sub)meshes of the
     celldomains = CellFunction("size_t", mesh)
     celldomains.set_all(0)
     AutoSubDomain(inside).mark(celldomains, 1)
-    
+
     slicemesh = Slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
     submesh = create_submesh(mesh, celldomains, 1)
 
@@ -190,13 +190,13 @@ approach based solely on accessing the *Temperature*-field: ::
             self.domains = domains
             self.ind1 = ind1
             self.ind2 = ind2
-        
+
         def before_first_compute(self, get):
             self.V1 = assemble(Constant(1)*dx(self.ind1), cell_domains=self.domains, mesh=self.domains.mesh())
             self.V2 = assemble(Constant(1)*dx(self.ind2), cell_domains=self.domains, mesh=self.domains.mesh())
-            
+
         def compute(self, get):
-            u = get("Temperature")        
+            u = get("Temperature")
             T1 = 1.0/self.V1*assemble(u*dx(self.ind1), cell_domains=self.domains)
             T2 = 1.0/self.V2*assemble(u*dx(self.ind2), cell_domains=self.domains)
             return T1-T2
@@ -251,7 +251,7 @@ We choose to store the mesh, domains and parameters associated with the problem:
 
     pp.store_mesh(mesh, cell_domains=cell_domains)
     pp.store_params(params)
-    
+
 These will be stored to *mesh.hdf5*, *params.pickle* and *params.txt* in the case directory.
 
 Solving the problem
@@ -262,14 +262,14 @@ Solving the problem is done very simply here using simple FEniCS-commands: ::
     while t <= params.T+DOLFIN_EPS:
         cbc_print("Time: "+str(t))
         u0.t = float(t)
-    
+
         assemble(L, tensor=b)
         bc.apply(b)
         solver.solve(U.vector(), b)
-        
+
         # Update the postprocessor
         pp.update_all({"Temperature": lambda: U}, t, timestep)
-        
+
         # Update time
         t += float(dt)
         timestep += 1

@@ -33,13 +33,13 @@ from shutil import rmtree
 
 def _get_save_formats(field, data):
     """Get save formats associated with field.
-    
+
     Default values are xdmf and hdf5 for dolfin.Function-type data, and
     txt and shelve for types float, int, list, tuple and dict.
     """
     if data == None:
         return []
-    
+
     if field.params.save_as == Field.default_save_as():
         # Determine proper file formats from data type if not specifically
         # provided
@@ -66,7 +66,7 @@ class Saver():
         # Caches for file storage
         self._datafile_cache = {}
         self._casedir = casedir
-        
+
         self._create_casedir()
 
     def get_casedir(self):
@@ -84,16 +84,16 @@ class Saver():
                     all_fields = []
                     for v in playlog.values():
                         all_fields += v.get("fields", {}).keys()
-    
+
                     all_fields = list(set(all_fields))
                     playlog.close()
-                    
+
                     for field in all_fields:
                         rmtree(os.path.join(self.get_casedir(), field))
-                    
+
                     for f in ["mesh.hdf5", "play.db", "params.txt",
                               "params.pickle"]:
-                        
+
                         if os.path.isfile(os.path.join(self.get_casedir(), f)):
                             os.remove(os.path.join(self.get_casedir(), f))
         MPI.barrier(mpi_comm_world())
@@ -195,17 +195,17 @@ class Saver():
 
     def _update_hdf5_file(self, field_name, saveformat, data, timestep, t):
         """Update hdf5 file with new data.
-        
+
         This creates a hashed dataset within the dataset to save FunctionSpace
         information only once, and for all subsequent savings only the vector
         is saved and links are created to the FunctionSpace information.
-        
+
         This ensures that the saving is fully compatible with restart and
         replay on an arbitrary number of processes.
         """
         assert saveformat == "hdf5"
         fullname, metadata = self._get_datafile_name(field_name, saveformat, timestep)
-        
+
         # Create "good enough" hash. This is done to avoid data corruption when restarted from
         # different number of processes, different distribution or different function space
         local_hash = sha1()
@@ -213,40 +213,40 @@ class Saver():
         local_hash.update(str(data.function_space().ufl_element()))
         local_hash.update(str(data.function_space().dim()))
         local_hash.update(str(MPI.size(mpi_comm_world())))
-        
+
         # Global hash (same on all processes), 10 digits long
         global_hash = MPI.sum(mpi_comm_world(), int(local_hash.hexdigest(), 16))
         global_hash = str(int(global_hash%1e10)).zfill(10)
-        
+
         #key = (field_name, saveformat)
         #datafile = self._datafile_cache.get(key)
         #if datafile is None:
         #    datafile = HDF5File(mpi_comm_world(), fullname, 'w')
         #    self._datafile_cache[key] = datafile
-        
+
         # Open HDF5File
         if not os.path.isfile(fullname):
             datafile = HDF5File(mpi_comm_world(), fullname, 'w')
         else:
             datafile = HDF5File(mpi_comm_world(), fullname, 'a')
-        
+
         # Write to hash-dataset if not yet done
         if not datafile.has_dataset(global_hash) or not datafile.has_dataset(global_hash+"/"+field_name):
             datafile.write(data, str(global_hash)+"/"+field_name)
-            
+
         if not datafile.has_dataset("Mesh"):
             datafile.write(data.function_space().mesh(), "Mesh")
-        
+
         # Write vector to file
         # TODO: Link vector when function has been written to hash
         datafile.write(data.vector(), field_name+str(timestep)+"/vector")
 
-        del datafile        
+        del datafile
         # Link information about function space from hash-dataset
         hdf5_link(fullname, str(global_hash)+"/"+field_name+"/x_cell_dofs", field_name+str(timestep)+"/x_cell_dofs")
         hdf5_link(fullname, str(global_hash)+"/"+field_name+"/cell_dofs", field_name+str(timestep)+"/cell_dofs")
         hdf5_link(fullname, str(global_hash)+"/"+field_name+"/cells", field_name+str(timestep)+"/cells")
-        
+
         return metadata
 
     def _update_xml_file(self, field_name, saveformat, data, timestep, t):
@@ -295,7 +295,7 @@ class Saver():
             datafile = shelve.open(fullname)
             datafile[str(timestep)] = data
             datafile.close()
-            
+
         return metadata
 
     def _fetch_play_log(self):
@@ -348,7 +348,7 @@ class Saver():
         if facet_domains != None:
             meshfile.write(facet_domains, "FacetDomains")
         del meshfile
-    
+
     def _action_save(self, field, data, timestep, t):
         "Apply the 'save' action to computed field data."
         field_name = field.name
@@ -368,10 +368,10 @@ class Saver():
         # object like we do for plotting, or?
         if isinstance(data, Function):
             data.rename(field_name, "Function produced by cbcpost.")
-        
+
         # Get list of file formats
         save_as = _get_save_formats(field, data)
-        
+
         # Write data to file for each filetype
         for saveformat in save_as:
             # Write data to file depending on type
@@ -395,10 +395,10 @@ class Saver():
 
         # Write new data to metadata file
         self._update_metadata_file(field_name, data, t, timestep, save_as, metadata)
-        
+
         self._fill_play_log(field, timestep, save_as)
-    
-    
+
+
     def update(self, t, timestep, cache, triggered_or_finalized):
         """Iterate through the triggered_or_finalized-list of fields, and save
         the fields with Field.params.save == True"""
@@ -407,7 +407,6 @@ class Saver():
             if field.params.save:
                 self._action_save(field, cache[field.name], timestep, t)
 
-        
 
 
-    
+

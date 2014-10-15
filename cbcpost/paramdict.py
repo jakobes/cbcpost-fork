@@ -150,9 +150,9 @@ class ParamDict(dict):
             return self[name]
 
     def __setattr__(self, name, value):
-        """Insert item with attribute notation, only allows changing a value 
+        """Insert item with attribute notation, only allows changing a value
         with existing key.
-        
+
         """
         if name.startswith("_"):
             self.__dict__[name] = value

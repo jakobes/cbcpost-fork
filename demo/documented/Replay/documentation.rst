@@ -3,8 +3,8 @@
 Replay a Problem
 ========================================
 
-Once a simulation is completed, one might want to compute other fields of the solution. This can be 
-done with cbcposts :class:`.Replay`-functionality. The process can be done in very few lines of code. 
+Once a simulation is completed, one might want to compute other fields of the solution. This can be
+done with cbcposts :class:`.Replay`-functionality. The process can be done in very few lines of code.
 
 In the following, we initialize a replay of the heat equation solved in :ref:`Basic` and restarted in :ref:`Restart`. First, we set up a postprocessor with the fields we wish to compute: ::
 

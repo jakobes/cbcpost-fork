@@ -72,11 +72,11 @@ def points_in_ball(center, radius, resolution):
 
 class PointEval(MetaField):
     """Evaluate a Field in points.
-    
+
     :param points: List of Points or tuples
-    
+
     """
-    
+
     def __init__(self, value, points, params=None, name="default", label=None):
         MetaField.__init__(self, value, params, name, label)
         self.points = points

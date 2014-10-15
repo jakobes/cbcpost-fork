@@ -23,10 +23,10 @@ class Maximum(MetaField):
     """Computes the maximum of a Field."""
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if u == None:
             return None
-        
+
         if isinstance(u, Function):
             return MPI.max(mpi_comm_world(), numpy.max(u.vector().array()))
         elif hasattr(u, "__len__"):
@@ -35,4 +35,3 @@ class Maximum(MetaField):
             return MPI.max(mpi_comm_world(), u)
         else:
             raise Exception("Unable to take max of %s" %str(u))
-        

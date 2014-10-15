@@ -11,7 +11,7 @@ Install using git clone:
    git clone https://bitbucket.org/simula_cbc/cbcpost.git
    cd cbcpost
    python setup.py install
-   
+
 Install using pip:
 
 .. code-block:: bash

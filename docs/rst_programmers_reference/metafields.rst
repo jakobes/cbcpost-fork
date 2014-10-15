@@ -7,7 +7,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`Boundary` 
+:mod:`Boundary`
 ----------------------
 
 .. automodule:: cbcpost.metafields.Boundary
@@ -15,7 +15,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`DomainAvg` 
+:mod:`DomainAvg`
 -----------------------
 
 .. automodule:: cbcpost.metafields.DomainAvg
@@ -23,7 +23,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`ErrorNorm` 
+:mod:`ErrorNorm`
 -----------------------
 
 .. automodule:: cbcpost.metafields.ErrorNorm
@@ -31,7 +31,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`Magnitude` 
+:mod:`Magnitude`
 -----------------------
 
 .. automodule:: cbcpost.metafields.Magnitude
@@ -39,7 +39,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`Maximum` 
+:mod:`Maximum`
 ---------------------
 
 .. automodule:: cbcpost.metafields.Maximum
@@ -47,7 +47,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`Minimum` 
+:mod:`Minimum`
 ---------------------
 
 .. automodule:: cbcpost.metafields.Minimum
@@ -55,7 +55,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`Norm` 
+:mod:`Norm`
 ------------------
 
 .. automodule:: cbcpost.metafields.Norm
@@ -63,7 +63,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`PointEval` 
+:mod:`PointEval`
 -----------------------
 
 .. automodule:: cbcpost.metafields.PointEval
@@ -71,7 +71,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`Restrict` 
+:mod:`Restrict`
 ----------------------
 
 .. automodule:: cbcpost.metafields.Restrict
@@ -79,7 +79,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`SubFunction` 
+:mod:`SubFunction`
 -------------------------
 
 .. automodule:: cbcpost.metafields.SubFunction
@@ -87,7 +87,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`TimeAverage` 
+:mod:`TimeAverage`
 -------------------------
 
 .. automodule:: cbcpost.metafields.TimeAverage
@@ -95,7 +95,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`TimeDerivative` 
+:mod:`TimeDerivative`
 ----------------------------
 
 .. automodule:: cbcpost.metafields.TimeDerivative
@@ -103,7 +103,7 @@ Implemented cbcpost.metafields
     :undoc-members:
     :show-inheritance:
 
-:mod:`TimeIntegral` 
+:mod:`TimeIntegral`
 --------------------------
 
 .. automodule:: cbcpost.metafields.TimeIntegral

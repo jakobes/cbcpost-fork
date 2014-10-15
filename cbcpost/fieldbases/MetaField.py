@@ -19,14 +19,14 @@ from cbcpost.fieldbases.Field import Field
 
 class MetaField(Field):
     """ Base class for all Fields that operate on a different Field.
-    
+
     :param value: Field or fieldname to operate on
-    
+
     """
     def __init__(self, value, params=None, name="default", label=None):
         Field.__init__(self, params, name, label)
         self.valuename = value.name if isinstance(value, Field) else value
-    
+
     @property
     def name(self):
         """Return name of field. By default this is *classname_valuename-label*,
@@ -38,8 +38,8 @@ class MetaField(Field):
         else:
             n = self._name
         return n
-        
-    
+
+
     def after_last_compute(self, get):
         u = get(self.valuename)
         if u != "N/A":

@@ -23,10 +23,10 @@ class Minimum(MetaField):
     """Computes the minimum of a Field."""
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if u == None:
             return None
-        
+
         if isinstance(u, Function):
             return MPI.min(mpi_comm_world(), numpy.min(u.vector().array()))
         elif hasattr(u, "__len__"):
@@ -35,4 +35,3 @@ class Minimum(MetaField):
             return MPI.min(mpi_comm_world(), u)
         else:
             raise Exception("Unable to take min of %s" %str(u))
-        

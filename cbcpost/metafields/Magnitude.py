@@ -23,7 +23,7 @@ from cbcpost.utils import cbc_warning
 
 class Magnitude(MetaField):
     """ Compute the magnitude of a Function-evaluated Field.
-    
+
     Supports function spaces where all subspaces are equal.
     """
     def before_first_compute(self, get):
@@ -39,10 +39,10 @@ class Magnitude(MetaField):
             # Don't know how to handle object
             cbc_warning("Don't know how to calculate magnitude of object of type %s." %type(u))
 
-    
+
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if isinstance(u, Function):
             if u.rank() == 0:
                 self.f.vector().zero()
@@ -56,5 +56,4 @@ class Magnitude(MetaField):
             # Don't know how to handle object
             cbc_warning("Don't know how to calculate magnitude of object of type %s. Returning object." %type(u))
             return u
-                        
-    
+

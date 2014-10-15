@@ -51,15 +51,15 @@ Assume that the following code is executed:
 In that case, when the :class:`.TimeDerivative`-field is added to the postprocessor, the following code is inspected:
 
 .. code-block:: python
-    
-    class TimeDerivative(MetaField):    
+
+    class TimeDerivative(MetaField):
         def compute(self, get):
             u1 = get(self.valuename)
             u0 = get(self.valuename, -1)
-    
+
             t1 = get("t")
             t0 = get("t", -1)
-            
+
             # ... [snip] ...
 
 By evaluating the *get*-calls here, we are able to build the following dependency tree:
@@ -86,15 +86,15 @@ The first emphasized line will trigger building of the dependency tree for the s
     :align: center
     :scale: 50 %
     :alt: Dependency tree built by pp.add_field(Stress())
-    
-    
+
+
 while the second emphasized line will use this dependency tree, and trigger the building of the larger dependency tree
 
 .. figure:: ../_static/timederivative_stress_tree.png
     :align: center
     :scale: 50 %
     :alt: Dependency tree built by pp.add_field(TimeDerivative("Stress"))
-    
+
 
 
 Planner
@@ -104,7 +104,7 @@ The :class:`.Planner`-class will set up a plan of the computations for the comin
 In addition, it determines how long each computation should be kept in cache.
 
 .. note::
-    This does not yet support variable timestepping. 
+    This does not yet support variable timestepping.
 
 
 
@@ -117,16 +117,16 @@ For fields, several saveformats are available:
 ==============================   ==================     =================
 **Replay/restart-compatible**    **Visualization**      **Plain text**
 ------------------------------   ------------------     -----------------
-hdf5                              xdmf                  txt          
-xml                               pvd                                   
-xml.gz                                                              
-shelve                                                            
+hdf5                              xdmf                  txt
+xml                               pvd
+xml.gz
+shelve
 ==============================   ==================     =================
 
 The default save formats are:
 
 - *hdf5* and *xdmf* if data is dolfin.Function
-- *txt* and *shelve* if data is float, int, list, tuple or dict  
+- *txt* and *shelve* if data is float, int, list, tuple or dict
 
 The saving is done in a structured manner below the postprocessors case director. Consider the following example:
 
@@ -140,9 +140,9 @@ The saving is done in a structured manner below the postprocessors case director
     pp.store_mesh(mesh, facet_domains=my_facet_domains, cell_domains=my_cell_domains)
     pp.store_params(
         ParamDict(
-            mu = 1.5, 
+            mu = 1.5,
             case = "A",
-            bc = "p(0)=1",            
+            bc = "p(0)=1",
         )
     )
 
@@ -170,14 +170,14 @@ The :class:`.Plotter`-class plots using dolfin.plot or pyplot.plot depending on 
 .. figure:: ../_static/plotdolfin.png
     :align: center
     :scale: 75 %
-    
+
     dolfin.Function objects are plotted with dolfin.plot
 
 
 .. figure:: ../_static/plotpyplot.png
     :align: center
     :scale: 50 %
-    
+
     Simple scalars are plotted with pyplot
 
 

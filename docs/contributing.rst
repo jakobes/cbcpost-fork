@@ -32,7 +32,7 @@ Contact developers
 -------------------
 You can contact the developers directly:
 
-- `Øyvind Evju <https://www.simula.no/people/oyvinev>`_ 
+- `Øyvind Evju <https://www.simula.no/people/oyvinev>`_
 - `Martin Sandve Alnæs <https://www.simula.no/people/martinal>`_.
 
 

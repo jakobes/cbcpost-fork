@@ -19,13 +19,12 @@ from cbcpost.fieldbases.Field import Field
 
 class SolutionField(Field):
     """Helper class to specify solution variables to the postprocessor.
-    
+
     :param name: Name of the solution field
-    
+
     This field can be added to the postprocessor, although it does not implement
     a *compute*-method. A solution with the same name is expected to be passed
     to the *PostProcessor.update_all*-method.
     """
     def __init__(self, name, params=None, label=None):
         Field.__init__(self, params, name, label)
-        

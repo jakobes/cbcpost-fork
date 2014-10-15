@@ -41,7 +41,7 @@ def disable_plotting():
         else:
             cbc_warning("Unable to plot in paralell. Disabling plotting.")
             disable_plotting.value = True
-        
+
     return disable_plotting.value
 disable_plotting.value = "init"
 
@@ -64,11 +64,11 @@ import_pylab.value = "init"
 
 class Plotter():
     """Class to handle plotting of objects.
-    
+
     Plotting is done using pylab or dolfin, depending on object type."""
     def __init__(self, timer):
         self._timer = timer
-        
+
         # Cache for plotting
         self._plot_cache = {}
 
@@ -149,7 +149,7 @@ class Plotter():
             plot_object.set_ydata(ydata)
 
             pylab.axis([xdata[0], xdata[-1], ymin, ymax])
-        
+
         # Set title and show
         title = "%s, t=%0.4g, timestep=%d, min=%.2g, max=%.2g" % (field.name,
                                                                   t, timestep,
@@ -165,7 +165,7 @@ class Plotter():
         "Apply the 'plot' action to computed field data."
         if data == None:
             return
-        
+
         if disable_plotting():
             return
         if isinstance(data, Function):

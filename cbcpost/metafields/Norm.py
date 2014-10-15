@@ -22,23 +22,23 @@ from dolfin import Function, Vector, norm
 class Norm(MetaField):
     r'''Computes a norm of a Field. If the Field returns a Vector or Function, the computation is forwarded to
     the dolfin function *norm*. Otherwise a float list-type object is expected, and the :math:`l^p`-norm is computed as
-    
+
     .. math::
-            
+
             ||\mathbf{x}||_p := \left( \sum_i=1^n |x_i|^p \right)^{1/p}.
-    
+
     The :math:`\infty`-norm is computed as
-    
+
     .. math::
-    
+
             ||\mathbf{x}||_\infty := max(|x_1|, |x_2|, ..., |x_n|)
-    
+
     '''
     @classmethod
     def default_params(cls):
         """
         Default parameters are:
-        
+
         +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                                              |
         +======================+=======================+===========================================================================================+
@@ -46,15 +46,15 @@ class Norm(MetaField):
         |                      |                       | refer to dolfin.norm for valid norm types. Otherwise, p-norm is                           |
         |                      |                       | supported. Invoke using 'l2', 'l3' etc, or 'linf' for max-norm.                           |
         +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
-        
+
         """
         params = MetaField.default_params()
         params.update(
             norm_type='default',
             )
         return params
-    
-    
+
+
     @property
     def name(self):
         if self._name == "default":
@@ -65,15 +65,15 @@ class Norm(MetaField):
         else:
             n = self._name
         return n
-    
+
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if u == None:
             return None
-        
+
         norm_type = self.params.norm_type
-        
+
         if isinstance(u, Function):
             norm_type = norm_type if norm_type != "default" else "L2"
             return norm(u, norm_type)
@@ -83,15 +83,15 @@ class Norm(MetaField):
         else:
             if isinstance(u, (int, long, float)):
                 u = [u]
-            
+
             assert hasattr(u, "__len__")
-            
+
             if self.params.norm_type == 'default':
                 norm_type = 'l2'
-            
+
             if self.params.norm_type == 'linf':
                 return max([abs(_u) for _u in u])
-                
+
             else:
                 # Extract norm type
                 p = int(norm_type[1:])

@@ -11,7 +11,7 @@ case directory: ::
     from cbcpost import *
     restart = Restart(dict(casedir='Results/'))
     restart_data = restart.get_restart_conditions()
-    
+
 If you for instance try to restart the simple case of the heat equation, *restart_data* will be a *dict* of
 the format {t0: {"Temperature": U0}}. If you try to restart for example a (Navier-)Stokes-problem, it will take
 a format of {t0: {"Velocity": U0, "Pressure": P0}}.
@@ -26,7 +26,7 @@ You can easily specify the restart time to fetch the solution from: ::
     t0 = 2.5
     restart = Restart(dict(casedir='Results/', restart_times=t0))
     restart_data = restart.get_restart_conditions()
-    
+
 If the restart time does not match a solution time, it will do a linear interpolation between the closest
 existing solution times.
 
@@ -95,25 +95,25 @@ def filled_casedir(mesh, casedir):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
     V = spacepool.get_space(2,1)
-    
+
     pp.add_fields([
             SolutionField("MockSolutionFunctionField", dict(save=True, save_as=["xml", "xml.gz", "hdf5", "pvd", "xdmf"])),
             SolutionField("MockSolutionVectorFunctionField", dict(save=True, save_as=["xml", "xml.gz", "hdf5", "pvd", "xdmf"])),
             SolutionField("MockSolutionTupleField", dict(save=True, save_as=["txt", "shelve"])),
             SolutionField("MockSolutionScalarField", dict(save=True, save_as=["txt", "shelve"])),
         ])
-    
-    
+
+
     pp.add_fields([
         MockFunctionField(Q, params=dict(save=True, save_as="xml"),label="xml"),
         MockFunctionField(Q, params=dict(save=True, save_as="xml.gz"),label="xmlgz"),
         MockFunctionField(Q, params=dict(save=True, save_as="hdf5"),label="hdf5"),
     ])
-    
+
     D = mesh.geometry().dim()
     expr_scalar = Expression("1+x[0]*x[1]*t", t=0.0)
     expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], t=0.0)
-    
+
     t = 0.0; timestep=0; expr.t = t; expr_scalar.t=t;
     pp.update_all({
         "MockSolutionFunctionField": lambda: interpolate(expr_scalar, Q),
@@ -121,8 +121,8 @@ def filled_casedir(mesh, casedir):
         "MockSolutionTupleField": lambda: (t, 3*t, 1+5*t),
         "MockSolutionScalarField": lambda: 3*t,
     }, t, timestep)
-    
-    
+
+
     t = 0.25; timestep=1; expr.t = t; expr_scalar.t=t;
     pp.update_all({
         "MockSolutionFunctionField": lambda: interpolate(expr_scalar, Q),
@@ -130,7 +130,7 @@ def filled_casedir(mesh, casedir):
         "MockSolutionTupleField": lambda: (t, 3*t, 1+5*t),
         "MockSolutionScalarField": lambda: 3*t,
     }, t, timestep)
-    
+
     t = 0.5; timestep=2; expr.t = t; expr_scalar.t=t;
     pp.update_all({
         "MockSolutionFunctionField": lambda: interpolate(expr_scalar, Q),
@@ -138,8 +138,8 @@ def filled_casedir(mesh, casedir):
         "MockSolutionTupleField": lambda: (t, 3*t, 1+5*t),
         "MockSolutionScalarField": lambda: 3*t,
     }, t, timestep)
-    
-    
+
+
     t = 0.75; timestep=3; expr.t = t; expr_scalar.t=t;
     pp.update_all({
         "MockSolutionFunctionField": lambda: interpolate(expr_scalar, Q),
@@ -147,7 +147,7 @@ def filled_casedir(mesh, casedir):
         "MockSolutionTupleField": lambda: (t, 3*t, 1+5*t),
         "MockSolutionScalarField": lambda: 3*t,
     }, t, timestep)
-    
+
     t = 1.0; timestep=4; expr.t = t; expr_scalar.t=t;
     pp.update_all({
         "MockSolutionFunctionField": lambda: interpolate(expr_scalar, Q),
@@ -155,7 +155,7 @@ def filled_casedir(mesh, casedir):
         "MockSolutionTupleField": lambda: (t, 3*t, 1+5*t),
         "MockSolutionScalarField": lambda: 3*t,
     }, t, timestep)
-       
+
     return casedir
 
 @pytest.fixture(scope="module", params=[1.0, 0.75, 0.86])
@@ -172,50 +172,50 @@ def test_restart_from_solutionfield(filled_casedir, mesh, t):
     assert t in data.keys()
     assert set(data[t].keys()) == set(["MockSolutionFunctionField", "MockSolutionVectorFunctionField",
                                          "MockSolutionTupleField", "MockSolutionScalarField"])
-    
+
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
     V = spacepool.get_space(2,1)
-    
+
     D = mesh.geometry().dim()
     expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
     expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], t=t)
-    
+
     assert abs(norm(data[t]["MockSolutionFunctionField"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
     assert abs(norm(data[t]["MockSolutionVectorFunctionField"]) - norm(interpolate(expr, V))) < 1e-8
     assert max(abs(x-y) for x,y in zip(data[t]["MockSolutionTupleField"], (t, 3*t, 1+5*t))) < 1e-8
     assert abs(data[t]["MockSolutionScalarField"] - 3*t) < 1e-8
 
 
-def test_restart_from_xml(filled_casedir, mesh, t):   
+def test_restart_from_xml(filled_casedir, mesh, t):
     if t == 1.0:
         restart = Restart(dict(casedir=filled_casedir, solution_names="MockFunctionField-xml"))
     else:
         restart = Restart(dict(casedir=filled_casedir, restart_times=t, solution_names="MockFunctionField-xml"))
-    
+
     data = restart.get_restart_conditions()
     assert t in data.keys()
-    
+
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
-    
+
     D = mesh.geometry().dim()
     expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
 
     assert abs(norm(data[t]["MockFunctionField-xml"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
-    
+
 def test_restart_from_xmlgz(filled_casedir, mesh, t):
     if t == 1.0:
         restart = Restart(dict(casedir=filled_casedir, solution_names="MockFunctionField-xmlgz"))
     else:
         restart = Restart(dict(casedir=filled_casedir, restart_times=t, solution_names="MockFunctionField-xmlgz"))
-    
+
     data = restart.get_restart_conditions()
     assert t in data.keys()
-    
+
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
-    
+
     D = mesh.geometry().dim()
     expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
 
@@ -226,10 +226,10 @@ def test_restart_from_hdf5(filled_casedir, mesh, t):
         restart = Restart(dict(casedir=filled_casedir, solution_names="MockFunctionField-hdf5"))
     else:
         restart = Restart(dict(casedir=filled_casedir, restart_times=t, solution_names="MockFunctionField-hdf5"))
-    
+
     data = restart.get_restart_conditions()
     assert t in data.keys()
-    
+
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
 
@@ -237,30 +237,30 @@ def test_restart_from_hdf5(filled_casedir, mesh, t):
 
     assert abs(norm(data[t]["MockFunctionField-hdf5"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
 
-@pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")    
+@pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")
 def test_restart_change_function_space(filled_casedir, mesh):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(1,0)
-    
+
     t = 1.0
     expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
     restart = Restart(dict(casedir=filled_casedir, solution_names="MockFunctionField-hdf5"))
-    
+
     data = restart.get_restart_conditions(function_spaces={"MockFunctionField-hdf5": Q})
-    
+
     assert abs(norm(data[t]["MockFunctionField-hdf5"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
-    
+
 def test_rollback_casedir(filled_casedir, mesh, t):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
     V = spacepool.get_space(2,1)
-    
+
     D = mesh.geometry().dim()
     expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
     expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], t=t)
-    
+
     expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
-    
+
     restart = Restart(dict(casedir=filled_casedir, rollback_casedir=True, restart_times=t))
     assert os.path.isfile(os.path.join(filled_casedir, "play.db"))
     #print os.path.join(filled_casedir, "play.db")
@@ -269,17 +269,17 @@ def test_rollback_casedir(filled_casedir, mesh, t):
     #print os.path.isfile("test_saver/play.db")
     #return
     playlog = shelve.open(os.path.join(filled_casedir, "play.db"), 'r')
-    
+
     assert max([v["t"] for v in playlog.values()]) < t
     assert max([v["t"] for v in playlog.values()]) > t - 0.25 - 1e-14
 
     for d in os.listdir(filled_casedir):
         if not os.path.isdir(os.path.join(filled_casedir, d)):
             continue
-        
+
         assert os.path.isfile(os.path.join(filled_casedir, d, "metadata.db"))
         md = shelve.open(os.path.join(filled_casedir, d, "metadata.db"), 'r')
-        
+
         savetimes = {"shelve": [], "txt": [], "xml": [], "xml.gz": [], "hdf5": [], "pvd": [], "xdmf": []}
         assert max([v.get("time", -1) for v in md.values() if isinstance(v, dict)]) < t
         for k in md:
@@ -287,7 +287,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 int(k)
             except:
                 continue
-            
+
             for sf in set(md[k].keys()).intersection(savetimes.keys()):
                 savetimes[sf].append(k)
 
@@ -315,7 +315,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 assert os.path.isfile(filename)
                 #datasets = [u''+d+i for i in st]+[u'Mesh']
                 datasets = [d+i for i in st]+['Mesh']
-                
+
                 cpp_code = """
                 #include <hdf5.h>
                 std::size_t size(MPI_Comm comm,
@@ -328,16 +328,16 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                     return num_datasets;
                     //herr_t status = H5Lcreate_hard(hdf5_file_id, link_from.c_str(), H5L_SAME_LOC,
                     //                    link_to.c_str(), H5P_DEFAULT, H5P_DEFAULT);
-                    
+
                     //dolfin_assert(status != HDF5_FAIL);
-                    
-                }                
+
+                }
                 """
-                
+
                 cpp_module = compile_extension_module(cpp_code, additional_system_headers=["dolfin/io/HDF5Interface.h"])
                 num_datasets = cpp_module.size(mpi_comm_world(), filename, MPI.size(mpi_comm_world()) > 1)
                 assert num_datasets == len(st)+2
-                
+
                 f = HDF5File(mpi_comm_world(), filename, 'r')
                 for ds in datasets:
                     assert f.has_dataset(ds)

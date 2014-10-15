@@ -25,53 +25,52 @@ from numpy import array, uint
 class Restrict(MetaField):
     """Restrict is used to restrict a Field to a submesh of the
     mesh associated with the Field.
-    
+
     .. warning::
-    
+
         This has only been tested for CG spaces and DG spaces of degree 0.
-    
+
     """
     def __init__(self, field, submesh, params={}, name="default", label=None):
         MetaField.__init__(self, field, params, name, label)
         self.submesh = submesh
-        
+
     @property
     def name(self):
         n = "Restrict_%s" % self.valuename
         if self.label: n += "_"+self.label
         return n
-    
+
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if u == None:
             return None
-        
+
         if not isinstance(u, Function):
             cbc_warning("Do not understand how to handle datatype %s" %str(type(u)))
             return None
-        
+
         #if not hasattr(self, "restriction_map"):
         if not hasattr(self, "keys"):
             V = u.function_space()
-            element = V.ufl_element()        
+            element = V.ufl_element()
             family = element.family()
             degree = element.degree()
-            
+
             if u.rank() == 0: FS = FunctionSpace(self.submesh, family, degree)
             elif u.rank() == 1: FS = VectorFunctionSpace(self.submesh, family, degree)
             elif u.rank() == 2: FS = TensorFunctionSpace(self.submesh, family, degree)
-            
+
             self.u = Function(FS)
-            
-            
+
+
             #self.restriction_map = restriction_map(V, FS)
             rmap = restriction_map(V, FS)
             self.keys = array(rmap.keys(), dtype=uint)
             self.values = array(rmap.values(), dtype=uint)
-            
-            
+
+
         #self.u.vector()[self.restriction_map.keys()] = u.vector()[self.restriction_map.values()]
         self.u.vector()[self.keys] = u.vector()[self.values]
         return self.u
-        

@@ -21,10 +21,10 @@ from cbcpost import ParamDict, Parameterized
 
 class Field(Parameterized):
     """ Base class for all fields.
-    
+
     :param name: Specify name for field. If default, a name will be created based on class-name.
     :param label: Specify a label. The label will be added to the name, if name is default.
-    
+
     """
     def __init__(self, params=None, name="default", label=None):
         Parameterized.__init__(self, params)
@@ -33,7 +33,7 @@ class Field(Parameterized):
         else:
             self.label = None
         self._name = name
-        
+
     # --- Parameters
 
     @classmethod
@@ -45,7 +45,7 @@ class Field(Parameterized):
     def default_params(cls):
         """
         Default params are:
-        
+
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                                                        |
         +======================+=======================+=====================================================================================================+
@@ -62,7 +62,7 @@ class Field(Parameterized):
         | stride_time          | 1e-16                 | Time between each computation                                                                       |
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
         | plot                 | False                 | Plot Field after a directly triggered computation                                                   |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+        
+        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
         | plot_args            | {}                    | Keyword arguments to pass to dolfin.plot.                                                           |
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
         | save                 | False                 | Save Field after a directly triggered computation                                                   |
@@ -84,8 +84,8 @@ class Field(Parameterized):
         | finalize             | False                 | Switch whether to finalize if Field. This is especially useful when a costly computation is only    |
         |                      |                       | interesting at the end time.                                                                        |
         +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        
-        """ 
+
+        """
         params = ParamDict(
             # Configure direct compute requests through timestep counting
             start_timestep = -1e16,

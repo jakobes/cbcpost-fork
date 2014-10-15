@@ -23,15 +23,15 @@ from dolfin import Function, errornorm
 class ErrorNorm(MetaField2):
     r'''Computes the error norm of two Fields. If the Fields Function-objects, the computation is forwarded to
     the dolfin function *errornorm*. Otherwise two float list-type object is expected, and the :math:`l^p`-norm is computed as
-    
+
     .. math::
-    
+
         ||\mathbf{x-y}||_p := \left( \sum_i=1^n |x_i-y_i|^p \right)^{1/p}.
-    
+
     The :math:`\infty`-norm is computed as
-    
+
     .. math::
-    
+
         ||\mathbf{x-y}||_\infty := max(|x_1-y_1|, |x_2-y_2|, ..., |x_n-y_n|)
 
     '''
@@ -39,7 +39,7 @@ class ErrorNorm(MetaField2):
     def default_params(cls):
         """
         Default parameters are:
-        
+
         +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                                              |
         +======================+=======================+===========================================================================================+
@@ -56,7 +56,7 @@ class ErrorNorm(MetaField2):
             degree_rise=3,
             )
         return params
-    
+
     @property
     def name(self):
         if self._name == "default":
@@ -71,10 +71,10 @@ class ErrorNorm(MetaField2):
     def compute(self, get):
         u = get(self.valuename1)
         uh = get(self.valuename2)
-        
+
         if u == None:
             return None
-        
+
         if isinstance(uh, Function):
             norm_type = self.params.norm_type if self.params.norm_type != "default" else "L2"
             return errornorm(u, uh, norm_type=norm_type, degree_rise=self.params.degree_rise)
@@ -83,19 +83,19 @@ class ErrorNorm(MetaField2):
                 u = [u]
             if isinstance(uh, (int, long, float)):
                 uh = [uh]
-            
+
             assert hasattr(u, "__len__")
             assert hasattr(uh, "__len__")
             assert len(u) == len(uh)
-            
+
             if self.params.norm_type == 'default':
                 norm_type = 'l2'
             else:
                 norm_type = self.params.norm_type
-            
+
             if norm_type == 'linf':
                 return max([abs(_u-_uh) for _u,_uh in zip(u,uh)])
-                
+
             else:
                 # Extract norm type
                 p = int(norm_type[1:])

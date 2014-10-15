@@ -28,7 +28,7 @@ class SecondTimeDerivative(MetaField):
         t0 = get("t", -2)
         dt1 = t2 - t1
         if dt1 == 0: dt1 = 1e-14 # Avoid zero-division
-            
+
         dt0 = t1 - t0
         if dt0 == 0: dt0 = 1e-14 # Avoid zero-division
 

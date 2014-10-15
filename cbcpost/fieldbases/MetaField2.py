@@ -19,16 +19,16 @@ from cbcpost.fieldbases.Field import Field
 
 class MetaField2(Field):
     """ Base class for all Fields that operate on two different Fields.
-    
+
     :param value1: First Field or fieldname to operate on
     :param value2: Second Field or fieldname to operate on
-    
+
     """
     def __init__(self, value1, value2, params=None, name="default", label=None):
         Field.__init__(self, params, name, label)
         self.valuename1 = value1.name if isinstance(value1, Field) else value1
         self.valuename2 = value2.name if isinstance(value2, Field) else value2
-        
+
 
     @property
     def name(self):
@@ -40,9 +40,9 @@ class MetaField2(Field):
             if self.label: n += "_"+self.label
         else:
             n = self._name
-            
+
         return n
-    
+
     def compute(self, get):
         get(self.valuename1)
         get(self.valuename2)

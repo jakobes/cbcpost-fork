@@ -24,35 +24,35 @@ from dolfin import Function
 class TimeAverage(TimeIntegral):
     """
     Compute the time average of a field :math:`F` as
-    
+
     .. math::
-    
+
         \\frac{1}{T1-T0} \int_{T0}^{T1} F dt
-    
+
     Computes a :class:`.TimeIntegral`, and scales it.
     """
     def compute(self, get):
-        
+
         ti = super(TimeAverage, self).compute(get)
-        
+
         if self.params.finalize:
             return None
         else:
             return self.scale(ti)
-        
+
         # Make sure dependencies are read by postprocessor
         # (This code is never reached, just inspected)
         get("t")
         get("t", -1)
         get(self.valuename)
         get(self.valuename, -1)
-        
+
     def after_last_compute(self, get):
         ti = super(TimeAverage, self).after_last_compute(get)
-        
+
         ta = self.scale(ti)
         #print "Averaged %s from %f (start_time=%f) to %f (end_time=%f) (result=%s)" %(self.valuename, self.T0, self.params.start_time, self.T1, self.params.end_time,  str(ta))
-        
+
         return ta
 
 
@@ -60,9 +60,9 @@ class TimeAverage(TimeIntegral):
         """Scale the TimeIntegral with :math:`1/(T1-T0)`. """
         if ti == None:
             return None
-        
+
         scale_factor = 1.0/(self.T1-self.T0)
-        
+
         if isinstance(ti, Function):
             ta = Function(ti)
             ta.vector()[:] *= scale_factor

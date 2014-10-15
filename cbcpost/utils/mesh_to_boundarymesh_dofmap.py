@@ -19,10 +19,10 @@ from dolfin import Cell, Facet
 from numpy import where
 
 def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
-    "Find the mapping between dofs on boundary and boundary dofs of full mesh"    
+    "Find the mapping between dofs on boundary and boundary dofs of full mesh"
     assert V.ufl_element().family() == Vb.ufl_element().family()
     assert V.ufl_element().degree() == Vb.ufl_element().degree()
-    
+
     # Currently only CG1 and DG0 spaces are supported
     assert V.ufl_element().family() in ["Lagrange", "Discontinuous Lagrange"]
     if V.ufl_element().family() == "Discontinuous Lagrange":
@@ -49,7 +49,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
 
         cell_dofs = V_dm.cell_dofs(mesh_cell_index)
         boundary_dofs = Vb_dm.cell_dofs(i)
-        
+
         if V_dm.num_entity_dofs(0) > 0:
             for v_idx in boundary_cell.entities(0):
                 #if v_idx in boundary.topology().shared_entities(0):
@@ -58,7 +58,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                     #if MPI.rank(mpi_comm_world()) in boundary.topology().shared_entities(0)[v_idx]:
                         #print "hei"
                         #continue
-                
+
                 mesh_v_idx = vertex_map[int(v_idx)]
 
                 mesh_list_idx = where(mesh_cell.entities(0) == mesh_v_idx)[0][0]
@@ -80,6 +80,5 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
 
     return dofmap_to_boundary
 
-    
-    
-    
+
+

@@ -12,7 +12,7 @@ case directory:
     from cbcpost import *
     restart = Restart(dict(casedir='Results/'))
     restart_data = restart.get_restart_conditions()
-    
+
 If you for instance try to restart the simple case of the heat equation, *restart_data* will be a *dict* of
 the format {t0: {"Temperature": U0}}. If you try to restart for example a (Navier-)Stokes-problem, it will take
 a format of {t0: {"Velocity": U0, "Pressure": P0}}.
@@ -29,7 +29,7 @@ You can easily specify the restart time to fetch the solution from:
     t0 = 2.5
     restart = Restart(dict(casedir='Results/', restart_times=t0))
     restart_data = restart.get_restart_conditions()
-    
+
 If the restart time does not match a solution time, it will do a linear interpolation between the closest
 existing solution times.
 

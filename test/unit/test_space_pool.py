@@ -38,23 +38,22 @@ def test_spacepool_base_functionality(mesh):
 def test_grad_spaces(mesh):
     p = SpacePool(mesh)
     d = mesh.geometry().dim()
-    
+
     #Q = get_custom_space("CG", 1, (1,))
     Q = p.get_space(1,0)
     DQ = p.get_grad_space(Q)
     assert DQ.ufl_element().family() == "Discontinuous Lagrange"
     assert DQ.ufl_element().degree() == Q.ufl_element().degree()-1
     assert DQ.ufl_element().value_shape() == (d,)
-    
+
     V = p.get_space(2,1)
     DV = p.get_grad_space(V)
     assert DV.ufl_element().family() == "Discontinuous Lagrange"
     assert DV.ufl_element().degree() == V.ufl_element().degree()-1
     assert DV.ufl_element().value_shape() == (d,d)
-    
+
     W = p.get_space(2,2)
     DW = p.get_grad_space(W)
     assert DW.ufl_element().family() == "Discontinuous Lagrange"
     assert DW.ufl_element().degree() == V.ufl_element().degree()-1
     assert DW.ufl_element().value_shape() == (d,d,d)
-    

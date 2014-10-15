@@ -33,15 +33,15 @@ def decide_family(family, degree):
 
 def get_grad_space(u, family="auto", degree="auto", shape="auto"):
     """Get gradient space of Function.
-        
+
         .. warning::
             This is experimental and currently only designed to work with CG-spaces.
-        
+
         """
     V = u.function_space()
     spaces = SpacePool(V.mesh())
     return spaces.get_grad_space(V, family, degree, shape)
-    
+
 
 
 class SpacePool(object):
@@ -50,18 +50,18 @@ class SpacePool(object):
 
     def __new__(cls, mesh):
         key = mesh.id()
-        
+
         # Do a garbage collect to collect any garbage references
         # Needed for full parallel compatibility
         gc.collect()
-        
+
         # Check if spacepool exists, or create
         self = SpacePool._existing.get(key)
         if self is None:
             self = object.__new__(cls)
             self._init(mesh)
             SpacePool._existing[key] = self
-        
+
         return self
 
     def __init__(self, mesh):
@@ -84,12 +84,12 @@ class SpacePool(object):
 
         # Start with empty cache
         self._spaces = {}
-        
+
         self._boundary = None
 
     def get_custom_space(self, family, degree, shape, boundary=False):
         """Get a custom function space. """
-        
+
         if boundary:
             mesh = self.BoundaryMesh
             key = (family, degree, shape, boundary)
@@ -117,31 +117,31 @@ class SpacePool(object):
         family = decide_family(family, degree)
         shape = (self.gdim,)*rank
         return self.get_custom_space(family, degree, shape, boundary)
-    
+
     def get_grad_space(self, V, family="auto", degree="auto", shape="auto"):
         """Get gradient space of FunctionSpace V.
-        
+
         .. warning::
             This is experimental and currently only designed to work with CG-spaces.
-        
+
         """
         element = V.ufl_element()
 
         if degree == "auto":
             degree = element.degree() - 1
-    
+
         if family == "auto":
             family = "DG"
-    
+
         if family in ("CG", "Lagrange") and degree == 0:
             family = "DG"
-    
+
         if shape == "auto":
             shape = grad(Coefficient(element)).shape()
-    
+
         DV = self.get_custom_space(family, degree, shape)
         return DV
-    
+
     @property
     def BoundaryMesh(self):
         if self._boundary == None:

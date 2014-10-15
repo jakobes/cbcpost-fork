@@ -13,15 +13,15 @@ This has several major benefits:
 The interface to the replay module is minimal:
 
 .. code-block:: python
-    
+
     from cbcpost import PostProcessor, Replay
 
     pp = PostProcessor(dict(casedir="ExistingResults/"))
     pp.add_field(MyCustomField(), dict(save=True))
-    
+
     replayer = Replay(pp)
     replayer.replay()
-    
+
 
 In the replay module, all fields that are stored in a reloadable format will be treated as a solution. They will be passed to a postprocessor as instances of the :class:`.Loadable`-class. This makes sure that no unnecessary I/O-operations occur, as the stored data are only loaded when they are triggered in the postprocessor.
 

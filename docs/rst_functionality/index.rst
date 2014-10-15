@@ -1,7 +1,7 @@
 Functionality
 ===========================
 
-The main functionality is handled with a :class:`.PostProcessor`-instance, populated with several :class:`.Field`-items. 
+The main functionality is handled with a :class:`.PostProcessor`-instance, populated with several :class:`.Field`-items.
 
 The :class:`.Field`-items added to the :class:`PostProcessor` can represent *meta* computations (:class:`.MetaField`, :class:`.MetaField2`) such as time integrals or time derivatives, restrictions or subfunction, or norms. They can also represent custom computations, such as stress, strain, stream functions etc. All subclasses of the :class:`.Field`-class inherits a set of parameters used to specify computation logic, and has a set of parameters related to saving, plotting, and computation intervals.
 

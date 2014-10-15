@@ -24,31 +24,31 @@ from dolfin import Function
 class Boundary(MetaField):
     """Extracts the boundary values of a Function and returns a Function object
     living on the equivalent FunctionSpace on boundary mesh.
-    
+
     .. warning::
         Only CG1 and DG0 spaces currently functioning.
-    
+
     """
     def before_first_compute(self, get):
         u = get(self.valuename)
-        
+
         assert isinstance(u, Function), "Can only extract boundary values of Function-objects"
-        
+
         FS = u.function_space()
-        
+
         spaces = SpacePool(FS.mesh())
         element = FS.ufl_element()
         #FS_boundary = spaces.get_space(FS.ufl_element().degree(), FS.num_sub_spaces(), boundary=True)
         FS_boundary = spaces.get_custom_space(element.family(), element.degree(), element.value_shape(), boundary=True)
-        
+
         local_dofmapping = mesh_to_boundarymesh_dofmap(spaces.BoundaryMesh, FS, FS_boundary)
         self._keys = local_dofmapping.keys()
         self._values = local_dofmapping.values()
-        
+
         self.u_bdry = Function(FS_boundary)
-    
+
     def compute(self, get):
         u = get(self.valuename)
-        self.u_bdry.vector()[self._keys] = u.vector()[self._values]       
+        self.u_bdry.vector()[self._keys] = u.vector()[self._values]
 
         return self.u_bdry

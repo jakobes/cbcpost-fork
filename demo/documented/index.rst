@@ -11,8 +11,8 @@ for the FEniCS-specifics of these demos.
 
 .. toctree::
     :maxdepth: 2
-    
+
     Basic/documentation
     Restart/documentation
     Replay/documentation
-    
+

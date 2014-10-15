@@ -49,9 +49,9 @@ def strip_code(code):
         l = l.replace('\t', '    ')
         l = l.replace('    ', ' ')
 
-        l = l.rstrip(' ')        
+        l = l.rstrip(' ')
         l = l.split(' ')
-        
+
         l_new = ""
         string_flag = False
         for c in l:
@@ -95,13 +95,13 @@ class _HDF5Link:
             herr_t status = H5Lcreate_hard(hdf5_file_id, link_from.c_str(), H5L_SAME_LOC,
                                 link_to.c_str(), H5P_DEFAULT, H5P_DEFAULT);
             dolfin_assert(status != HDF5_FAIL);
-            
+
             HDF5Interface::close_file(hdf5_file_id);
         }
         '''
-        
+
         self.cpp_link_module = compile_extension_module(cpp_link_code, additional_system_headers=["dolfin/io/HDF5Interface.h"])
-    
+
     def link(self, hdf5filename, link_from, link_to):
         "Create link in hdf5file."
         use_mpiio = MPI.size(mpi_comm_world()) > 1
@@ -136,14 +136,14 @@ import shelve
 class Loadable():
     """Create an instance that reads a Field from file as specified by the
     parameters. Requires that the file is written in cbcpost (or in the same format).
-    
+
     :param filename: Filename where function is stored
     :param fieldname: Name of Field
     :param timestep: Timestep to load
     :param time: Time
     :param saveformat: Saveformat of field
     :params function: Function to load Field into
-    
+
     This class is used internally from :class:'.Replay' and :class:'Restart',
     and made to be passed to *PostProcessor.update_all*.
     """
@@ -154,9 +154,9 @@ class Loadable():
         self.time = time
         self.saveformat = saveformat
         self.function = function
-        
+
         assert self.saveformat in loadable_formats
-        
+
     def __call__(self):
         """Load file"""
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
@@ -172,7 +172,7 @@ class Loadable():
         elif self.saveformat == "shelve":
             shelvefile = shelve.open(self.filename)
             data = shelvefile[str(self.timestep)]
-        
+
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         return data
 
@@ -184,7 +184,7 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     assert metadata['type'] == 'Function'
 
     # Load mesh
-    if saveformat == 'hdf5':    
+    if saveformat == 'hdf5':
         mesh = Mesh()
         hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5'), 'r')
         hdf5file.read(mesh, "Mesh", False)
@@ -198,7 +198,7 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     shape = eval(metadata["element_value_shape"])
     degree = eval(metadata["element_degree"])
     family = eval(metadata["element_family"])
-    
+
     # Get space from existing function spaces if mesh is the same
     spaces = SpacePool(mesh)
     space = spaces.get_custom_space(family, degree, shape)
@@ -244,9 +244,9 @@ def get_memory_usage():
 
 class Timer:
     """Class to perform timing.
-    
+
     :param frequency: Frequency which to report timings.
-    
+
     """
     def __init__(self, frequency=0):
         self._frequency = frequency
@@ -259,21 +259,21 @@ class Timer:
         "Called when *key* is completed."
         if self._frequency == 0:
             return
-        
+
         if key not in self._timings:
             self._keys.append(key)
             self._timings[key] = [0,0, {}]
-        
+
         t = time()
         ms = (t - self._timer)*1000
         self._timings[key][0] += ms
         self._timings[key][1] += 1
-        
+
         for k,v in summables.items():
             if k not in self._timings[key][2]:
                 self._timings[key][2][k] = 0
             self._timings[key][2][k] += v
-        
+
         if self._frequency == 1:
             s = "%10.0f ms: %s" % (ms, key)
             ss = []
@@ -291,18 +291,18 @@ class Timer:
             cbc_print(s)
 
         self._timer = time()
-    
+
     def _print_summary(self):
         "Print a summary of timing"
         cbc_print("Timings summary: ")
-        
+
         for key in self._keys:
             tot = self._timings[key][0]
             N = self._timings[key][1]
             avg = int(1.0*tot/N)
-            
+
             s = "%10.0f ms (avg: %8.0f ms, N: %5d): %s" %(tot, avg, N, key)
-            
+
             summables = self._timings[key][2]
             ss = []
             #if summables != {}:
@@ -319,13 +319,13 @@ class Timer:
                 ss = ""
             s += ss
             cbc_print(s)
-    
+
     def _reset(self):
         "Reset timings"
         self._timings = {}
         self._keys = []
         self._N = 0
-        
+
     def increment(self):
         "Increment timer"
         self._N += 1

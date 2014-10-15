@@ -32,39 +32,39 @@ def have_necessary_deps(solution, pp, field):
     and postprocessor."""
     if field in solution:
         return True
-    
+
     deps = pp._dependencies[field]
     if len(deps) == 0:
         return False
-    
+
     all_deps = []
     for dep in deps:
         all_deps.append(have_necessary_deps(solution, pp, dep[0]))
     return all(all_deps)
-    
+
 class Replay(Parameterized):
     """ Replay class for postprocessing exisiting solution data. """
     def __init__(self, postprocessor, params=None):
         Parameterized.__init__(self, params)
         self.postproc = postprocessor
         self._functions = {}
-        
+
         self.timer = Timer(self.params.timer_frequency)
         self.timer._N = 0
-    
+
     @classmethod
     def default_params(cls):
         """
         Default parameters are:
-        
+
         +----------------------+-----------------------+--------------------------------------------------------------+
         |Key                   | Default value         |  Description                                                 |
         +======================+=======================+==============================================================+
         | timer_frequency      | 0                     | Frequency to report timing                                   |
         +----------------------+-----------------------+--------------------------------------------------------------+
-        
+
         """
-        
+
         params = ParamDict(
             timer_frequency=0,
         )
@@ -73,7 +73,7 @@ class Replay(Parameterized):
     def _fetch_history(self):
         casedir = self.postproc.get_casedir()
         assert(os.path.isfile(os.path.join(casedir, "play.db")))
-       
+
         # Read play.shelve
         play = shelve.open(os.path.join(casedir, "play.db"))
         data = {}
@@ -81,19 +81,19 @@ class Replay(Parameterized):
         for key, value in play.items():
             replay_solutions[int(key)] = {"t": value["t"]}
             data[int(key)] = value
-        
+
         metadata_files = {}
         for timestep in sorted(data.keys()):
             if "fields" not in data[timestep]:
                 continue
-            
+
             for fieldname, fieldnamedata in data[timestep]["fields"].items():
                 if not any([saveformat in loadable_formats for saveformat in fieldnamedata["save_as"]]):
                     continue
-                
+
                 if fieldname not in metadata_files:
                     metadata_files[fieldname] = shelve.open(os.path.join(casedir, fieldname, "metadata.db"))
-                
+
                 if 'hdf5' in fieldnamedata["save_as"]:
                     function = self._get_function(fieldname, metadata_files[fieldname], 'hdf5')
                     filename = os.path.join(self.postproc.get_savedir(fieldname), fieldname+'.hdf5')
@@ -113,9 +113,9 @@ class Replay(Parameterized):
                 else:
                     raise RuntimeError("Unable to find readable saveformat for field %s" %fieldname)
                 replay_solutions[timestep][fieldname] = Loadable(filename, fieldname, timestep, data[timestep]["t"], saveformat, function)
-                
-        return replay_solutions    
-        
+
+        return replay_solutions
+
     def _check_field_coverage(self, plan, fieldname):
         "Find which timesteps fieldname can be computed at"
         timesteps = []
@@ -124,7 +124,7 @@ class Replay(Parameterized):
                 timesteps.append(ts)
 
         return timesteps
-    
+
     def _recursive_dependency_check(self, plan, key, fieldname):
         "Check if field or dependencies exist in plan"
         if key not in plan:
@@ -135,7 +135,7 @@ class Replay(Parameterized):
         # Return True if data present in plan as a readable data format
         if plan[key].get(fieldname):
             return True
-        
+
         # If no dependencies, or if not all dependencies exist in plan, return False
         dependencies = self.postproc._dependencies[fieldname]
         if len(dependencies) == 0:
@@ -153,7 +153,7 @@ class Replay(Parameterized):
         if fieldname not in self._functions:
             self._functions[fieldname] = create_function_from_metadata(self.postproc, fieldname, metadata, saveformat)
         return self._functions[fieldname]
-       
+
     def replay(self):
         "Replay problem with given postprocessor."
         # Set up for replay
@@ -163,25 +163,25 @@ class Replay(Parameterized):
             if not (field.params.save
                     or field.params.plot):
                 continue
-            
+
             keys = self._check_field_coverage(replay_plan, fieldname)
             # Check timesteps covered by current field
             keys = self._check_field_coverage(replay_plan, fieldname)
-            
+
             # Get the time dependency for the field
             t_dep = min([dep[1] for dep in self.postproc._dependencies[fieldname]]+[0])
-            
+
             dep_fields = []
             for dep in self.postproc._full_dependencies[fieldname]:
                 if dep[0] in ["t", "timestep"]:
                     continue
-                
+
                 if dep[0] in dep_fields:
                     continue
-                
+
                 dep_fields.append(self.postproc._fields[dep[0]])
             fields = dep_fields + [field]
-            
+
             added_to_postprocessor = False
             for i, (ppkeys, ppt_dep, pp) in enumerate(postprocessors):
                 if t_dep == 0 and set(keys).issubset(set(ppkeys)):
@@ -202,7 +202,7 @@ class Replay(Parameterized):
                     break
                 else:
                     continue
-                    
+
             # Create new postprocessor if no suitable postprocessor found
             if not added_to_postprocessor:
                 pp = PostProcessor({"casedir": self.postproc.get_casedir()})
@@ -214,8 +214,8 @@ class Replay(Parameterized):
                     if f.name not in pp._fields:
                         pp.add_field(f)
                 postprocessors.append([keys, t_dep, pp])
-            
-            
+
+
         """
         for fieldname in self.postproc._sorted_fields_keys:
             field = self.postproc._fields[fieldname]
@@ -225,7 +225,7 @@ class Replay(Parameterized):
             # Check timesteps covered by current field
             keys = self._check_field_coverage(replay_plan, fieldname)
             print fieldname#, keys
-            
+
             # Get the time dependency for the field
             t_dep = min([dep[1] for dep in self.postproc._dependencies[fieldname]]+[0])
 
@@ -245,7 +245,7 @@ class Replay(Parameterized):
                     break
                 else:
                     continue
-                    
+
             # Create new postprocessor if no suitable postprocessor found
             if not added_to_postprocessor:
                 pp = PostProcessor({"casedir": self.postproc.get_casedir()})
@@ -275,15 +275,15 @@ class Replay(Parameterized):
                                 solution[dep[0]] = lambda: None
                     #pp.update_all(solution, t, timestep, self._get_spaces(), problem)
                     pp.update_all(solution, t, timestep)
-                    
+
                     # Clear None-objects from solution
                     [solution.pop(k) for k in solution.keys() if not solution[k]]
 
                     # Update solution to avoid re-reading data
                     solution = pp._solution
-                    
+
             self.timer.increment()
-        
+
         for ppkeys, ppt_dep, pp in postprocessors:
             pp.finalize_all()
 

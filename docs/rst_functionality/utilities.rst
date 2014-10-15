@@ -70,7 +70,7 @@ The :class:`.Slice`-class is a subclass of dolfin.Mesh.
 
     Slice-instances are intended for visualization only, and may produce erronous
     results if used for computations.
-    
+
 
 
 

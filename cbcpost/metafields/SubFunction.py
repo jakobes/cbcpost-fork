@@ -26,12 +26,6 @@ class SubFunction(Field):
     def __init__(self, field, mesh, params=None, label=None):
         Field.__init__(self, params, label)
 
-        import imp
-        try:
-            imp.find_module("mpi4py")
-        except:
-            raise ImportError("Can't find module mpi4py. This is required for SubFunction.")
-
         self._ft = import_fenicstools()
 
         self.mesh = mesh

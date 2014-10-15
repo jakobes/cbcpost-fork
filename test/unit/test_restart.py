@@ -272,6 +272,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
 
     assert max([v["t"] for v in playlog.values()]) < t
     assert max([v["t"] for v in playlog.values()]) > t - 0.25 - 1e-14
+    playlog.close()
 
     for d in os.listdir(filled_casedir):
         if not os.path.isdir(os.path.join(filled_casedir, d)):

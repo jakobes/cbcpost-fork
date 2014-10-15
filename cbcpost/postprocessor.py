@@ -425,7 +425,7 @@ class PostProcessor(Parameterized):
         self._solution = solution
 
         # Update play log
-        self._saver._update_play_log(t, timestep)
+        self._saver._update_playlog(t, timestep)
 
         # Update cache to keep what's needed later according to plan, forget what we don't need
         self._update_cache(t, timestep)
@@ -511,4 +511,4 @@ class PostProcessor(Parameterized):
 
         Forwarded to a Saver-instance.
         """
-        return self._saver._fetch_play_log()
+        return self._saver._fetch_playlog()

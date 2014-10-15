@@ -31,13 +31,13 @@ from dolfin import (Function, project, interpolate, compile_extension_module,
                     MPI, mpi_comm_world)
 from commands import getstatusoutput
 
-def find_solution_presence(pp, play_log, fields):
+def find_solution_presence(pp, playlog, fields):
     "Search play-log to find where solution items are saved in a loadable format"
     present_solution = defaultdict(list)
 
     functions = dict()
     metadatas = dict()
-    for ts, data in play_log.items():
+    for ts, data in playlog.items():
         for fieldname in data.get("fields", []):
             # Continue if field in a format we can't read back
             if not any([saveformat in loadable_formats for saveformat in data["fields"][fieldname]["save_as"]]):
@@ -252,16 +252,16 @@ class Restart(Parameterized):
 
 
 
-    def _correct_postprocessing(self, play_log, restart_timestep):
+    def _correct_postprocessing(self, playlog, restart_timestep):
         "Removes data from casedir found at timestep>restart_timestep."
-        play_log_to_remove = {}
-        for k,v in play_log.items():
+        playlog_to_remove = {}
+        for k,v in playlog.items():
             if int(k) >= restart_timestep:
-                play_log_to_remove[k] = play_log.pop(k)
+                playlog_to_remove[k] = playlog.pop(k)
 
         all_fields_to_clean = []
 
-        for k,v in play_log_to_remove.items():
+        for k,v in playlog_to_remove.items():
             if not "fields" in v:
                 continue
             else:

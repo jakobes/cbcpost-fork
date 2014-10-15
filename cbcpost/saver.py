@@ -298,33 +298,33 @@ class Saver():
 
         return metadata
 
-    def _fetch_play_log(self):
+    def _fetch_playlog(self):
         "Get play log from disk (which is stored as a shelve-object)."
         casedir = self.get_casedir()
-        play_log_file = os.path.join(casedir, "play.db")
-        play_log = shelve.open(play_log_file)
-        return play_log
+        playlog_file = os.path.join(casedir, "play.db")
+        playlog = shelve.open(playlog_file)
+        return playlog
 
-    def _update_play_log(self, t, timestep):
+    def _update_playlog(self, t, timestep):
         "Update play log from master process with current time"
         if on_master_process():
-            play_log = self._fetch_play_log()
-            if str(timestep) in play_log:
-                play_log.close()
+            playlog = self._fetch_playlog()
+            if str(timestep) in playlog:
+                playlog.close()
                 return
-            play_log[str(timestep)] = {"t":float(t)}
-            play_log.close()
+            playlog[str(timestep)] = {"t":float(t)}
+            playlog.close()
 
-    def _fill_play_log(self, field, timestep, save_as):
+    def _fill_playlog(self, field, timestep, save_as):
         "Update play log with the data that has been stored at this timestep"
         if on_master_process():
-            play_log = self._fetch_play_log()
-            timestep_dict = dict(play_log[str(timestep)])
+            playlog = self._fetch_playlog()
+            timestep_dict = dict(playlog[str(timestep)])
             if "fields" not in timestep_dict:
                 timestep_dict["fields"] = {}
             timestep_dict["fields"][field.name] = {"type": field.__class__.shortname(), "save_as": save_as}
-            play_log[str(timestep)] = timestep_dict
-            play_log.close()
+            playlog[str(timestep)] = timestep_dict
+            playlog.close()
 
     def store_params(self, params):
         "Store parameters in casedir as params.pickle and params.txt."
@@ -396,7 +396,7 @@ class Saver():
         # Write new data to metadata file
         self._update_metadata_file(field_name, data, t, timestep, save_as, metadata)
 
-        self._fill_play_log(field, timestep, save_as)
+        self._fill_playlog(field, timestep, save_as)
 
 
     def update(self, t, timestep, cache, triggered_or_finalized):

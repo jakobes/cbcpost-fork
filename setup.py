@@ -16,7 +16,7 @@ setup(name = "cbcpost",
       description = "cbcpost -- Postprocessing framework from the Center of Biomedical Computing",
       long_description = readme,
       author = "Oeyvind Evju, Martin Sandve Alnaes",
-      author_email = "cbcpost@simula.no", 
+      author_email = "cbcflow@simula.no",
       url = 'https://bitbucket.org/simula_cbc/cbcpost',
       classifiers = [
           'Development Status :: 4 - Beta',

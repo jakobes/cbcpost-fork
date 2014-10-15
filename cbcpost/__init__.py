@@ -19,6 +19,11 @@ cbcpost is a postprocessing framework designed for time-dependent problems solve
 FEniCS project.
 """
 
+# Check that a "good" dbm-module exists
+from anydbm import _defaultmod
+assert _defaultmod.__name__ in ["dbm", "gdbm", "dbhash"], "Unable to find a required DBM-implementation"
+del _defaultmod
+
 # Helper functionality
 from spacepool import SpacePool, get_grad_space
 from paramdict import ParamDict

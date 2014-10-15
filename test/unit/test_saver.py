@@ -270,13 +270,18 @@ def test_playlog(casedir):
     # Test playlog
     playlog = pp.get_playlog()
     assert playlog == {}
+    playlog.close()
+    
     pp.update_all({}, 0.0, 0)
+
     playlog = pp.get_playlog()
     assert playlog == {"0": {"t": 0.0}}
+    playlog.close()
 
     pp.update_all({}, 0.1, 1)
     playlog = pp.get_playlog()
     assert playlog == {"0": {"t": 0.0}, "1": {"t": 0.1}}
+    playlog.close()
 
 def test_store_mesh(casedir):
     pp = PostProcessor(dict(casedir=casedir))

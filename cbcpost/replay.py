@@ -112,7 +112,7 @@ class Replay(Parameterized):
                 replay_solutions[timestep][fieldname] = Loadable(filename, fieldname, timestep, data[timestep]["t"], saveformat, function)
 
         # Close all metadata files
-        [f.close() for for f in metadata_files.values()]
+        [f.close() for f in metadata_files.values()]
 
         return replay_solutions
 

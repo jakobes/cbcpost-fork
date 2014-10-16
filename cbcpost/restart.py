@@ -49,10 +49,10 @@ def find_solution_presence(pp, playlog, fields):
                 is_present = True
             elif fieldname in fields:
                 is_present = True
-
+            
             if is_present:
-                metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
                 function = None
+                metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
                 if 'hdf5' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5')
 
@@ -77,7 +77,8 @@ def find_solution_presence(pp, playlog, fields):
                 elif 'shelve' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.db')
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], "shelve", None))
-                metadata.close()
+
+    [f.close() for f in metadatas.values()]
 
     return present_solution
 
@@ -261,7 +262,7 @@ class Restart(Parameterized):
                 playlog_to_remove[k] = playlog.pop(k)
 
         all_fields_to_clean = []
-
+        
         for k,v in playlog_to_remove.items():
             if not "fields" in v:
                 continue
@@ -277,12 +278,14 @@ class Restart(Parameterized):
         metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'w')
         metadata_to_remove = {}
         for k in metadata.keys():
+            MPI.barrier(mpi_comm_world())
             try:
                 k = int(k)
             except:
                 continue
             if k >= restart_timestep:
                 metadata_to_remove[str(k)] = metadata.pop(str(k))
+
         metadata.close()
         # Remove files and data for all save formats
         self._clean_hdf5(fieldname, metadata_to_remove)
@@ -334,12 +337,14 @@ class Restart(Parameterized):
     def _clean_files(self, fieldname, del_metadata):
         for k, v in del_metadata.items():
             for i in v.values():
+                MPI.barrier(mpi_comm_world())
                 try:
                     i["filename"]
                 except:
                     continue
 
                 fullpath = os.path.join(self._pp.get_savedir(fieldname), i['filename'])
+                
                 if on_master_process():
                     os.remove(fullpath)
                 MPI.barrier(mpi_comm_world())
@@ -356,16 +361,18 @@ class Restart(Parameterized):
         txtfilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".txt")
         if not os.path.isfile(txtfilename):
             return
-
-        txtfile = open(txtfilename, 'r')
-        txtfilelines = txtfile.readlines()
-        txtfile.close()
-
-        num_lines_to_strp = ['txt' in v for v in del_metadata.values()].count(True)
-
-        txtfile = open(txtfilename, 'w')
-        [txtfile.write(l) for l in txtfilelines[:-num_lines_to_strp]]
-        txtfile.close()
+        if on_master_process():
+            txtfile = open(txtfilename, 'r')
+            txtfilelines = txtfile.readlines()
+            txtfile.close()
+    
+            num_lines_to_strp = ['txt' in v for v in del_metadata.values()].count(True)
+    
+            txtfile = open(txtfilename, 'w')
+            [txtfile.write(l) for l in txtfilelines[:-num_lines_to_strp]]
+            
+            txtfile.close()
+            txtfile = open(txtfilename, 'r')
 
     def _clean_shelve(self, fieldname, del_metadata):
         shelvefilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".db")

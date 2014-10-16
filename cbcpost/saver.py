@@ -80,25 +80,24 @@ class Saver():
                 try:
                     playlog = self._fetch_playlog()
                 except:
-                    break
+                    playlog = None
 
-                playlog = shelve.open(playlogfilename, 'r')
-
-                all_fields = []
-                for v in playlog.values():
-                    all_fields += v.get("fields", {}).keys()
-
-                all_fields = list(set(all_fields))
-                playlog.close()
-
-                for field in all_fields:
-                    rmtree(os.path.join(self.get_casedir(), field))
-
-                for f in ["mesh.hdf5", "play.db", "params.txt",
-                          "params.pickle"]:
-
-                    if os.path.isfile(os.path.join(self.get_casedir(), f)):
-                        os.remove(os.path.join(self.get_casedir(), f))
+                if playlog != None:
+                    all_fields = []
+                    for v in playlog.values():
+                        all_fields += v.get("fields", {}).keys()
+    
+                    all_fields = list(set(all_fields))
+                    playlog.close()
+    
+                    for field in all_fields:
+                        rmtree(os.path.join(self.get_casedir(), field))
+    
+                    for f in ["mesh.hdf5", "play.db", "params.txt",
+                              "params.pickle"]:
+    
+                        if os.path.isfile(os.path.join(self.get_casedir(), f)):
+                            os.remove(os.path.join(self.get_casedir(), f))
 
         MPI.barrier(mpi_comm_world())
 
@@ -264,6 +263,7 @@ class Saver():
             del hdf5file
         datafile = File(fullname)
         datafile << data
+
         return metadata
 
     def _update_xml_gz_file(self, field_name, saveformat, data, timestep, t):
@@ -277,6 +277,7 @@ class Saver():
             del hdf5file
         datafile = File(fullname)
         datafile << data
+
         return metadata
 
     def _update_txt_file(self, field_name, saveformat, data, timestep, t):
@@ -289,6 +290,7 @@ class Saver():
             datafile.write(str(data))
             datafile.write("\n")
             datafile.close()
+
         return metadata
 
     def _update_shelve_file(self, field_name, saveformat, data, timestep, t):

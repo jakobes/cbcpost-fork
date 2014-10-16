@@ -167,6 +167,7 @@ def test_restart_from_solutionfield(filled_casedir, mesh, t):
         restart = Restart(dict(casedir=filled_casedir))
     else:
         restart = Restart(dict(casedir=filled_casedir, restart_times=t))
+
     data = restart.get_restart_conditions()
 
     assert t in data.keys()
@@ -263,11 +264,9 @@ def test_rollback_casedir(filled_casedir, mesh, t):
 
     restart = Restart(dict(casedir=filled_casedir, rollback_casedir=True, restart_times=t))
     assert os.path.isfile(os.path.join(filled_casedir, "play.db"))
-    #print os.path.join(filled_casedir, "play.db")
+    
     data = restart.get_restart_conditions()
-    #assert os.path.isfile(os.path.join(filled_casedir, "play.db"))
-    #print os.path.isfile("test_saver/play.db")
-    #return
+
     playlog = shelve.open(os.path.join(filled_casedir, "play.db"), 'r')
 
     assert max([v["t"] for v in playlog.values()]) < t
@@ -291,6 +290,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
 
             for sf in set(md[k].keys()).intersection(savetimes.keys()):
                 savetimes[sf].append(k)
+
         md.close()
 
         for sf, st in savetimes.items():

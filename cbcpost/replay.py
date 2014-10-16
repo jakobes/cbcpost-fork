@@ -71,17 +71,14 @@ class Replay(Parameterized):
         return params
 
     def _fetch_history(self):
-        casedir = self.postproc.get_casedir()
-        assert(os.path.isfile(os.path.join(casedir, "play.db")))
-
-        # Read play.shelve
-        play = shelve.open(os.path.join(casedir, "play.db"))
+        "Read playlog and create Loadables for all data that are available to read"
+        playlog = self.postproc.get_playlog()
         data = {}
         replay_solutions = {}
-        for key, value in play.items():
+        for key, value in playlog.items():
             replay_solutions[int(key)] = {"t": value["t"]}
             data[int(key)] = value
-
+        playlog.close()
         metadata_files = {}
         for timestep in sorted(data.keys()):
             if "fields" not in data[timestep]:

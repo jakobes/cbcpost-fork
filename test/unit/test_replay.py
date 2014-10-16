@@ -58,6 +58,5 @@ def test_basic_replay(mesh, casedir):
         data = shelve.open(os.path.join(pp.get_savedir(name), name+".db"), 'r')
         for i in range(3):
             assert data.get(str(i), None) == checks[i][name] or abs(data.get(str(i), None) - checks[i][name]) < 1e-8
-
-
+        data.close()
 

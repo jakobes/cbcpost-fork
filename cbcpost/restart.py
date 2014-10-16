@@ -50,8 +50,8 @@ def find_solution_presence(pp, playlog, fields):
             elif fieldname in fields:
                 is_present = True
 
-            metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
             if is_present:
+                metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
                 function = None
                 if 'hdf5' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5')
@@ -77,6 +77,7 @@ def find_solution_presence(pp, playlog, fields):
                 elif 'shelve' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.db')
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], "shelve", None))
+                metadata.close()
 
     return present_solution
 

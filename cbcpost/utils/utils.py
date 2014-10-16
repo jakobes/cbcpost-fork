@@ -172,6 +172,7 @@ class Loadable():
         elif self.saveformat == "shelve":
             shelvefile = shelve.open(self.filename)
             data = shelvefile[str(self.timestep)]
+            shelvefile.close()
 
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         return data

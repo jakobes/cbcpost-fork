@@ -291,6 +291,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
 
             for sf in set(md[k].keys()).intersection(savetimes.keys()):
                 savetimes[sf].append(k)
+        md.close()
 
         for sf, st in savetimes.items():
             if st == []:
@@ -301,6 +302,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
             elif sf == "shelve":
                 data = shelve.open(os.path.join(filled_casedir, d, d+".db"))
                 assert sorted(data.keys()) == sorted(st)
+                data.close()
             elif sf == "txt":
                 data = open(os.path.join(filled_casedir, d, d+".txt"), 'r').readlines()
                 assert len(data) == len(st)

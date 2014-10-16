@@ -47,6 +47,7 @@ def test_default_save(mesh, casedir):
         assert 'xdmf' in md["0"]
         assert 'xdmf' in md['saveformats']
         assert set(md['saveformats']) == set(['hdf5', 'xdmf'])
+        md.close()
 
 
     for mf in [mtf, msf]:
@@ -61,6 +62,7 @@ def test_default_save(mesh, casedir):
         assert 'shelve' in md["0"]
         assert 'shelve' in md['saveformats']
         assert set(md['saveformats']) == set(['txt', 'shelve'])
+        md.close()
 
 
 
@@ -91,7 +93,8 @@ def test_hdf5_save(mesh, casedir):
         assert 'hdf5' in md['saveformats']
 
         assert md['saveformats'] == ['hdf5']
-
+        md.close()
+        
         assert len(os.listdir(pp.get_savedir(mf.name))) == 2
 
         # Read back
@@ -133,6 +136,7 @@ def test_xml_save(mesh, casedir):
         assert 'xml' in md['saveformats']
 
         assert md['saveformats'] == ['xml']
+        md.close()
 
         assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3
 
@@ -173,6 +177,7 @@ def test_xmlgz_save(mesh, casedir):
         assert 'xml.gz' in md['saveformats']
 
         assert md['saveformats'] == ['xml.gz']
+        md.close()
 
         assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3
 
@@ -202,11 +207,13 @@ def test_shelve_save(mesh, casedir):
         md = shelve.open(os.path.join(pp.get_savedir(mf.name), "metadata.db"), 'r')
         assert 'shelve' in md["0"]
         assert md['saveformats'] == ['shelve']
+        md.close()
 
         # Read back
         data = shelve.open(os.path.join(pp.get_savedir(mf.name), mf.name+".db"))
         for i in ["0", "1", "2"]:
             d = data[i]
+        data.close()
 
         assert d == pp.get(mf.name)
 
@@ -249,6 +256,7 @@ def test_pvd_save(mesh, casedir):
         assert 'pvd' in md["1"]
         assert 'pvd' in md["2"]
         assert md['saveformats'] == ['pvd']
+        md.close()
 
         assert len(os.listdir(pp.get_savedir(mf.name))) == 1+1+3+int(MPI.size(mpi_comm_world())!=1)*MPI.size(mpi_comm_world())*3
 

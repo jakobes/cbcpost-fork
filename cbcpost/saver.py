@@ -77,25 +77,29 @@ class Saver():
         "Cleans out all files produced by cbcpost in the current casedir."
         if on_master_process():
             if os.path.isdir(self.get_casedir()):
-                playlogfilename = os.path.join(self.get_casedir(), "play.db")
-                if os.path.isfile(playlogfilename):
-                    playlog = shelve.open(playlogfilename, 'r')
+                try:
+                    playlog = self._fetch_playlog()
+                except:
+                    break
 
-                    all_fields = []
-                    for v in playlog.values():
-                        all_fields += v.get("fields", {}).keys()
+                playlog = shelve.open(playlogfilename, 'r')
 
-                    all_fields = list(set(all_fields))
-                    playlog.close()
+                all_fields = []
+                for v in playlog.values():
+                    all_fields += v.get("fields", {}).keys()
 
-                    for field in all_fields:
-                        rmtree(os.path.join(self.get_casedir(), field))
+                all_fields = list(set(all_fields))
+                playlog.close()
 
-                    for f in ["mesh.hdf5", "play.db", "params.txt",
-                              "params.pickle"]:
+                for field in all_fields:
+                    rmtree(os.path.join(self.get_casedir(), field))
 
-                        if os.path.isfile(os.path.join(self.get_casedir(), f)):
-                            os.remove(os.path.join(self.get_casedir(), f))
+                for f in ["mesh.hdf5", "play.db", "params.txt",
+                          "params.pickle"]:
+
+                    if os.path.isfile(os.path.join(self.get_casedir(), f)):
+                        os.remove(os.path.join(self.get_casedir(), f))
+
         MPI.barrier(mpi_comm_world())
 
     def _create_casedir(self):

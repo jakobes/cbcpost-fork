@@ -111,6 +111,9 @@ class Replay(Parameterized):
                     raise RuntimeError("Unable to find readable saveformat for field %s" %fieldname)
                 replay_solutions[timestep][fieldname] = Loadable(filename, fieldname, timestep, data[timestep]["t"], saveformat, function)
 
+        # Close all metadata files
+        [f.close() for for f in metadata_files.values()]
+
         return replay_solutions
 
     def _check_field_coverage(self, plan, fieldname):

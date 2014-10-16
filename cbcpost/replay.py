@@ -89,7 +89,7 @@ class Replay(Parameterized):
                     continue
 
                 if fieldname not in metadata_files:
-                    metadata_files[fieldname] = shelve.open(os.path.join(casedir, fieldname, "metadata.db"))
+                    metadata_files[fieldname] = shelve.open(os.path.join(self.postproc.get_savedir(fieldname), "metadata.db"))
 
                 if 'hdf5' in fieldnamedata["save_as"]:
                     function = self._get_function(fieldname, metadata_files[fieldname], 'hdf5')

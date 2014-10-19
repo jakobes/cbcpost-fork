@@ -210,7 +210,7 @@ def test_shelve_save(mesh, casedir):
         md.close()
 
         # Read back
-        data = shelve.open(os.path.join(pp.get_savedir(mf.name), mf.name+".db"))
+        data = shelve.open(os.path.join(pp.get_savedir(mf.name), mf.name+".db"), 'r')
         for i in ["0", "1", "2"]:
             d = data[i]
         data.close()
@@ -276,18 +276,17 @@ def test_playlog(casedir):
     pp = PostProcessor(dict(casedir=casedir))
 
     # Test playlog
-    playlog = pp.get_playlog()
-    assert playlog == {}
-    playlog.close()
+    assert not os.path.isfile(os.path.join(casedir, 'play.db'))
+    MPI.barrier(mpi_comm_world())
     
     pp.update_all({}, 0.0, 0)
 
-    playlog = pp.get_playlog()
+    playlog = pp.get_playlog('r')
     assert playlog == {"0": {"t": 0.0}}
     playlog.close()
 
     pp.update_all({}, 0.1, 1)
-    playlog = pp.get_playlog()
+    playlog = pp.get_playlog('r')
     assert playlog == {"0": {"t": 0.0}, "1": {"t": 0.1}}
     playlog.close()
 

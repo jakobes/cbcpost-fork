@@ -79,7 +79,7 @@ def find_solution_presence(pp, playlog, fields):
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], "shelve", None))
 
     [f.close() for f in metadatas.values()]
-
+    MPI.barrier(mpi_comm_world())
     return present_solution
 
 
@@ -161,7 +161,7 @@ class Restart(Parameterized):
         """
         self._pp = PostProcessor(dict(casedir=self.params.casedir, clean_casedir=False))
 
-        playlog = self._pp.get_playlog()
+        playlog = self._pp.get_playlog('r')
         assert playlog != {}, "Playlog is empty! Unable to find restart data."
 
         loadable_solutions = find_solution_presence(self._pp, playlog, self.params.solution_names)
@@ -247,20 +247,31 @@ class Restart(Parameterized):
         while playlog[str(ts)]["t"] < max(loadables)-1e-14:
             ts += 1
         self.restart_timestep = ts
-        if self.params.rollback_casedir:
-            self._correct_postprocessing(playlog, ts)
         playlog.close()
+        MPI.barrier(mpi_comm_world())
+        if self.params.rollback_casedir:
+            self._correct_postprocessing(ts)
+        
         return result
 
 
-
-    def _correct_postprocessing(self, playlog, restart_timestep):
+    def _correct_postprocessing(self, restart_timestep):
         "Removes data from casedir found at timestep>restart_timestep."
+        playlog = self._pp.get_playlog('r')
         playlog_to_remove = {}
         for k,v in playlog.items():
             if int(k) >= restart_timestep:
-                playlog_to_remove[k] = playlog.pop(k)
+                #playlog_to_remove[k] = playlog.pop(k)
+                playlog_to_remove[k] = playlog[k]
+        playlog.close()
 
+        MPI.barrier(mpi_comm_world())
+        if on_master_process():
+            playlog = self._pp.get_playlog()
+            [playlog.pop(k) for k in playlog_to_remove.keys()]
+            playlog.close()
+
+        MPI.barrier(mpi_comm_world())
         all_fields_to_clean = []
         
         for k,v in playlog_to_remove.items():
@@ -269,61 +280,84 @@ class Restart(Parameterized):
             else:
                 all_fields_to_clean += v["fields"].keys()
         all_fields_to_clean = list(set(all_fields_to_clean))
-
         for fieldname in all_fields_to_clean:
             self._clean_field(fieldname, restart_timestep)
+            
 
     def _clean_field(self, fieldname, restart_timestep):
         "Deletes data from field found at timestep>restart_timestep."
-        metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'w')
+        metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'r')
         metadata_to_remove = {}
         for k in metadata.keys():
-            MPI.barrier(mpi_comm_world())
+            #MPI.barrier(mpi_comm_world())
             try:
                 k = int(k)
             except:
                 continue
             if k >= restart_timestep:
-                metadata_to_remove[str(k)] = metadata.pop(str(k))
-
+                #metadata_to_remove[str(k)] = metadata.pop(str(k))
+                metadata_to_remove[str(k)] = metadata[str(k)]
         metadata.close()
+        MPI.barrier(mpi_comm_world())
+        if on_master_process():
+            metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'w')
+            [metadata.pop(k) for k in metadata_to_remove.keys()]
+            metadata.close()
+        MPI.barrier(mpi_comm_world())
+
         # Remove files and data for all save formats
         self._clean_hdf5(fieldname, metadata_to_remove)
+        MPI.barrier(mpi_comm_world())
         self._clean_files(fieldname, metadata_to_remove)
+        MPI.barrier(mpi_comm_world())
+
         self._clean_txt(fieldname, metadata_to_remove)
+        MPI.barrier(mpi_comm_world())
+
         self._clean_shelve(fieldname, metadata_to_remove)
+        MPI.barrier(mpi_comm_world())
+
         self._clean_xdmf(fieldname, metadata_to_remove)
+        MPI.barrier(mpi_comm_world())
+
         self._clean_pvd(fieldname, metadata_to_remove)
+        MPI.barrier(mpi_comm_world())
 
     def _clean_hdf5(self, fieldname, del_metadata):
         delete_from_hdf5_file = '''
         namespace dolfin {
             #include <hdf5.h>
-            void delete_from_hdf5_file(std::string filename, std::string dataset)
+            void delete_from_hdf5_file(MPI_Comm comm,
+                                       const std::string hdf5_filename,
+                                       const std::string dataset,
+                                       const bool use_mpiio)
             {
-                const hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+                //const hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
                 // Open file existing file for append
-                hid_t file_id = H5Fopen(filename.c_str(), H5F_ACC_RDWR, plist_id);
+                //hid_t file_id = H5Fopen(filename.c_str(), H5F_ACC_RDWR, plist_id);
+                hid_t hdf5_file_id = HDF5Interface::open_file(comm, hdf5_filename, "a", use_mpiio);
 
-                H5Ldelete(file_id, dataset.c_str(), H5P_DEFAULT);
-
-                herr_t status = H5Fclose(file_id);
+                H5Ldelete(hdf5_file_id, dataset.c_str(), H5P_DEFAULT);
+                HDF5Interface::close_file(hdf5_file_id);
             }
         }
         '''
-
-        cpp_module = compile_extension_module(delete_from_hdf5_file)
+        cpp_module = compile_extension_module(delete_from_hdf5_file, additional_system_headers=["dolfin/io/HDF5Interface.h"])
 
         hdf5filename = os.path.join(self._pp.get_savedir(fieldname), fieldname+'.hdf5')
+
         if not os.path.isfile(hdf5filename):
             return
+
         for k, v in del_metadata.items():
             if not 'hdf5' in v:
                 continue
             else:
-                cpp_module.delete_from_hdf5_file(hdf5filename, v['hdf5']['dataset'])
+                cpp_module.delete_from_hdf5_file(mpi_comm_world(), hdf5filename, v['hdf5']['dataset'], MPI.size(mpi_comm_world()) > 1)
+
         hdf5tmpfilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+'_tmp.hdf5')
         #import ipdb; ipdb.set_trace()
+        MPI.barrier(mpi_comm_world())
         if on_master_process():
             status, result = getstatusoutput("h5repack -V")
             if status != 0:
@@ -359,9 +393,7 @@ class Restart(Parameterized):
 
     def _clean_txt(self, fieldname, del_metadata):
         txtfilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".txt")
-        if not os.path.isfile(txtfilename):
-            return
-        if on_master_process():
+        if on_master_process() and os.path.isfile(txtfilename):
             txtfile = open(txtfilename, 'r')
             txtfilelines = txtfile.readlines()
             txtfile.close()
@@ -372,7 +404,6 @@ class Restart(Parameterized):
             [txtfile.write(l) for l in txtfilelines[:-num_lines_to_strp]]
             
             txtfile.close()
-            txtfile = open(txtfilename, 'r')
 
     def _clean_shelve(self, fieldname, del_metadata):
         shelvefilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".db")
@@ -388,26 +419,28 @@ class Restart(Parameterized):
 
     def _clean_xdmf(self, fieldname, del_metadata):
         basename = os.path.join(self._pp.get_savedir(fieldname), fieldname)
-        if not os.path.isfile(basename+".xdmf"):
-            return
-        i = 0
-        while True:
-            h5_filename = basename+"_RS"+str(i)+".h5"
-            if not os.path.isfile(h5_filename):
-                break
-            i = i + 1
+        if os.path.isfile(basename+".xdmf"):
+            MPI.barrier(mpi_comm_world())
 
-        xdmf_filename = basename+"_RS"+str(i)+".xdmf"
+            i = 0
+            while True:
+                h5_filename = basename+"_RS"+str(i)+".h5"
+                if not os.path.isfile(h5_filename):
+                    break
+                i = i + 1
+            
+            xdmf_filename = basename+"_RS"+str(i)+".xdmf"
+            MPI.barrier(mpi_comm_world())
 
-        if on_master_process():
-            os.rename(basename+".h5", h5_filename)
-            os.rename(basename+".xdmf", xdmf_filename)
-
-            f = open(xdmf_filename, 'r').read()
-
-            new_f = open(xdmf_filename, 'w')
-            new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
-            new_f.close()
+            if on_master_process():
+                os.rename(basename+".h5", h5_filename)
+                os.rename(basename+".xdmf", xdmf_filename)
+    
+                f = open(xdmf_filename, 'r').read()
+    
+                new_f = open(xdmf_filename, 'w')
+                new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
+                new_f.close()
         MPI.barrier(mpi_comm_world())
 
     def _clean_pvd(self, fieldname, del_metadata):

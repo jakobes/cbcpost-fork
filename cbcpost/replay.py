@@ -72,7 +72,7 @@ class Replay(Parameterized):
 
     def _fetch_history(self):
         "Read playlog and create Loadables for all data that are available to read"
-        playlog = self.postproc.get_playlog()
+        playlog = self.postproc.get_playlog('r')
         data = {}
         replay_solutions = {}
         for key, value in playlog.items():
@@ -89,7 +89,7 @@ class Replay(Parameterized):
                     continue
 
                 if fieldname not in metadata_files:
-                    metadata_files[fieldname] = shelve.open(os.path.join(self.postproc.get_savedir(fieldname), "metadata.db"))
+                    metadata_files[fieldname] = shelve.open(os.path.join(self.postproc.get_savedir(fieldname), "metadata.db"), 'r')
 
                 if 'hdf5' in fieldnamedata["save_as"]:
                     function = self._get_function(fieldname, metadata_files[fieldname], 'hdf5')

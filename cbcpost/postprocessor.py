@@ -505,10 +505,10 @@ class PostProcessor(Parameterized):
         """
         return self._saver.get_savedir(fieldname)
 
-    def get_playlog(self):
+    def get_playlog(self, flag='c'):
         """
         Get play log from disk (which is stored as a shelve-object).
 
         Forwarded to a Saver-instance.
         """
-        return self._saver._fetch_playlog()
+        return self._saver._fetch_playlog(flag=flag)

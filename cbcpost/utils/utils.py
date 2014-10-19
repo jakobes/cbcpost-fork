@@ -170,7 +170,7 @@ class Loadable():
             self.function.assign(Function(V, self.filename))
             data = self.function
         elif self.saveformat == "shelve":
-            shelvefile = shelve.open(self.filename)
+            shelvefile = shelve.open(self.filename, 'r')
             data = shelvefile[str(self.timestep)]
             shelvefile.close()
 

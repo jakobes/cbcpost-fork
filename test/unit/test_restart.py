@@ -264,7 +264,7 @@ def test_rollback_casedir(filled_casedir, mesh, t):
 
     restart = Restart(dict(casedir=filled_casedir, rollback_casedir=True, restart_times=t))
     assert os.path.isfile(os.path.join(filled_casedir, "play.db"))
-    
+
     data = restart.get_restart_conditions()
 
     playlog = shelve.open(os.path.join(filled_casedir, "play.db"), 'r')

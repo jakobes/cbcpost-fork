@@ -304,11 +304,11 @@ class Saver():
 
         return metadata
 
-    def _fetch_playlog(self):
+    def _fetch_playlog(self, flag='c'):
         "Get play log from disk (which is stored as a shelve-object)."
         casedir = self.get_casedir()
         playlog_file = os.path.join(casedir, "play.db")
-        playlog = shelve.open(playlog_file)
+        playlog = shelve.open(playlog_file, flag=flag)
         return playlog
 
     def _update_playlog(self, t, timestep):

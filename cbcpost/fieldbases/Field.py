@@ -16,7 +16,7 @@
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """Common functionality and interface for all Field-implementations."""
 
-from dolfin import TestFunction, assemble, inner, dx, project, error
+from dolfin import TestFunction, assemble, inner, dx, project, error, CellVolume
 from cbcpost import ParamDict, Parameterized
 
 class Field(Parameterized):
@@ -46,44 +46,44 @@ class Field(Parameterized):
         """
         Default params are:
 
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        |Key                   | Default value         |  Description                                                                                        |
-        +======================+=======================+=====================================================================================================+
-        | start_timestep       | -1e16                 | Timestep to start computation                                                                       |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | end_timestep         | 1e16                  | Timestep to end computation                                                                         |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | stride_timestep      | 1                     | Number of steps between each computation                                                            |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | start_time           | -1e16                 | Time to start computation                                                                           |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | end_time             | 1e16                  | Time to end computation                                                                             |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | stride_time          | 1e-16                 | Time between each computation                                                                       |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | plot                 | False                 | Plot Field after a directly triggered computation                                                   |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | plot_args            | {}                    | Keyword arguments to pass to dolfin.plot.                                                           |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | save                 | False                 | Save Field after a directly triggered computation                                                   |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | save_as              | 'determined by data'  | Format(s) to save in. Allowed save formats:                                                         |
-        |                      |                       |                                                                                                     |
-        |                      |                       | The default values are:                                                                             |
-        |                      |                       |                                                                                                     |
-        |                      |                       | - ['hdf5', 'xdmf'] if data is dolfin.Function                                                       |
-        |                      |                       | - ['txt', 'shelve'] if data is float, int, list, tuple or dict                                      |
-        |                      |                       |                                                                                                     |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | expr2function        | 'assemble'            | How to convert Expression to Function. Allowed values:                                              |
-        |                      |                       |                                                                                                     |
-        |                      |                       | - 'assemble'                                                                                        |
-        |                      |                       | - 'project'                                                                                         |
-        |                      |                       | - 'interpolate'                                                                                     |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
-        | finalize             | False                 | Switch whether to finalize if Field. This is especially useful when a costly computation is only    |
-        |                      |                       | interesting at the end time.                                                                        |
-        +----------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                      |
+        +======================+=======================+===================================================================+
+        | start_timestep       | -1e16                 | Timestep to start computation                                     |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | end_timestep         | 1e16                  | Timestep to end computation                                       |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | stride_timestep      | 1                     | Number of steps between each computation                          |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | start_time           | -1e16                 | Time to start computation                                         |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | end_time             | 1e16                  | Time to end computation                                           |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | stride_time          | 1e-16                 | Time between each computation                                     |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | plot                 | False                 | Plot Field after a directly triggered computation                 |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | plot_args            | {}                    | Keyword arguments to pass to dolfin.plot.                         |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | save                 | False                 | Save Field after a directly triggered computation                 |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | save_as              | 'determined by data'  | Format(s) to save in. Allowed save formats:                       |
+        |                      |                       |                                                                   |
+        |                      |                       | The default values are:                                           |
+        |                      |                       |                                                                   |
+        |                      |                       | - ['hdf5', 'xdmf'] if data is dolfin.Function                     |
+        |                      |                       | - ['txt', 'shelve'] if data is float, int, list, tuple or dict    |
+        |                      |                       |                                                                   |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | expr2function        | 'assemble'            | How to convert Expression to Function. Allowed values:            |
+        |                      |                       |                                                                   |
+        |                      |                       | - 'assemble'                                                      |
+        |                      |                       | - 'project'                                                       |
+        |                      |                       | - 'interpolate'                                                   |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
+        | finalize             | False                 | Switch whether to finalize if Field. This is especially useful    |
+        |                      |                       | when a costly computation is only interesting at the end time.    |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
 
         """
         params = ParamDict(
@@ -153,27 +153,19 @@ class Field(Parameterized):
         """
         space = function.function_space()
 
-        #if self.params.assemble:
         if self.params.expr2function == "assemble":
             # Compute average values of expr for each cell and place in a DG0 space
-
-            # TODO: Get space from pool
-            #shape = expr.shape()
-            #space = pp.space_pool.get_custom_space("DG", 0, shape)
-            #target = pp.function_pool.borrow_function(space)
-
             test = TestFunction(space)
-            scale = 1.0 / space.mesh().ufl_cell().volume
-            assemble(scale*inner(expr, test)*dx(), tensor=function.vector())
+            scale = 1.0 / CellVolume(space.mesh())
+            assemble(scale*inner(expr, test)*dx, tensor=function.vector())
             return function
 
-        #elif self.params.project:
         elif self.params.expr2function == "project":
-            # TODO: Avoid superfluous function creation by allowing project(expr, function=function) or function.project(expr)
+            # TODO: Avoid superfluous function creation with fenics-dev/1.5 by using:
+            #project(expr, space, function=function)
             function.assign(project(expr, space))
             return function
 
-        #elif self.params.interpolate:
         elif self.params.expr2function == "interpolate":
             # TODO: Need interpolation with code generated from expr, waiting for uflacs work.
             function.interpolate(expr) # Currently only works if expr is a single Function

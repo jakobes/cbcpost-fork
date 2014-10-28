@@ -105,7 +105,7 @@ class SpacePool(object):
             elif rank == 1:
                 space = VectorFunctionSpace(mesh, family, degree, shape[0])
             else:
-                space = TensorFunctionSpace(mesh, family, degree, shape)
+                space = TensorFunctionSpace(mesh, family, degree, shape, symmetry={})
             self._spaces[key] = space
 
         return space

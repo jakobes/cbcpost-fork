@@ -30,6 +30,8 @@ class ParamDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
         self._keys = []
+        if not kwargs:
+            kwargs = {}
         if args:
             arg, = args
             for item in arg:
@@ -37,10 +39,10 @@ class ParamDict(dict):
                     k, v = item
                 else:
                     k, v = item, arg[item]
-                self[k] = v
-        if kwargs:
-            self.update_recursive(kwargs)
-            self._keys = sorted(set(self._keys) | set(kwargs))
+                kwargs[k] = v
+
+        self.update_recursive(kwargs)
+        self._keys = sorted(set(self._keys) | set(kwargs))
 
     # --- Recursive ParamDict aware copy and update functions
 
@@ -105,8 +107,8 @@ class ParamDict(dict):
     def update_recursive(self, params=None, **kwparams):
         "Perform a recursive update, allowing new keys to be introduced."
         def handle(k, v):
-            if isinstance(v, ParamDict):
-                # If it's a ParamDict, recurse
+            if isinstance(v, dict):
+                # If it's a dict, convert to ParamDict and recurse
                 pd = ParamDict()
                 pd.update_recursive(v)
                 self[k] = pd

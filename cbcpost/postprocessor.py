@@ -57,8 +57,9 @@ builtin_fields = ("t", "timestep")
 def find_dependencies(field):
     "Read dependencies from source code in field.compute function"
 
-    # Get source of compute and after_last_compute
-    s = inspect.getsource(field.compute)
+    # Get source of compute functions
+    s = inspect.getsource(field.before_first_compute)
+    s += inspect.getsource(field.compute)
     s += inspect.getsource(field.after_last_compute)
     s = strip_code(s) # Removes all comments, empty lines etc.
 

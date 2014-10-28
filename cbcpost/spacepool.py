@@ -42,6 +42,27 @@ def get_grad_space(u, family="auto", degree="auto", shape="auto"):
     spaces = SpacePool(V.mesh())
     return spaces.get_grad_space(V, family, degree, shape)
 
+def get_avg_grad_space(u):
+    """Get DG0 space for piecewise constant approximation of gradient of Function u.
+
+        .. warning::
+            This is experimental and currently only designed to work with CG-spaces.
+
+    """
+    V = u.function_space()
+    spaces = SpacePool(V.mesh())
+    return spaces.get_custom_space("DG", 0, grad(u).shape())
+
+def get_avg_space(u):
+    """Get DG0 space for piecewise constant approximation of Function u.
+
+        .. warning::
+            This is experimental and currently only designed to work with CG-spaces.
+
+    """
+    V = u.function_space()
+    spaces = SpacePool(V.mesh())
+    return spaces.get_custom_space("DG", 0, u.shape())
 
 
 class SpacePool(object):

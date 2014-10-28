@@ -25,7 +25,7 @@ assert _defaultmod.__name__ in ["dbm", "gdbm", "dbhash"], "Unable to find a requ
 del _defaultmod
 
 # Helper functionality
-from cbcpost.spacepool import SpacePool, get_grad_space, get_avg_grad_space, get_avg_space
+from cbcpost.spacepool import SpacePool, get_grad_space
 from cbcpost.paramdict import ParamDict
 from cbcpost.parameterized import Parameterized
 

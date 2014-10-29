@@ -243,6 +243,19 @@ def get_memory_usage():
 
 # --- Timing ---
 
+def time_to_string(t):
+    t = int(t)
+    s = ""
+    hours = t/3600
+    minutes = t/60-hours*60
+    seconds = t-minutes*60-hours*3600
+
+    if hours > 0: s += "%dh" %hours
+    if minutes > 0: s += " %2dm" %minutes
+    s += " %2ds" %seconds
+
+    return s
+
 class Timer:
     """Class to perform timing.
 
@@ -342,5 +355,3 @@ def timeit(t0=None, msg=None):
         t = time() - t0
         cbc_print("%s: %g" % (msg, t))
         return t
-
-

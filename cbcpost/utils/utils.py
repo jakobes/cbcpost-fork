@@ -244,6 +244,7 @@ def get_memory_usage():
 # --- Timing ---
 
 def time_to_string(t):
+    "Format time in seconds as a human readable string."
     t = int(t)
     s = ""
     hours = t/3600

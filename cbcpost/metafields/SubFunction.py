@@ -22,7 +22,13 @@ from dolfin import (Function, VectorFunctionSpace, FunctionSpace, MPI, mpi_comm_
                     FunctionAssigner, interpolate)
 
 class SubFunction(Field):
-    """SubFunction is used to interpolate a Field on a non-matching mesh."""
+    """SubFunction is used to interpolate a Field on a non-matching mesh.
+    
+    .. note::
+
+        This field requires fenicstools.
+    
+    """
     def __init__(self, field, mesh, params=None, label=None):
         Field.__init__(self, params, label)
 

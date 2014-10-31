@@ -75,6 +75,10 @@ class PointEval(MetaField):
     """Evaluate a Field in points.
 
     :param points: List of Points or tuples
+    
+    .. note::
+
+        This field requires fenicstools.
 
     """
 

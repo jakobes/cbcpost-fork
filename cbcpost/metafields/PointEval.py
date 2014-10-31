@@ -18,8 +18,9 @@
 
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import import_fenicstools
+from cbcpost.utils.mpi_utils import broadcast
 import numpy as np
-from dolfin import Point
+from dolfin import Point, MPI, mpi_comm_world
 from itertools import chain
 
 def points_in_square(center, radius, resolution):
@@ -81,6 +82,25 @@ class PointEval(MetaField):
         MetaField.__init__(self, value, params, name, label)
         self.points = points
         self._ft = import_fenicstools()
+    
+    @classmethod
+    def default_params(cls):
+        """
+        Default parameters are:
+
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                                              |
+        +======================+=======================+===========================================================================================+
+        | broadcast_results    | True                  | Broadcast results from compute to all processes. If False,                                |
+        |                      |                       | result is ony returned on process 0                                                       |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        """
+        params = MetaField.default_params()
+        params.update(
+            broadcast_results=True,
+            )
+        return params
+    
 
     def before_first_compute(self, get):
         u = get(self.valuename)
@@ -120,9 +140,14 @@ class PointEval(MetaField):
         # Fetch array with probe values at this timestep
         #results = self.probes.array(self._probetimestep)
         results = self.probes.array()
+        if MPI.rank(mpi_comm_world()) != 0:
+            results = np.array([], dtype=np.float_)
+
+        # Broadcast array to all processes
+        if self.params.broadcast_results:
+            results = broadcast(results, 0)
+
         self.probes.clear()
-        #self._probetimestep += 1
-        #import ipdb; ipdb.set_trace()
 
         # Return as list to store without 'array(...)' text.
         # Probes give us no data if not on master node, so we just

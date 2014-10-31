@@ -492,7 +492,6 @@ def test_Norm(problem, pp, start_time, end_time, dt):
     assert abs(pp.get("Norm_linf_MockTupleField") - (1+5*t)) < 1e-14
 
 @require_fenicstools
-@skip_in_parallel
 def test_PointEval(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)
@@ -525,10 +524,8 @@ def test_PointEval(problem, pp, start_time, end_time, dt):
         p = [xmin+(xmax-xmin)*random(), ymin+(ymax-ymin)*random()]
         if D == 3:
             p += [zmin+(zmax-xmin)*random()]
-        _,d = bbtree.compute_closest_entity(Point(*p))
 
-        if d < 1e-12:
-            points.append(p)
+        points.append(p)
 
     pp.add_fields([
         PointEval("MockFunctionField", points),

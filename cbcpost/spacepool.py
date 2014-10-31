@@ -43,7 +43,6 @@ def get_grad_space(u, family="auto", degree="auto", shape="auto"):
     return spaces.get_grad_space(V, family, degree, shape)
 
 
-
 class SpacePool(object):
     "A function space pool to reuse spaces across a program."
     _existing = weakref.WeakValueDictionary()
@@ -105,7 +104,7 @@ class SpacePool(object):
             elif rank == 1:
                 space = VectorFunctionSpace(mesh, family, degree, shape[0])
             else:
-                space = TensorFunctionSpace(mesh, family, degree, shape)
+                space = TensorFunctionSpace(mesh, family, degree, shape, symmetry={})
             self._spaces[key] = space
 
         return space

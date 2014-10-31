@@ -25,14 +25,14 @@ assert _defaultmod.__name__ in ["dbm", "gdbm", "dbhash"], "Unable to find a requ
 del _defaultmod
 
 # Helper functionality
-from spacepool import SpacePool, get_grad_space
-from paramdict import ParamDict
-from parameterized import Parameterized
+from cbcpost.spacepool import SpacePool, get_grad_space
+from cbcpost.paramdict import ParamDict
+from cbcpost.parameterized import Parameterized
 
 # Core functionality
-from postprocessor import PostProcessor
-from restart import Restart
-from replay import Replay
+from cbcpost.postprocessor import PostProcessor
+from cbcpost.restart import Restart
+from cbcpost.replay import Replay
 
 from cbcpost.fieldbases import Field
 from cbcpost.fieldbases import SolutionField

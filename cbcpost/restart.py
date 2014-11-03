@@ -327,7 +327,7 @@ class Restart(Parameterized):
         delete_from_hdf5_file = '''
         namespace dolfin {
             #include <hdf5.h>
-            void delete_from_hdf5_file(MPI_Comm comm,
+            void delete_from_hdf5_file(const MPI_Comm comm,
                                        const std::string hdf5_filename,
                                        const std::string dataset,
                                        const bool use_mpiio)

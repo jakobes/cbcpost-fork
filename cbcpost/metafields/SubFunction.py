@@ -21,19 +21,31 @@ from cbcpost.utils.utils import import_fenicstools
 from dolfin import (Function, VectorFunctionSpace, FunctionSpace, MPI, mpi_comm_world,
                     FunctionAssigner, interpolate)
 
+def _interpolate(u, u0):
+    try:
+        # Use dolfins LagrangeInterpolator if defined
+        from dolfin import LagrangeInterpolator
+        LagrangeInterpolator().interpolate(u,u0)        
+    except:
+        # Otherwise, use fenicstools
+        ft = import_fenicstools()
+        u.assign(ft.interpolate_nonmatching_mesh(u0, u.function_space()))
+
+    return u
+
+    
+
+
 class SubFunction(Field):
     """SubFunction is used to interpolate a Field on a non-matching mesh.
     
     .. note::
 
-        This field requires fenicstools.
+        v1.4.0: This field requires fenicstools.
     
     """
     def __init__(self, field, mesh, params=None, label=None):
         Field.__init__(self, params, label)
-
-        self._ft = import_fenicstools()
-
         self.mesh = mesh
 
         # Store only name, don't need the field
@@ -58,8 +70,10 @@ class SubFunction(Field):
         if u.rank() == 1:
             FS = VectorFunctionSpace(self.mesh, family, degree)
             FS_scalar = FS.sub(0).collapse()
-            self.us = Function(FS_scalar)
             self.assigner = FunctionAssigner(FS, [FS_scalar]*FS.num_sub_spaces())
+            self.us = []
+            for i in range(FS.num_sub_spaces()):
+                self.us.append(Function(FS_scalar))
         elif u.rank() == 0:
             FS = FunctionSpace(self.mesh, family, degree)
         else:
@@ -73,19 +87,22 @@ class SubFunction(Field):
         if u.rank() == 1:
             u = u.split()
             U = []
-            for _u in u:
-                U.append(self._ft.interpolate_nonmatching_mesh(_u, self.us.function_space()))
+            for i, _u in enumerate(u):
+                U.append(_interpolate(self.us[i], _u))
+                #U.append(self._ft.interpolate_nonmatching_mesh(_u, self.us.function_space()))
             MPI.barrier(mpi_comm_world())
 
             self.assigner.assign(self.u, U)
 
         elif u.rank() == 0:
-            U = self._ft.interpolate_nonmatching_mesh(u, self.u.function_space())
+            #U = self._ft.interpolate_nonmatching_mesh(u, self.u.function_space())
+            #U = _interpolate(self.u, u)
+            _interpolate(self.u, u)
             MPI.barrier(mpi_comm_world())
 
             # FIXME: This gives a PETSc-error (VecCopy). Unnecessary interpolation used instead.
             #self.u.assign(U)
-            self.u.assign(interpolate(U, self.u.function_space()))
+            #self.u.assign(interpolate(U, self.u.function_space()))
         return self.u
 
 

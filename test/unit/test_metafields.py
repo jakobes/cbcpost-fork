@@ -46,6 +46,7 @@ def has_fenicstools():
 
 #require_mpi4py = pytest.mark.skipif(not has_mpi4py(), reason="Requires mpi4py which is not installed.")
 require_fenicstools = pytest.mark.skipif(not has_fenicstools(), reason="Requires fenicstools which is not installed.")
+require_fenicstools14 = pytest.mark.skipif(dolfin_version() == '1.4.0' and not has_fenicstools(), reason="Requires fenicstools in dolfin 1.4.0 which is not installed.")
 #require_h5py = pytest.mark.skipif(not has_h5py(), reason="Requires h5py which is not installed.")
 skip_in_parallel = pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")
 
@@ -750,12 +751,12 @@ def test_DomainAvg(problem, pp, start_time, end_time, dt):
         # Run postprocessing step
         pp.update_all({}, t, timestep)
 
-        v = assemble(Constant(1)*dx, mesh=mesh)
-        v_dx0 = assemble(Constant(1)*dx(0), mesh=mesh, cell_domains=cell_domains)
-        v_dx1 = assemble(Constant(1)*dx(1), mesh=mesh, cell_domains=cell_domains)
-        v_ds = assemble(Constant(1)*ds, mesh=mesh)
-        v_ds0 = assemble(Constant(1)*ds(0), mesh=mesh, exterior_facet_domains=facet_domains)
-        v_ds1 = assemble(Constant(1)*ds(1), mesh=mesh, exterior_facet_domains=facet_domains)
+        v = assemble(Constant(1)*dx(domain=mesh))
+        v_dx0 = assemble(Constant(1)*dx(0, domain=mesh), cell_domains=cell_domains)
+        v_dx1 = assemble(Constant(1)*dx(1, domain=mesh), cell_domains=cell_domains)
+        v_ds = assemble(Constant(1)*ds(domain=mesh))
+        v_ds0 = assemble(Constant(1)*ds(0, domain=mesh), exterior_facet_domains=facet_domains)
+        v_ds1 = assemble(Constant(1)*ds(1, domain=mesh), exterior_facet_domains=facet_domains)
 
         u = pp.get("MockFunctionField")
         uv = pp.get("MockVectorFunctionField")
@@ -830,7 +831,7 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
         uvr = pp.get("Restrict_MockVectorFunctionField")
         assert abs(assemble(inner(uv,uv)*dx(1), cell_domains=cell_domains) - assemble(inner(uvr, uvr)*dx)) < 1e-8
 
-@require_fenicstools
+@require_fenicstools14
 def test_SubFunction(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)

@@ -154,18 +154,9 @@ class PointEval(MetaField):
         self.probes.clear()
 
         # Return as list to store without 'array(...)' text.
-        # Probes give us no data if not on master node, so we just
-        # return dummy list which is not used by postprocessor anyway.
-        if results is None:
-            return []
+        if u.shape():
+            return list(tuple(res) for res in results)
+        elif results.size == 1:
+            return float(results)
         else:
-            if u.shape():
-                return list(tuple(res) for res in results)
-            elif results.size == 1:
-                return float(results)
-            else:
-                return list(results)
-
-    def after_last_compute(self, get):
-        # This data is currently stored in the metadata file under 'finalize_data':
-        return None
+            return list(results)

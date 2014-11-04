@@ -20,6 +20,10 @@ from numpy import where
 
 def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
     "Find the mapping between dofs on boundary and boundary dofs of full mesh"
+    from dolfin import dolfin_version, MPI, mpi_comm_world
+    if dolfin_version() != '1.4.0' and MPI.size(mpi_comm_world()) > 1:
+        raise RuntimeError("mesh_to_boundarymesh_dofmap is currently not supported in parallel in version %s" %(dolfin_version()))
+    
     assert V.ufl_element().family() == Vb.ufl_element().family()
     assert V.ufl_element().degree() == Vb.ufl_element().degree()
 
@@ -38,6 +42,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
 
     dofmap_to_boundary = {}
 
+    # Extract maps from boundary to mesh
     vertex_map = boundary.entity_map(0)
     cell_map = boundary.entity_map(D)
 

@@ -35,12 +35,6 @@ class Restrict(MetaField):
         MetaField.__init__(self, field, params, name, label)
         self.submesh = submesh
 
-    @property
-    def name(self):
-        n = "Restrict_%s" % self.valuename
-        if self.label: n += "_"+self.label
-        return n
-
     def compute(self, get):
         u = get(self.valuename)
 

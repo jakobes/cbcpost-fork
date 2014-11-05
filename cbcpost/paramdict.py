@@ -46,6 +46,19 @@ class ParamDict(dict):
 
     # --- Recursive ParamDict aware copy and update functions
 
+    def to_dict(self):
+        "Convert hierarchy of ParamDicts into a hierarchy of dicts recursively."
+        keys = list(self.iterkeys())
+        items = []
+        for k in keys:
+            v = self[k]
+            if isinstance(v, ParamDict):
+                v2 = v.to_dict()
+            else:
+                v2 = v
+            items.append((k, v2))
+        return dict(items)
+
     def copy_recursive(self):
         "Copy ParamDict hierarchy recursively, using copy.deepcopy() to copy \
         values."

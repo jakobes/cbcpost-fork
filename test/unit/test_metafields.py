@@ -873,3 +873,49 @@ def test_SubFunction(problem, pp, start_time, end_time, dt):
         #assert errornorm(interpolate(mvff.expr, V_sub), pp.get("SubFunction_MockVectorFunctionField"), degree_rise=0) < 1e-8
         assert abs(norm(interpolate(mff.expr, Q_sub)) - norm(pp.get("SubFunction_MockFunctionField"))) < 1e-8
         assert abs(norm(interpolate(mvff.expr, V_sub)) - norm(pp.get("SubFunction_MockVectorFunctionField"))) < 1e-8
+
+def test_Magnitude(problem, pp, start_time, end_time, dt):
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    mesh = problem.mesh
+    spacepool = SpacePool(mesh)
+    Q = spacepool.get_space(1,0)
+    V = spacepool.get_space(1,1)
+    
+    D = mesh.geometry().dim()
+    
+    f = Function(Q)
+    fv = Function(Q)
+    
+    mff = MockFunctionField(Q)
+    mvff = MockVectorFunctionField(V)
+
+    pp.add_fields([mff, mvff])
+
+    pp.add_fields([
+        Magnitude("MockFunctionField"),
+        Magnitude("MockVectorFunctionField"),
+    ])
+    
+    #self.expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
+    if D == 2:
+        vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2))", t=0.0)
+    elif D == 3:
+        vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2)+pow(10+x[2]*t,2))", t=0.0)
+    
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+
+        expr_mag = mff.expr
+        f.interpolate(expr_mag)
+        f.vector().abs()
+        vec_expr_mag.t = t
+        fv.interpolate(vec_expr_mag)
+
+        assert norm(f.vector()-pp.get("Magnitude_MockFunctionField").vector())<1e-12
+        assert norm(fv.vector()-pp.get("Magnitude_MockVectorFunctionField").vector())<1e-12
+    
+        
+    
+    

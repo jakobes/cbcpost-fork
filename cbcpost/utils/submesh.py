@@ -176,7 +176,7 @@ if __name__ == '__main__':
         s0 = submesh.size_global(0)
         s3 = submesh.size_global(submesh.ufl_cell().topological_dimension())
         a = assemble(u*dx)
-        v = assemble(Constant(1)*dx, mesh=submesh)
+        v = assemble(Constant(1)*dx(domain=submesh))
         if MPI.rank(mpi_comm_world()) == 0:
             print "Num vertices: ", s0
             print "Num cells: ", s3

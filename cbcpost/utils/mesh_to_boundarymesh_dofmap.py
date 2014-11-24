@@ -21,8 +21,8 @@ from numpy import where
 def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
     "Find the mapping between dofs on boundary and boundary dofs of full mesh"
     from dolfin import dolfin_version, MPI, mpi_comm_world
-    if dolfin_version() != '1.4.0' and MPI.size(mpi_comm_world()) > 1:
-        raise RuntimeError("mesh_to_boundarymesh_dofmap is currently not supported in parallel in version %s" %(dolfin_version()))
+    #if dolfin_version() != '1.4.0' and MPI.size(mpi_comm_world()) > 1:
+    #    raise RuntimeError("mesh_to_boundarymesh_dofmap is currently not supported in parallel in version %s" %(dolfin_version()))
     
     assert V.ufl_element().family() == Vb.ufl_element().family()
     assert V.ufl_element().degree() == Vb.ufl_element().degree()
@@ -57,15 +57,8 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
 
         if V_dm.num_entity_dofs(0) > 0:
             for v_idx in boundary_cell.entities(0):
-                #if v_idx in boundary.topology().shared_entities(0):
-                    #print boundary.topology().shared_entities(0)[v_idx]
-                    #if boundary.topology().shared_entities(0)[v_idx] == MPI.rank(mpi_comm_world()):
-                    #if MPI.rank(mpi_comm_world()) in boundary.topology().shared_entities(0)[v_idx]:
-                        #print "hei"
-                        #continue
 
                 mesh_v_idx = vertex_map[int(v_idx)]
-
                 mesh_list_idx = where(mesh_cell.entities(0) == mesh_v_idx)[0][0]
                 boundary_list_idx = where(boundary_cell.entities(0) == v_idx)[0][0]
 
@@ -73,6 +66,9 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                 cdofs = cell_dofs[V_dm.tabulate_entity_dofs(0, mesh_list_idx)]
 
                 for bdof, cdof in zip(bdofs, cdofs):
+                    if dolfin_version() == "1.4.0+":
+                        bdof = Vb_dm.local_to_global_index(bdof)
+                        cdof = V_dm.local_to_global_index(cdof)
                     if not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
                         continue
                     dofmap_to_boundary[bdof] = cdof
@@ -81,9 +77,40 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
             bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(2,0)]
             cdofs = cell_dofs[V_dm.tabulate_entity_dofs(3,0)]
             for bdof, cdof in zip(bdofs, cdofs):
+                if dolfin_version() == "1.4.0+":
+                    bdof = Vb_dm.local_to_global_index(bdof)
+                    cdof = V_dm.local_to_global_index(cdof)
+
                 dofmap_to_boundary[bdof] = cdof
 
     return dofmap_to_boundary
 
 
+if __name__ == '__main__':
+    from dolfin import *
+    mesh = UnitCubeMesh(4,4,4)
+    V = FunctionSpace(mesh, "CG", 1)
+    bmesh = BoundaryMesh(mesh, "exterior")
+    Vb = FunctionSpace(bmesh, "CG", 1)
+    
+    mapping = mesh_to_boundarymesh_dofmap(bmesh, V, Vb)
+    
+    
+    expr = Expression("x[0]*x[1]*x[2]+2.0")
+    u = interpolate(expr, V)
+    ub = interpolate(expr, Vb)
+    
+    print assemble(u*ds)
+    print assemble(ub*dx)
+    
+    ub2 = Function(Vb)
+    print len(mapping.keys())
+    ub2.vector()[mapping.keys()] = u.vector()[mapping.values()]
+    
+    print assemble(ub2*dx)
+    
+    #print erroro
+    File("ub.pvd") << ub
+    File("ub2.pvd") << ub2
+    
 

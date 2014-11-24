@@ -648,7 +648,6 @@ def test_ErrorNorm(problem, pp, start_time, end_time, dt):
 
     assert abs(pp.get("ErrorNorm_MockScalarField_MockScalarField2")-0.3) < 1e-8
 
-@skip_in_parallel_dev
 def test_Boundary(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)

@@ -49,7 +49,6 @@ require_fenicstools = pytest.mark.skipif(not has_fenicstools(), reason="Requires
 require_fenicstools14 = pytest.mark.skipif(dolfin_version() == '1.4.0' and not has_fenicstools(), reason="Requires fenicstools in dolfin 1.4.0 which is not installed.")
 #require_h5py = pytest.mark.skipif(not has_h5py(), reason="Requires h5py which is not installed.")
 skip_in_parallel = pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")
-skip_in_parallel_dev = pytest.mark.skipif(dolfin_version != '1.4.0' and MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel with dolfin-dev")
 
 class MockProblem(Parameterized):
     def __init__(self, D, params=None):
@@ -793,7 +792,6 @@ def test_DomainAvg(problem, pp, start_time, end_time, dt):
         assert max(abs(x-y) for x,y in zip(val_ds0, pp.get("DomainAvg_MockVectorFunctionField-ds0"))) < 1e-8
         assert max(abs(x-y) for x,y in zip(val_ds1, pp.get("DomainAvg_MockVectorFunctionField-ds1"))) < 1e-8
 
-@skip_in_parallel_dev
 def test_Restrict(problem, pp, start_time, end_time, dt):
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)

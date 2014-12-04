@@ -22,7 +22,7 @@ from dolfin import MPI, mpi_comm_world
 
 def restriction_map(V, Vb):
     "Return a map between dofs in Vb to dofs in V. Vb's mesh should be a submesh of V's Mesh."
-    if V.ufl_element().family() == "Discontinuous Lagrange" and V.ufl_element().degree > 0:
+    if V.ufl_element().family() == "Discontinuous Lagrange" and V.ufl_element().degree() > 0:
         raise RuntimeError("This function does not work for DG-spaces of degree >0 \
                            (several dofs associated with same point in same subspace).")
 

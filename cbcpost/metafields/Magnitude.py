@@ -75,6 +75,9 @@ class Magnitude(MetaField):
 
     def compute(self, get):
         u = get(self.valuename)
+        
+        if not hasattr(self, "use_project"):
+            self.before_first_compute(get)
 
         if isinstance(u, Function):
             if u.rank() == 0:

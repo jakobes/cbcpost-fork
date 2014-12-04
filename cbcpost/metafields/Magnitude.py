@@ -58,7 +58,12 @@ class Magnitude(MetaField):
                         Vi = u.function_space().extract_sub_space([i]).collapse()
                         dmi = Vi.dofmap()
                         diff = dmi.tabulate_all_coordinates(mesh)-dm0.tabulate_all_coordinates(mesh)
-                        if max(abs(diff)) > 1e-12:
+                        if len(diff) > 0:
+                            max_diff = max(abs(diff))
+                        else:
+                            max_diff = 0.0
+                        max_diff = MPI.max(mpi_comm_world(), max_diff)
+                        if max_diff > 1e-12:
                             self.use_project = True
                             break
 

@@ -19,12 +19,30 @@ Compute the (piecewise) magnitude of a Field.
 """
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import (project, sqrt, Function, inner, KrylovSolver, assemble, TrialFunction,
-                    TestFunction, MPI, mpi_comm_world)
+                    TestFunction, MPI, mpi_comm_world, FunctionAssigner, compile_extension_module)
 import numpy as np
 from cbcpost.utils import cbc_warning
 
 
-from dolfin import TestFunction, TrialFunction, Vector, assemble, dx, solve 
+from dolfin import TestFunction, TrialFunction, Vector, assemble, dx, solve
+
+_sqrt_in_place_code = """
+#include "petscvec.h"
+#include <dolfin/la/PETScVector.h>
+namespace dolfin
+{
+    void sqrt_in_place(std::shared_ptr<GenericVector> vec)
+    {
+        VecSqrtAbs(vec->down_cast<PETScVector>().vec());
+    }
+    
+}
+"""
+try:
+    sqrt_in_place = compile_extension_module(_sqrt_in_place_code).sqrt_in_place
+except:
+    sqrt_in_place = None
+
 
 class Magnitude(MetaField):
     """ Compute the magnitude of a Function-evaluated Field.
@@ -66,6 +84,8 @@ class Magnitude(MetaField):
                         if max_diff > 1e-12:
                             self.use_project = True
                             break
+                        self.assigner = FunctionAssigner([V]*u.function_space().num_sub_spaces(), u.function_space())
+                        self.subfuncs = [Function(V) for i in range(u.function_space().num_sub_spaces())]
 
                 # IF we have to use a projection, build projection matrix only once
                 if self.use_project:
@@ -95,12 +115,19 @@ class Magnitude(MetaField):
                     b = assemble(sqrt(inner(u,u))*self.v*dx(None))
                     self.projection.solve(self.f.vector(), b)
                 else:
+                    from dolfin import tic, toc
+                    self.assigner.assign(self.subfuncs, u)
                     self.f.vector().zero()
                     for i in xrange(u.function_space().num_sub_spaces()):
-                        vec = u.split(True)[i].vector()
+                        vec = self.subfuncs[i].vector()
+                        vec.apply('')
                         self.f.vector().axpy(1.0, vec*vec)
-                    r = self.f.vector().local_range()
-                    self.f.vector()[r[0]:r[1]] = np.sqrt(self.f.vector()[r[0]:r[1]])
+
+                    try:
+                        sqrt_in_place(self.f.vector())
+                    except:
+                        r = self.f.vector().local_range()
+                        self.f.vector()[r[0]:r[1]] = np.sqrt(self.f.vector()[r[0]:r[1]])
 
                 return self.f
         else:

@@ -115,7 +115,6 @@ class Magnitude(MetaField):
                     b = assemble(sqrt(inner(u,u))*self.v*dx(None))
                     self.projection.solve(self.f.vector(), b)
                 else:
-                    from dolfin import tic, toc
                     self.assigner.assign(self.subfuncs, u)
                     self.f.vector().zero()
                     for i in xrange(u.function_space().num_sub_spaces()):

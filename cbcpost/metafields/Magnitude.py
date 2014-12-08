@@ -19,7 +19,7 @@ Compute the (piecewise) magnitude of a Field.
 """
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import (project, sqrt, Function, inner, KrylovSolver, assemble, TrialFunction,
-                    TestFunction)
+                    TestFunction, MPI, mpi_comm_world)
 import numpy as np
 from cbcpost.utils import cbc_warning
 

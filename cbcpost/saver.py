@@ -25,7 +25,7 @@ from hashlib import sha1
 from dolfin import (Function, MPI, mpi_comm_world, File, HDF5File, XDMFFile,
                     error)
 
-from cbcpost.utils import safe_mkdir, hdf5_link, on_master_process
+from cbcpost.utils import safe_mkdir, hdf5_link, on_master_process, cbc_log
 from cbcpost.fieldbases import Field
 
 import os, shelve, pickle
@@ -411,6 +411,7 @@ class Saver():
         for field in triggered_or_finalized:
             #print name, cache[name]
             if field.params.save:
+                cbc_log(20, "Saving field %s" %field.name)
                 self._action_save(field, cache[field.name], timestep, t)
 
 

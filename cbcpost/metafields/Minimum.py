@@ -28,7 +28,11 @@ class Minimum(MetaField):
             return None
 
         if isinstance(u, Function):
-            return MPI.min(mpi_comm_world(), numpy.min(u.vector().array()))
+            if len(u.vector().array()) > 0:
+                minimum = numpy.min(u.vector().array())
+            else:
+                minimum = 1e16
+            return MPI.min(mpi_comm_world(), minimum)
         elif hasattr(u, "__len__"):
             return MPI.min(mpi_comm_world(), min(u))
         elif isinstance(u, (float,int,long)):

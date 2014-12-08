@@ -28,7 +28,12 @@ class Maximum(MetaField):
             return None
 
         if isinstance(u, Function):
-            return MPI.max(mpi_comm_world(), numpy.max(u.vector().array()))
+            if len(u.vector().array()) > 0:
+                maximum = numpy.max(u.vector().array())
+            else:
+                maximum = -1e16
+            return MPI.max(mpi_comm_world(), maximum)
+            #return MPI.max(mpi_comm_world(), numpy.max(u.vector().array()))
         elif hasattr(u, "__len__"):
             return MPI.max(mpi_comm_world(), max(u))
         elif isinstance(u, (float,int,long)):

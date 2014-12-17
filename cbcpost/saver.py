@@ -23,7 +23,7 @@ instance.
 """
 from hashlib import sha1
 from dolfin import (Function, MPI, mpi_comm_world, File, HDF5File, XDMFFile,
-                    error)
+                    error, dolfin_version)
 
 from cbcpost.utils import safe_mkdir, hdf5_link, on_master_process, cbc_log
 from cbcpost.fieldbases import Field
@@ -244,6 +244,9 @@ class Saver():
         # TODO: Link vector when function has been written to hash
         datafile.write(data.vector(), field_name+str(timestep)+"/vector")
 
+        # HDF5File.close is broken in 1.4, but fixed in dev.
+        if dolfin_version() == "1.4.0+":
+            datafile.close()
         del datafile
         # Link information about function space from hash-dataset
         hdf5_link(fullname, str(global_hash)+"/"+field_name+"/x_cell_dofs", field_name+str(timestep)+"/x_cell_dofs")

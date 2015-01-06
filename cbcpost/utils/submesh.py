@@ -102,19 +102,20 @@ def create_submesh(mesh, markers, marker):
 
     # Distribute meshdata on (if any) empty processes
     sub_cells, sub_vertices = distribute_meshdata(sub_cells, sub_vertices)
-    #global_cell_distribution = distribution(len(sub_cells))
+    global_cell_distribution = distribution(len(sub_cells))
     #global_vertex_distribution = distribution(len(sub_vertices))
 
     global_num_cells = MPI.sum(mpi_comm_world(), len(sub_cells))
     global_num_vertices = sum(unshared_vertices_dist)+MPI.sum(mpi_comm_world(), len(all_shared_global_indices))
 
-
-
     mesh_editor.init_vertices(len(sub_vertices))
-    mesh_editor.init_cells(len(sub_cells))
+    #mesh_editor.init_cells(len(sub_cells))
+    mesh_editor.init_cells_global(len(sub_cells), global_num_cells)
+    global_index_start = sum(global_cell_distribution[:MPI.rank(mesh.mpi_comm())])
 
     for index, cell in enumerate(sub_cells):
-        mesh_editor.add_cell(index, *cell)
+        #mesh_editor.add_cell(index, global_index_start+index, *cell)
+        mesh_editor.add_cell(index, global_index_start+index, np.array(cell, dtype=np.uintp))
 
     for local_index, (global_index, coordinates) in sub_vertices.items():
         #print coordinates

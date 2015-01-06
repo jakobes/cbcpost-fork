@@ -18,7 +18,7 @@
 
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import cbc_warning
-from dolfin import assemble, dx, Function, Constant, Measure
+from dolfin import assemble, dx, Function, Constant, Measure, MeshFunction
 
 
 class DomainAvg(MetaField):
@@ -45,7 +45,7 @@ class DomainAvg(MetaField):
             if indicator != None:
                 cbc_warning("Indicator specified, but no domains. Will dompute average over entire domain.")
             self.dI = measure
-
+        
         if label == None and not (self.dI.integral_type() == "cell" and self.dI.subdomain_id() == "everywhere"):
 
             if self.dI.integral_type() == "cell":
@@ -69,7 +69,9 @@ class DomainAvg(MetaField):
             return
 
         # Find mesh/domain
-        if isinstance(u, Function):
+        if isinstance(self.dI.subdomain_data(), MeshFunction):
+            mesh = self.dI.subdomain_data().mesh()
+        elif isinstance(u, Function):
             mesh = u.function_space().mesh()
 
         if not self.dI.domain():

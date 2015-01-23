@@ -18,7 +18,7 @@
 
 
 from cbcpost.fieldbases.MetaField2 import MetaField2
-from dolfin import Function, errornorm
+from dolfin import Function, errornorm, norm, DOLFIN_EPS
 
 class ErrorNorm(MetaField2):
     r'''Computes the error norm of two Fields. If the Fields Function-objects, the computation is forwarded to
@@ -49,11 +49,14 @@ class ErrorNorm(MetaField2):
         +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
         | degree_rise          | 3                     | Parameter to be passed to dolfin.errornorm                                                |
         +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        | relative             | False                 | Divide norm by the norm of first field                                                    |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
         """
         params = MetaField2.default_params()
         params.update(
             norm_type='default',
             degree_rise=3,
+            relative=False,
             )
         return params
 
@@ -77,7 +80,11 @@ class ErrorNorm(MetaField2):
 
         if isinstance(uh, Function):
             norm_type = self.params.norm_type if self.params.norm_type != "default" else "L2"
-            return errornorm(u, uh, norm_type=norm_type, degree_rise=self.params.degree_rise)
+            err = errornorm(u, uh, norm_type=norm_type, degree_rise=self.params.degree_rise)
+            if self.params.relative:
+                return err/(norm(u, norm_type=norm_type)+DOLFIN_EPS)
+            else:
+                return err
         else:
             if isinstance(u, (int, long, float)):
                 u = [u]
@@ -94,9 +101,17 @@ class ErrorNorm(MetaField2):
                 norm_type = self.params.norm_type
 
             if norm_type == 'linf':
-                return max([abs(_u-_uh) for _u,_uh in zip(u,uh)])
+                err = max([abs(_u-_uh) for _u,_uh in zip(u,uh)])
+                if self.params.relative:
+                    return err/(max([abs(_u) for _u in u])+DOLFIN_EPS)
+                else:
+                    return err
 
             else:
                 # Extract norm type
                 p = int(norm_type[1:])
-                return sum(abs(_u-_uh)**p for _u, _uh in zip(u,uh))**(1./p)
+                err = sum(abs(_u-_uh)**p for _u, _uh in zip(u,uh))**(1./p)
+                if self.params.relative:
+                    return err/(sum(abs(_u)**p for _u in i)**(1./p)+DOLFIN_EPS)
+                else:
+                    return err

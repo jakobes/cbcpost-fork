@@ -20,6 +20,7 @@ from numpy import linspace
 import dolfin
 dolfin.parameters["form_compiler"]["representation"] = "quadrature"
 dolfin.parameters["form_compiler"]["quadrature_degree"] = 1
+dolfin.parameters["allow_extrapolation"] = True
 
 
 # TODO: Move these to shared code:
@@ -658,7 +659,6 @@ def test_Boundary(problem, pp, start_time, end_time, dt):
     bspacepool = SpacePool(bmesh)
     Qb = bspacepool.get_space(1,0)
     Vb = bspacepool.get_space(1,1)
-
 
     pp.add_fields([
         MockFunctionField(Q),

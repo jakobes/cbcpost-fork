@@ -17,10 +17,11 @@
 """Functionality to (spatially) restrict a Field."""
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.restriction_map import restriction_map
-from cbcpost.utils import cbc_warning
+from cbcpost.utils import cbc_warning, get_set_vector
 
 from dolfin import Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace
-from numpy import array, uint
+#from numpy import array, uint, intc
+import numpy as np
 
 class Restrict(MetaField):
     """Restrict is used to restrict a Field to a submesh of the
@@ -61,10 +62,12 @@ class Restrict(MetaField):
 
             #self.restriction_map = restriction_map(V, FS)
             rmap = restriction_map(V, FS)
-            self.keys = array(rmap.keys(), dtype=uint)
-            self.values = array(rmap.values(), dtype=uint)
+            self.keys = np.array(rmap.keys(), dtype=np.intc)
+            self.values = np.array(rmap.values(), dtype=np.intc)
+            self.temp_array = np.zeros(len(self.keys), dtype=np.float_)
 
-
-        #self.u.vector()[self.restriction_map.keys()] = u.vector()[self.restriction_map.values()]
-        self.u.vector()[self.keys] = u.vector()[self.values]
+        # The simple __getitem__, __setitem__ has been removed in dolfin 1.5.0.
+        # The new cbcpost-method get_set_vector should be compatible with 1.4.0 and 1.5.0.
+        #self.u.vector()[self.keys] = u.vector()[self.values]
+        get_set_vector(self.u.vector(), self.keys, u.vector(), self.values, self.temp_array)
         return self.u

@@ -66,7 +66,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                 cdofs = cell_dofs[V_dm.tabulate_entity_dofs(0, mesh_list_idx)]
 
                 for bdof, cdof in zip(bdofs, cdofs):
-                    if dolfin_version() == "1.4.0+":
+                    if dolfin_version() in ["1.4.0+", "1.5.0"]:
                         bdof = Vb_dm.local_to_global_index(bdof)
                         cdof = V_dm.local_to_global_index(cdof)
                     if not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
@@ -77,7 +77,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
             bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(2,0)]
             cdofs = cell_dofs[V_dm.tabulate_entity_dofs(3,0)]
             for bdof, cdof in zip(bdofs, cdofs):
-                if dolfin_version() == "1.4.0+":
+                if dolfin_version() in ["1.4.0+", "1.5.0"]:
                     bdof = Vb_dm.local_to_global_index(bdof)
                     cdof = V_dm.local_to_global_index(cdof)
 
@@ -85,29 +85,70 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
 
     return dofmap_to_boundary
 
-
 if __name__ == '__main__':
+    from cbcpost.utils.utils import get_set_vector
     from dolfin import *
-    mesh = UnitCubeMesh(4,4,4)
-    V = FunctionSpace(mesh, "CG", 1)
+    import numpy as np
+    mesh = UnitCubeMesh(3,3,3)
+    #mesh = UnitSquareMesh(4,4)
+    V = VectorFunctionSpace(mesh, "CG", 1)
     bmesh = BoundaryMesh(mesh, "exterior")
-    Vb = FunctionSpace(bmesh, "CG", 1)
+    Vb = VectorFunctionSpace(bmesh, "CG", 1)
+    
+    
+    dm = V.dofmap()
+    dmb = Vb.dofmap()
     
     mapping = mesh_to_boundarymesh_dofmap(bmesh, V, Vb)
+    keys = np.array(mapping.keys(), dtype=np.intc)
+    values = np.array(mapping.values(), dtype=np.intc)
     
+    t = 3.0
+    #expr = Expression("1+x[0]*x[1]*t", t=t)
+    #expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
+    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
     
-    expr = Expression("x[0]*x[1]*x[2]+2.0")
     u = interpolate(expr, V)
     ub = interpolate(expr, Vb)
     
-    print assemble(u*ds)
-    print assemble(ub*dx)
+    print MPI.sum(mpi_comm_world(), len(mapping.keys()))
+    print MPI.sum(mpi_comm_world(), len(mapping.values()))
+    
+    print assemble(sqrt(inner(u,u))*ds)
+    print assemble(sqrt(inner(ub,ub))*dx)
     
     ub2 = Function(Vb)
-    print len(mapping.keys())
-    ub2.vector()[mapping.keys()] = u.vector()[mapping.values()]
+    """
+    for i in range(2):
+        if i == MPI.rank(mpi_comm_world()):
+            print "Process number: ", i
+            print len(mapping.keys()), mapping.keys()
+            print len(mapping.values()), mapping.values()
+            print "Ownership range: ", dm.ownership_range()
+            print "Bdry ownership range: ", dmb.ownership_range()
+            keys = [k-dmb.ownership_range()[0] for k in mapping.keys()]
+            values = [v-dm.ownership_range()[0] for v in mapping.values()]
+            #print keys
+            #print values
+            #print ub2.vector()[keys]
+            #print u.vector()[values]
+        MPI.barrier(mpi_comm_world())
+    exit()
+    """
+    #print dm.dofmap().ownership_range()
+    #print ub.vector().get_local()
+    #print len(ub.vector().get_local())
+    #print MPI.sum(mpi_comm_world(), len(ub.vector().get_local()))
+    #exit()
+    #ub2.vector().__setitem__(keys, u.vector().__getitem__(values))
+    #ub2.vector()[keys] = u.vector()[values]
+    get_set_vector(ub2.vector(), keys, u.vector(), values)
     
-    print assemble(ub2*dx)
+    print assemble(sqrt(inner(ub2,ub2))*dx)
+    print assemble(sqrt(inner(u,u))*ds)
+    #plot(ub2)
+    #plot(ub)
+    #interactive()
     
     #print erroro
     File("ub.pvd") << ub

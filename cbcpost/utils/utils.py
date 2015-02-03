@@ -206,6 +206,47 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
 
     return Function(space, name=fieldname)
 
+# --- Linalg stuff ---
+def get_set_vector(setvector, set_indices, getvector, get_indices, temp_array=None):
+    """Equivalent of setvector[set_indices] = getvector[get_indices] for global indices (MPI-blocking).
+    Pass temp_array to avoid initiation of array on call.
+    """
+    if not hasattr(get_set_vector, "cppmodule"):
+        code = """
+        void get_set_vector(std::shared_ptr<GenericVector> set_vector,
+                            const Array<dolfin::la_index> & set_indices,
+                            std::shared_ptr<const GenericVector> get_vector,
+                            const Array<dolfin::la_index> & get_indices,
+                            const Array<double> & temp_array)
+        {
+            std::size_t N = set_indices.size();
+
+            // Perform a const_cast (unable to pass non-const Array through from python layer)
+            Array<double> & temp_array2 = const_cast<Array<double> &>(temp_array);
+
+            // Get and set using the non-const temp_array2
+            get_vector->get(temp_array2.data(), N, get_indices.data());
+            set_vector->set(temp_array2.data(), N, set_indices.data());
+
+            // Apply vector (MPI-part)
+            set_vector->apply("insert");
+        }
+        """
+        cbc_log(20, "Compiling get_set_vector.cppmodule")
+        get_set_vector.cppmodule = compile_extension_module(code)
+
+    assert len(set_indices) == len(get_indices)
+
+    if temp_array == None:
+        temp_array = np.zeros(len(set_indices), dtype=np.float64)
+
+    assert len(temp_array) == len(set_indices)
+    get_set_vector.cppmodule.get_set_vector(setvector,
+                                            set_indices,
+                                            getvector,
+                                            get_indices,
+                                            temp_array)
+
 
 
 # --- Logging ---

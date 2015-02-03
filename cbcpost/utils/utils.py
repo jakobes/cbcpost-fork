@@ -19,7 +19,7 @@
 import keyword
 import os
 from time import time
-from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning
+from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning, dolfin_version
 
 def import_fenicstools():
     "Import fenicstools helper function."
@@ -207,10 +207,14 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     return Function(space, name=fieldname)
 
 # --- Linalg stuff ---
+from numpy import zeros, float_
 def get_set_vector(setvector, set_indices, getvector, get_indices, temp_array=None):
     """Equivalent of setvector[set_indices] = getvector[get_indices] for global indices (MPI-blocking).
     Pass temp_array to avoid initiation of array on call.
     """
+    #if dolfin_version() == "1.4.0":
+    #    setvector[set_indices] = getvector[get_indices]
+    #    return
     if not hasattr(get_set_vector, "cppmodule"):
         code = """
         void get_set_vector(std::shared_ptr<GenericVector> set_vector,
@@ -232,13 +236,18 @@ def get_set_vector(setvector, set_indices, getvector, get_indices, temp_array=No
             set_vector->apply("insert");
         }
         """
+
+        # Very minor change required for dolfin 1.4.0
+        if dolfin_version() == "1.4.0":
+            code = code.replace("get_vector->get", "get_vector->get_local")
+
         cbc_log(20, "Compiling get_set_vector.cppmodule")
         get_set_vector.cppmodule = compile_extension_module(code)
 
     assert len(set_indices) == len(get_indices)
 
     if temp_array == None:
-        temp_array = np.zeros(len(set_indices), dtype=np.float64)
+        temp_array = zeros(len(set_indices), dtype=float_)
 
     assert len(temp_array) == len(set_indices)
     get_set_vector.cppmodule.get_set_vector(setvector,

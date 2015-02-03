@@ -450,7 +450,9 @@ class PostProcessor(Parameterized):
                 triggered_or_finalized.append(self._fields[name])
 
         self._saver.update(t, timestep, self._cache[0], triggered_or_finalized)
+        self._timer.completed("PP: completed saving")
         self._plotter.update(t, timestep, self._cache[0], triggered_or_finalized)
+        self._timer.completed("PP: completed plotting")
 
 
         self._update_all_count += 1

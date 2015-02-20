@@ -144,8 +144,12 @@ class PointEval(MetaField):
         # Fetch array with probe values at this timestep
         #results = self.probes.array(self._probetimestep)
         results = self.probes.array()
+        
         if MPI.rank(mpi_comm_world()) != 0:
             results = np.array([], dtype=np.float_)
+
+        if results.shape == ():
+            results = results.reshape(1,)
 
         # Broadcast array to all processes
         if self.params.broadcast_results:
@@ -155,6 +159,8 @@ class PointEval(MetaField):
 
         # Return as list to store without 'array(...)' text.
         if u.shape():
+            if len(results.shape) == 1:
+                return list(results)
             return list(tuple(res) for res in results)
         elif results.size == 1:
             return float(results)

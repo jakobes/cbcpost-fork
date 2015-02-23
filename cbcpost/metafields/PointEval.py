@@ -131,8 +131,9 @@ class PointEval(MetaField):
         self.probes = self._ft.Probes(flattened_points, V)
         self._probetimestep = 0
 
-        # This data is currently stored in the metadata file under 'init_data'
-        return self.coords
+        ## This data is currently stored in the metadata file under 'init_data'
+        # FIXME: This is not currently supported!
+        #return self.coords
 
     def compute(self, get):
         # Get field to probe

@@ -23,6 +23,9 @@ from dolfin import (project, sqrt, Function, inner, KrylovSolver, assemble, Tria
 import numpy as np
 from cbcpost.utils import cbc_warning
 
+# Import for type-checking
+from collections import Iterable
+from numbers import Number
 
 from dolfin import TestFunction, TrialFunction, Vector, assemble, dx, solve
 
@@ -93,7 +96,10 @@ class Magnitude(MetaField):
                     M = assemble(inner(self.v,TrialFunction(V))*dx)
                     self.projection = KrylovSolver("cg", "default")
                     self.projection.set_operator(M)
-                
+        elif isinstance(u, Iterable) and all(isinstance(_u, Number) for _u in u):
+            pass
+        elif isinstance(u, Number):
+            pass
         else:
             # Don't know how to handle object
             cbc_warning("Don't know how to calculate magnitude of object of type %s." %type(u))
@@ -101,10 +107,9 @@ class Magnitude(MetaField):
     def compute(self, get):
         u = get(self.valuename)
         
-        if not hasattr(self, "use_project"):
-            self.before_first_compute(get)
-
         if isinstance(u, Function):
+            if not hasattr(self, "use_project"):
+                self.before_first_compute(get)
             if u.rank() == 0:
                 self.f.vector().zero()
                 self.f.vector().axpy(1.0, u.vector())
@@ -129,6 +134,10 @@ class Magnitude(MetaField):
                         self.f.vector()[r[0]:r[1]] = np.sqrt(self.f.vector()[r[0]:r[1]])
 
                 return self.f
+        elif isinstance(u, Iterable) and all(isinstance(_u, Number) for _u in u):
+            return np.sqrt(sum(_u**2 for _u in u))
+        elif isinstance(u, Number):
+            return abs(u)
         else:
             # Don't know how to handle object
             cbc_warning("Don't know how to calculate magnitude of object of type %s. Returning object." %type(u))

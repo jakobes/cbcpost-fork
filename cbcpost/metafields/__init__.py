@@ -32,6 +32,7 @@ meta_fields = [
     "Norm",
     "ErrorNorm",
     "DomainAvg",
+    "DomainSD",
     "Magnitude",
     "Minimum",
     "Maximum",

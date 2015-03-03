@@ -20,6 +20,42 @@ from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import cbc_warning
 from dolfin import assemble, dx, Function, Constant, Measure, MeshFunction
 
+def _init_measure(measure="default", cell_domains=None, facet_domains=None, indicator=None):
+    assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
+
+    if (cell_domains and indicator != None):
+        dI = Measure("cell")[cell_domains](indicator)
+    elif (facet_domains and indicator != None):
+        dI = Measure("exterior_facet")[facet_domains](indicator)
+    elif measure == "default":
+        if indicator != None:
+            cbc_warning("Indicator specified, but no domains. Will dompute average over entire domain.")
+        dI = dx()
+    elif isinstance(measure, Measure):
+        dI = measure
+    else:
+        raise TypeError("Unable to create a domain measure from provided domains or measure.")
+    
+    return dI
+
+def _init_label(measure):
+    if measure.integral_type() == "cell" and measure.subdomain_id() == "everywhere":
+        return None
+    
+    if measure.integral_type() == "cell":
+        label = "dx"
+    elif measure.integral_type() == "exterior_facet":
+        label = "ds"
+    elif measure.integral_type() == "interior_facet":
+        label = "dS"
+    else:
+        label = measure.integral_type()
+
+    if measure.subdomain_id() != "everywhere":
+        label += str(measure.subdomain_id())
+    
+    return label
+    
 
 class DomainAvg(MetaField):
     """Compute the domain average for a specified domain. Default to computing
@@ -34,33 +70,11 @@ class DomainAvg(MetaField):
 
     If cell_domains/facet_domains and indicator given, this overrides given measure.
     """
-    def __init__(self, value, params=None, name="default", label=None, measure=dx(), cell_domains=None, facet_domains=None, indicator=None):
-        assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
-
-        if (cell_domains and indicator != None):
-            self.dI = Measure("cell")[cell_domains](indicator)
-        elif (facet_domains and indicator != None):
-            self.dI = Measure("exterior_facet")[facet_domains](indicator)
-        else:
-            if indicator != None:
-                cbc_warning("Indicator specified, but no domains. Will dompute average over entire domain.")
-            self.dI = measure
-        
-        if label == None and not (self.dI.integral_type() == "cell" and self.dI.subdomain_id() == "everywhere"):
-
-            if self.dI.integral_type() == "cell":
-                label = "dx"
-            elif self.dI.integral_type() == "exterior_facet":
-                label = "ds"
-            elif self.dI.integral_type() == "interior_facet":
-                label = "dS"
-            else:
-                label = self.dI.integral_type()
-
-            if self.dI.subdomain_id() != "everywhere":
-                label += str(self.dI.subdomain_id())
+    def __init__(self, value, params=None, name="default", label=None, measure="default", cell_domains=None, facet_domains=None, indicator=None):
+        self.dI = _init_measure(measure, cell_domains, facet_domains, indicator)       
+        if label == None:
+            label = _init_label(self.dI)
         MetaField.__init__(self, value, params, name, label)
-
 
     def compute(self, get):
         u = get(self.valuename)

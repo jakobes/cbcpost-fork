@@ -163,10 +163,8 @@ class Loadable():
     def __call__(self):
         """Load file"""
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
-        #print self.hash
         # Check if function has changed. If not, return function without re-reading
         if self.hash != None and self.hash == self._compute_hash():
-            cbc_print("Not re-reading: "+self.filename+", Timestep: "+str(self.timestep))
             cbc_log(20, "Not re-reading: "+self.filename+", Timestep: "+str(self.timestep))
             return self.data
         
@@ -185,7 +183,6 @@ class Loadable():
             shelvefile = shelve.open(self.filename, 'r')
             self.data = shelvefile[str(self.timestep)]
             shelvefile.close()
-        cbc_print("Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         return self.data
     

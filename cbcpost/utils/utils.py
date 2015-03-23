@@ -147,6 +147,7 @@ class Loadable():
     This class is used internally from :class:'.Replay' and :class:'Restart',
     and made to be passed to *PostProcessor.update_all*.
     """
+
     def __init__(self, filename, fieldname, timestep, time, saveformat, function):
         self.filename = filename
         self.fieldname = fieldname
@@ -154,29 +155,46 @@ class Loadable():
         self.time = time
         self.saveformat = saveformat
         self.function = function
+        self.hash = None
+        self.data = None
 
         assert self.saveformat in loadable_formats
 
     def __call__(self):
         """Load file"""
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
+        #print self.hash
+        # Check if function has changed. If not, return function without re-reading
+        if self.hash != None and self.hash == self._compute_hash():
+            cbc_print("Not re-reading: "+self.filename+", Timestep: "+str(self.timestep))
+            cbc_log(20, "Not re-reading: "+self.filename+", Timestep: "+str(self.timestep))
+            return self.data
+        
         if self.saveformat == 'hdf5':
             hdf5file = HDF5File(mpi_comm_world(), self.filename, 'r')
             hdf5file.read(self.function, self.fieldname+str(self.timestep))
             del hdf5file
-            data = self.function
+            self.data = self.function
+            self.hash = self._compute_hash()
         elif self.saveformat in ["xml", "xml.gz"]:
             V = self.function.function_space()
             self.function.assign(Function(V, self.filename))
-            data = self.function
+            self.data = self.function
+            self.hash = self._compute_hash()
         elif self.saveformat == "shelve":
             shelvefile = shelve.open(self.filename, 'r')
-            data = shelvefile[str(self.timestep)]
+            self.data = shelvefile[str(self.timestep)]
             shelvefile.close()
-
+        cbc_print("Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
-        return data
-
+        return self.data
+    
+    def _compute_hash(self):
+        if self.saveformat in ["hdf5", "xml", "xml.gz"]:
+            _hash = hash(self.function.vector().array().tostring())
+        else:
+            _hash = None
+        return _hash
 
 from dolfin import Mesh, HDF5File, Function
 from cbcpost import SpacePool
@@ -255,6 +273,7 @@ def get_set_vector(setvector, set_indices, getvector, get_indices, temp_array=No
                                             getvector,
                                             get_indices,
                                             temp_array)
+
 
 
 

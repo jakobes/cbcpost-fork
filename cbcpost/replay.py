@@ -49,8 +49,9 @@ class Replay(Parameterized):
         self.postproc = postprocessor
         self._functions = {}
 
-        self.timer = Timer(self.params.timer_frequency)
-        self.timer._N = 0
+        #self.timer = Timer(self.params.timer_frequency)
+        self.timer = self.postproc._timer
+        #self.timer._N = 0
 
     @classmethod
     def default_params(cls):
@@ -184,16 +185,20 @@ class Replay(Parameterized):
 
             added_to_postprocessor = False
             for i, (ppkeys, ppt_dep, pp) in enumerate(postprocessors):
-                if t_dep == 0 and set(keys).issubset(set(ppkeys)):
+                #import ipdb; ipdb.set_trace()
+                #if t_dep == 0 and set(keys).issubset(set(ppkeys)):
+                #if t_dep == 0 and set(keys).issuperset(set(ppkeys)):
                     # TODO: Check this extend
-                    ppkeys.extend(keys)
+                #    ppkeys.extend(keys)
+                    #ppkeys = list(set(ppkeys))
                     #pp.add_fields(fields)
-                    for f in fields:
-                        if f.name not in pp._fields:
-                            pp.add_field(f)
-                    added_to_postprocessor = True
-                    break
-                elif t_dep == ppt_dep and keys == ppkeys:
+                #    for f in fields:
+                #        if f.name not in pp._fields:
+                #            pp.add_field(f)
+                #    added_to_postprocessor = True
+                #    break
+                #elif t_dep == ppt_dep and keys == ppkeys:
+                if t_dep == ppt_dep and set(keys) == set(ppkeys):
                     #pp.add_fields(fields)
                     for f in fields:
                         if f.name not in pp._fields:
@@ -205,8 +210,8 @@ class Replay(Parameterized):
 
             # Create new postprocessor if no suitable postprocessor found
             if not added_to_postprocessor:
-                pp = PostProcessor({"casedir": self.postproc.get_casedir()})
-                pp._timer = self.timer
+                pp = PostProcessor({"casedir": self.postproc.get_casedir()}, self.postproc._timer)
+                #pp._timer = self.timer
                 #dep_fields = list(set([self.postproc._fields[dep[0]] for dep in self.postproc._full_dependencies[fieldname] if dep[0] not in ["t", "timestep"]]))
                 fields = dep_fields + [field]
                 #import ipdb; ipdb.set_trace()
@@ -215,7 +220,7 @@ class Replay(Parameterized):
                         pp.add_field(f)
                 postprocessors.append([keys, t_dep, pp])
 
-
+            
         """
         for fieldname in self.postproc._sorted_fields_keys:
             field = self.postproc._fields[fieldname]
@@ -255,9 +260,20 @@ class Replay(Parameterized):
                 pp.add_fields(fields)
                 postprocessors.append([keys, t_dep, pp])
         """
+        
+        #print [len(pp[0]) for pp in postprocessors]
+        #print [pp[1] for pp in postprocessors]
+        #print [pp[2] for pp in postprocessors]
+        #import ipdb; ipdb.set_trace()
+        #all_keys = set()
+        #for ppkeys, ppt_dep, pp in postprocessors:
+        #    all_keys.update(ppkeys)
+        #sorted_keys = sorted(list(all_keys))
         # Run replay
-        for timestep in sorted(replay_plan.keys()):
-            cbc_print("Processing timestep %d of %d. %.3f%% complete." %(timestep, max(replay_plan.keys()), 100.0*(timestep)/(max(replay_plan.keys()))))
+        sorted_keys = sorted(replay_plan.keys())
+        N = max(sorted_keys)
+        for timestep in sorted_keys:
+            cbc_print("Processing timestep %d of %d. %.3f%% complete." %(timestep, N, 100.0*(timestep)/N))
 
             # Load solution at this timestep (all available fields)
             solution = replay_plan[timestep]

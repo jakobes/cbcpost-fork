@@ -69,5 +69,6 @@ class Restrict(MetaField):
         # The simple __getitem__, __setitem__ has been removed in dolfin 1.5.0.
         # The new cbcpost-method get_set_vector should be compatible with 1.4.0 and 1.5.0.
         #self.u.vector()[self.keys] = u.vector()[self.values]
+        
         get_set_vector(self.u.vector(), self.keys, u.vector(), self.values, self.temp_array)
         return self.u

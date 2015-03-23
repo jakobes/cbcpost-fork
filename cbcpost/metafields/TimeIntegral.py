@@ -51,7 +51,7 @@ class TimeIntegral(MetaField):
         assert u0 != "N/A" and u1 != "N/A", "u0=%s, u1=%s" %(str(u0), str(u1))
 
         # Interpolate to integration limits, if t1 or t0 is outside
-        if t0 < self.params.start_time:
+        if t0 < self.params.start_time-1e-14:
             if isinstance(u0, Function): start = u0.vector() + (u1.vector()-u0.vector())/(t1-t0)*(self.params.start_time-t0)
             elif hasattr(u0, "__len__"): start = [u0[i]+(u1[i]-u0[i])/(t1-t0)*(self.params.start_time-t0) for i in range(len(u0))]
             else: start = u0 + (u1-u0)/(t1-t0)*(self.params.start_time-t0)

@@ -129,6 +129,7 @@ class PostProcessor(Parameterized):
             self._timer = Timer()
 
         self._extrapolate = self.params.extrapolate
+        
 
         # Storage of actual fields
         self._fields = {}
@@ -224,7 +225,7 @@ class PostProcessor(Parameterized):
         # Insert item after all its dependencies
         self._sorted_fields_keys.insert(max_index+1, fieldname)
 
-    def add_field(self, field):
+    def add_field(self, field, exists_reaction="error"):
         "Add field to postprocessor."
         assert isinstance(field, Field)
 
@@ -233,14 +234,24 @@ class PostProcessor(Parameterized):
         # This is a bit unsafe though, the user might add a field twice with different parameters...
         # Check that at least the same name is not used for different field classes:
         # UPDATE: Keep it safe, and raise error if field exists.
-        assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
+        if field.name in self._fields:
+            s = "Field with name %s already been added to postprocessor." %field.name
+            if exists_reaction == "replace":
+                cbc_log(60, s+" Replacing.")
+            if exists_reaction == "ignore":
+                cbc_log(60, s+" Ignoring.")
+                return
+            else:
+                raise AssertionError(s)
+
+        #assert field.name not in self._fields, "Field with name %s already been added to postprocessor." %field.name
         #assert type(field) == type(self._fields.get(field.name,field))
         #if field.name in self._fields:
         #    cbc_warning("Field with name %s already been added to postprocessor. Ignoring." %field.name)
         #    return
 
         # Add fields explicitly specified by field
-        self.add_fields(field.add_fields())
+        self.add_fields(field.add_fields(), "ignore")
 
         # Analyze dependencies of field through source inspection
         deps = find_dependencies(field)
@@ -275,9 +286,9 @@ class PostProcessor(Parameterized):
         # Returning the field object is useful for testing
         return field
 
-    def add_fields(self, fields):
+    def add_fields(self, fields, exists_reaction="error"):
         "Add several fields at once."
-        return [self.add_field(field) for field in fields]
+        return [self.add_field(field, exists_reaction) for field in fields]
 
     def __iadd__(self, field):
         "Add field or list of fields to postprocessor."

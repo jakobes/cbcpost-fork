@@ -37,8 +37,12 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
     # Recursively call this function if V has sub-spaces
     if V.num_sub_spaces() > 0:
         mapping = {}
-        all_coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(V.dim(), D)
-        all_coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Vb.dim(), D)
+        if MPI.size(mpi_comm_world()) == 1:
+            all_coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(V.dim(), D)
+            all_coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Vb.dim(), D)
+        else:
+            all_coords = None
+            all_coordsb = None
         for i in range(V.num_sub_spaces()):
             mapping.update(restriction_map(V.sub(i), Vb.sub(i), all_coords, all_coordsb))
 

@@ -20,7 +20,7 @@ from cbcpost.utils import cbc_warning
 from scipy.spatial.ckdtree import cKDTree as KDTree
 from dolfin import MPI, mpi_comm_world
 
-def restriction_map(V, Vb):
+def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
     "Return a map between dofs in Vb to dofs in V. Vb's mesh should be a submesh of V's Mesh."
     if V.ufl_element().family() == "Discontinuous Lagrange" and V.ufl_element().degree() > 0:
         raise RuntimeError("This function does not work for DG-spaces of degree >0 \
@@ -31,17 +31,18 @@ def restriction_map(V, Vb):
     assert V.ufl_element().family() == Vb.ufl_element().family(), "ufl elements differ in the two spaces"
     assert V.ufl_element().degree() == Vb.ufl_element().degree(), "ufl elements differ in the two spaces"
     assert V.ufl_element().cell() == Vb.ufl_element().cell(), "ufl elements differ in the two spaces"
-
+    
+    D = V.mesh().geometry().dim()
 
     # Recursively call this function if V has sub-spaces
     if V.num_sub_spaces() > 0:
         mapping = {}
+        all_coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(V.dim(), D)
+        all_coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Vb.dim(), D)
         for i in range(V.num_sub_spaces()):
-            mapping.update(restriction_map(V.sub(i), Vb.sub(i)))
+            mapping.update(restriction_map(V.sub(i), Vb.sub(i), all_coords, all_coordsb))
 
         return mapping
-
-    D = V.mesh().geometry().dim()
 
     dm = V.dofmap()
     dmb = Vb.dofmap()
@@ -53,23 +54,33 @@ def restriction_map(V, Vb):
 
     # Extract coordinates of dofs
     if dm.is_view():
-        coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
-        coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
+        if _all_coords != None:
+            coords = _all_coords[V.dofmap().dofs()]
+        else:
+            coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
+        
+        if _all_coordsb != None:
+            coordsb = _all_coordsb[Vb.dofmap().dofs()]
+        else:
+            coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
     else:
         coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
         coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
 
     # Build KDTree to compute distances from coordinates in base
     kdtree = KDTree(coords)
-
     eps = 1e-12
 
     mapping = {}
     request_dofs = np.array([])
+    
+    
+    distances, indices = kdtree.query(coordsb)
 
     for i, subdof in enumerate(dmb.dofs()):
         # Find closest dof in base
-        d, idx = kdtree.query(coordsb[i])
+        #d, idx = kdtree.query(coordsb[i])
+        d, idx = distances[i], indices[i]
         if d < eps:
             # Dof found on this process, add to map
             dof = dofs[idx]
@@ -79,6 +90,9 @@ def restriction_map(V, Vb):
             # Search for this dof on other processes
             add_dofs = np.hstack(([subdof], coordsb[i]))
             request_dofs = np.append(request_dofs, add_dofs)
+
+    del distances
+    del indices
 
     # Scatter all dofs not found on current process to all processes
     all_request_dofs = [None]*MPI.size(mpi_comm_world())
@@ -104,7 +118,6 @@ def restriction_map(V, Vb):
             dof = dofs[idx]
             assert subdof not in mapping
             mapping[subdof] = dof
-
     return mapping
 
 if __name__ == '__main__':

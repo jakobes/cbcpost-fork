@@ -145,7 +145,7 @@ class PostProcessor(Parameterized):
         # Create instances required for plotting, saving and planning
         #self._reverse_dependencies = {} # TODO: Need this?
         self._plotter = Plotter(self._timer)
-        self._saver = Saver(self._timer, self.params.casedir)
+        self._saver = Saver(self._timer, self.params.casedir, self.params.flush_frequency)
         self._planner = Planner(self._timer, self.params.initial_dt)
 
         # Plan of what to compute now and in near future
@@ -189,8 +189,6 @@ class PostProcessor(Parameterized):
         +======================+=======================+==============================================================+
         | casedir              | '.'                   | Case directory - relative path to use for saving             |
         +----------------------+-----------------------+--------------------------------------------------------------+
-        | enable_timer         | False                 | Enable timer                                                 |
-        +----------------------+-----------------------+--------------------------------------------------------------+
         | extrapolate          | True                  | Constant extrapolation of fields prior to first              |
         |                      |                       | update call                                                  |
         +----------------------+-----------------------+--------------------------------------------------------------+
@@ -199,14 +197,17 @@ class PostProcessor(Parameterized):
         +----------------------+-----------------------+--------------------------------------------------------------+
         | clean_casedir        | False                 | Clean out case directory prior to update.                    |
         +----------------------+-----------------------+--------------------------------------------------------------+
+        | flush_frequency      | 1                     | Frequency to flush shelve and txt files (playlog,            |
+        |                      |                       | metadata and data)                                           |
+        +----------------------+-----------------------+--------------------------------------------------------------+
 
         """
         params = ParamDict(
             casedir=".",
-            enable_timer=False,
             extrapolate=True,
             initial_dt=1e-5,
             clean_casedir=False,
+            flush_frequency=1,
             )
         return params
 
@@ -453,6 +454,7 @@ class PostProcessor(Parameterized):
 
         # Compute what's needed according to plan
         self._execute_plan(t, timestep)
+        self._timer.completed("PP: execute plan")
 
         triggered_or_finalized = []
         for name in self._cache[0]:
@@ -482,6 +484,7 @@ class PostProcessor(Parameterized):
         timestep = self._cache[0].get("timestep", -1e16)
 
         self._saver.update(t, timestep, self._cache[0], finalized)
+        self._saver._flush_data()
         self._plotter.update(t, timestep, self._cache[0], finalized)
         MPI.barrier(mpi_comm_world())
 

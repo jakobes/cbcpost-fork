@@ -61,13 +61,20 @@ def _get_save_formats(field, data):
 
 class Saver():
     "Class to handle all saving in cbcpost."
-    def __init__(self, timer, casedir):
+    _playlog = dict()
+    def __init__(self, timer, casedir, flush_frequency):
         self._timer = timer
         # Caches for file storage
         self._datafile_cache = {}
+
+        self._metadata_cache = {}
+        self._playlog[casedir] = None
+
         self._casedir = casedir
+        self.flush_frequency = flush_frequency
 
         self._create_casedir()
+        
 
     def get_casedir(self):
         "Return case directory."
@@ -121,9 +128,14 @@ class Saver():
     def _update_metadata_file(self, field_name, data, t, timestep, save_as, metadata):
         "Update metadata shelve file from master process."
         if on_master_process():
-            savedir = self.get_savedir(field_name)
-            metadata_filename = os.path.join(savedir, 'metadata.db')
-            metadata_file = shelve.open(metadata_filename)
+            if self._metadata_cache.get(field_name) == None:
+                savedir = self.get_savedir(field_name)
+                metadata_filename = os.path.join(savedir, 'metadata.db')
+                #metadata_file = shelve.open(metadata_filename)
+                metadata_file = shelve.open(metadata_filename)
+                self._metadata_cache[field_name] = metadata_file
+
+            metadata_file = self._metadata_cache[field_name]
 
             # Store some data the first time
             if "type" not in metadata_file and data != None:
@@ -141,7 +153,7 @@ class Saver():
             metadata_file[str(timestep)]["t"] = t
 
             # Flush file between timesteps
-            metadata_file.close()
+            #metadata_file.close()
 
     def _get_datafile_name(self, field_name, saveformat, timestep):
         """Get datafile name associated with given field name, saveformat and
@@ -301,39 +313,51 @@ class Saver():
         assert saveformat == "shelve"
         fullname, metadata = self._get_datafile_name(field_name, saveformat, timestep)
         if on_master_process():
-            datafile = shelve.open(fullname)
+            key = (field_name, saveformat)
+            datafile = self._datafile_cache.get(key)
+            if datafile == None:
+                datafile = shelve.open(fullname)
+                self._datafile_cache[key] = datafile
+
+            #datafile = shelve.open(fullname)
             datafile[str(timestep)] = data
-            datafile.close()
+            #datafile.close()
 
         return metadata
 
-    def _fetch_playlog(self, flag='c'):
+    def _fetch_playlog(self, flag='c', writeback=False):
         "Get play log from disk (which is stored as a shelve-object)."
+        if self._playlog[self.get_casedir()] != None:
+            self._playlog[self.get_casedir()].close()
+            self._playlog[self.get_casedir()] = None
         casedir = self.get_casedir()
         playlog_file = os.path.join(casedir, "play.db")
-        playlog = shelve.open(playlog_file, flag=flag)
+        playlog = shelve.open(playlog_file, flag=flag, writeback=writeback)
         return playlog
 
     def _update_playlog(self, t, timestep):
         "Update play log from master process with current time"
         if on_master_process():
-            playlog = self._fetch_playlog()
-            if str(timestep) in playlog:
-                playlog.close()
+            if self._playlog[self.get_casedir()] == None:
+                self._playlog[self.get_casedir()] = self._fetch_playlog()
+            #playlog = self._fetch_playlog()
+            if self._playlog[self.get_casedir()].has_key(str(timestep)):
+                #playlog.close()
                 return
-            playlog[str(timestep)] = {"t":float(t)}
-            playlog.close()
+            self._playlog[self.get_casedir()][str(timestep)] = {"t":float(t)}
+            #playlog.close()
 
     def _fill_playlog(self, field, timestep, save_as):
         "Update play log with the data that has been stored at this timestep"
         if on_master_process():
-            playlog = self._fetch_playlog()
-            timestep_dict = dict(playlog[str(timestep)])
+            if self._playlog[self.get_casedir()] == None:
+                self._playlog[self.get_casedir()] = self._fetch_playlog()
+            timestep_dict = dict(self._playlog[self.get_casedir()][str(timestep)])
             if "fields" not in timestep_dict:
                 timestep_dict["fields"] = {}
             timestep_dict["fields"][field.name] = {"type": field.__class__.shortname(), "save_as": save_as}
-            playlog[str(timestep)] = timestep_dict
-            playlog.close()
+            self._playlog[self.get_casedir()][str(timestep)] = timestep_dict
+            #playlog.close()
 
     def store_params(self, params):
         "Store parameters in casedir as params.pickle and params.txt."
@@ -357,6 +381,20 @@ class Saver():
         if facet_domains != None:
             meshfile.write(facet_domains, "FacetDomains")
         del meshfile
+
+    def _flush_data(self):
+        "Flush data to disk"
+        if on_master_process():
+            for f in self._metadata_cache.values():
+                f.sync()
+            if self._playlog[self.get_casedir()] != None:
+                self._playlog[self.get_casedir()].sync()
+            
+            for key, f in self._datafile_cache.iteritems():
+                fieldname, saveformat = key
+                if saveformat == "shelve":
+                    f.sync()
+
 
     def _action_save(self, field, data, timestep, t):
         "Apply the 'save' action to computed field data."
@@ -404,8 +442,10 @@ class Saver():
 
         # Write new data to metadata file
         self._update_metadata_file(field_name, data, t, timestep, save_as, metadata)
-
+        self._timer.completed("PP: update metadata")
         self._fill_playlog(field, timestep, save_as)
+        
+        self._timer.completed("PP: update playlog")
 
 
     def update(self, t, timestep, cache, triggered_or_finalized):
@@ -416,6 +456,10 @@ class Saver():
             if field.params.save:
                 cbc_log(20, "Saving field %s" %field.name)
                 self._action_save(field, cache[field.name], timestep, t)
+
+        if timestep%self.flush_frequency == 0:
+            self._flush_data()
+            self._timer.completed("PP: flush data")
 
 
 

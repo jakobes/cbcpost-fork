@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""Functionality for calculating the standard deviation of a specified domain."""
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import cbc_warning
 from dolfin import assemble, Function, Constant, MeshFunction, project

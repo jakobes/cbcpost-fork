@@ -23,6 +23,8 @@ For usage of this refer to :ref:`Replay`.
 """
 import os
 import shelve
+from operator import itemgetter
+import copy
 
 from cbcpost import Parameterized, ParamDict, PostProcessor
 from cbcpost.utils import cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata
@@ -179,27 +181,19 @@ class Replay(Parameterized):
 
                 if dep[0] in dep_fields:
                     continue
+                
+                dependency = self.postproc._fields[dep[0]]
+                if dependency.params.save or dependency.params.plot:
+                    dependency = copy.copy(dependency)
+                    dependency.params.save = False
+                    dependency.params.plot = False
 
-                dep_fields.append(self.postproc._fields[dep[0]])
+                dep_fields.append(dependency)
             fields = dep_fields + [field]
 
             added_to_postprocessor = False
             for i, (ppkeys, ppt_dep, pp) in enumerate(postprocessors):
-                #import ipdb; ipdb.set_trace()
-                #if t_dep == 0 and set(keys).issubset(set(ppkeys)):
-                #if t_dep == 0 and set(keys).issuperset(set(ppkeys)):
-                    # TODO: Check this extend
-                #    ppkeys.extend(keys)
-                    #ppkeys = list(set(ppkeys))
-                    #pp.add_fields(fields)
-                #    for f in fields:
-                #        if f.name not in pp._fields:
-                #            pp.add_field(f)
-                #    added_to_postprocessor = True
-                #    break
-                #elif t_dep == ppt_dep and keys == ppkeys:
                 if t_dep == ppt_dep and set(keys) == set(ppkeys):
-                    #pp.add_fields(fields)
                     for f in fields:
                         if f.name not in pp._fields:
                             pp.add_field(f)
@@ -210,11 +204,9 @@ class Replay(Parameterized):
 
             # Create new postprocessor if no suitable postprocessor found
             if not added_to_postprocessor:
-                pp = PostProcessor({"casedir": self.postproc.get_casedir()}, self.postproc._timer)
-                #pp._timer = self.timer
-                #dep_fields = list(set([self.postproc._fields[dep[0]] for dep in self.postproc._full_dependencies[fieldname] if dep[0] not in ["t", "timestep"]]))
+                pp = PostProcessor(self.postproc.params, self.postproc._timer)
                 fields = dep_fields + [field]
-                #import ipdb; ipdb.set_trace()
+
                 for f in fields:
                     if f.name not in pp._fields:
                         pp.add_field(f)
@@ -260,15 +252,15 @@ class Replay(Parameterized):
                 pp.add_fields(fields)
                 postprocessors.append([keys, t_dep, pp])
         """
+        postprocessors = sorted(postprocessors, key=itemgetter(1), reverse=True)
+
+        t_independent_fields = []
+        for fieldname in self.postproc._fields:
+            if self.postproc._full_dependencies[fieldname] == []:
+                t_independent_fields.append(fieldname)
+            elif min(t for dep,t in self.postproc._full_dependencies[fieldname]) == 0:
+                t_independent_fields.append(fieldname)
         
-        #print [len(pp[0]) for pp in postprocessors]
-        #print [pp[1] for pp in postprocessors]
-        #print [pp[2] for pp in postprocessors]
-        #import ipdb; ipdb.set_trace()
-        #all_keys = set()
-        #for ppkeys, ppt_dep, pp in postprocessors:
-        #    all_keys.update(ppkeys)
-        #sorted_keys = sorted(list(all_keys))
         # Run replay
         sorted_keys = sorted(replay_plan.keys())
         N = max(sorted_keys)
@@ -295,8 +287,12 @@ class Replay(Parameterized):
                     # Clear None-objects from solution
                     [solution.pop(k) for k in solution.keys() if not solution[k]]
 
-                    # Update solution to avoid re-reading data
-                    solution = pp._solution
+                    # Update solution to avoid re-computing data
+                    for fieldname in pp._cache[0]:
+                        if fieldname not in solution:
+                            if fieldname in t_independent_fields:
+                                value = pp._cache[0][fieldname]
+                                solution[fieldname] = lambda value=value: value
 
             self.timer.increment()
 

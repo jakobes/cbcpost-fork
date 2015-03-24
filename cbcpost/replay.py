@@ -27,7 +27,17 @@ from operator import itemgetter
 import copy
 
 from cbcpost import Parameterized, ParamDict, PostProcessor
-from cbcpost.utils import cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata
+from cbcpost.utils import (cbc_print, Timer, Loadable, loadable_formats, create_function_from_metadata,
+                           get_memory_usage)
+
+from dolfin import MPI, mpi_comm_world
+
+class MiniCallable():
+    """Mini callable as a replacement for lambda-functions. """
+    def __init__(self, value):
+        self.value = value
+    def __call__(self):
+        return self.value
 
 def have_necessary_deps(solution, pp, field):
     """Check if field have necessary dependencies within given solution
@@ -60,16 +70,16 @@ class Replay(Parameterized):
         """
         Default parameters are:
 
-        +----------------------+-----------------------+--------------------------------------------------------------+
-        |Key                   | Default value         |  Description                                                 |
-        +======================+=======================+==============================================================+
-        | timer_frequency      | 0                     | Frequency to report timing                                   |
-        +----------------------+-----------------------+--------------------------------------------------------------+
+        +------------------------+-----------------------+--------------------------------------------------------------+
+        |Key                     | Default value         |  Description                                                 |
+        +========================+=======================+==============================================================+
+        | check_memory_frequency | 0                     | Frequency to report memory usage                             |
+        +------------------------+-----------------------+--------------------------------------------------------------+
 
         """
 
         params = ParamDict(
-            timer_frequency=0,
+            check_memory_frequency=0,
         )
         return params
 
@@ -292,9 +302,25 @@ class Replay(Parameterized):
                         if fieldname not in solution:
                             if fieldname in t_independent_fields:
                                 value = pp._cache[0][fieldname]
-                                solution[fieldname] = lambda value=value: value
+                                #solution[fieldname] = lambda value=value: value # Memory leak!
+                                solution[fieldname] = MiniCallable(value)
 
             self.timer.increment()
+            if self.params.check_memory_frequency != 0 and timestep%self.params.check_memory_frequency==0:
+                cbc_print('Memory usage is: %s' % MPI.sum(mpi_comm_world(), get_memory_usage()))
+
+            # Clean up solution: Required to avoid memory leak for some reason...
+            for f, v in solution.items():
+                if isinstance(v, MiniCallable):
+                    v.value = None
+                    del v
+                    solution.pop(f)
+            
+
+                    
+                
+            
+                
 
         for ppkeys, ppt_dep, pp in postprocessors:
             pp.finalize_all()

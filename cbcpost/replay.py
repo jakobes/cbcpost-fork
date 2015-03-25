@@ -37,6 +37,7 @@ class MiniCallable():
     def __init__(self, value):
         self.value = value
     def __call__(self):
+        """ Simply return self.value """
         return self.value
 
 def have_necessary_deps(solution, pp, field):

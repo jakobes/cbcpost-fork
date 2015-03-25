@@ -239,7 +239,7 @@ class PostProcessor(Parameterized):
             s = "Field with name %s already been added to postprocessor." %field.name
             if exists_reaction == "replace":
                 cbc_log(60, s+" Replacing.")
-            if exists_reaction == "ignore":
+            elif exists_reaction == "ignore":
                 cbc_log(60, s+" Ignoring.")
                 return
             else:
@@ -466,7 +466,6 @@ class PostProcessor(Parameterized):
         self._timer.completed("PP: completed saving")
         self._plotter.update(t, timestep, self._cache[0], triggered_or_finalized)
         self._timer.completed("PP: completed plotting")
-
 
         self._update_all_count += 1
         MPI.barrier(mpi_comm_world())

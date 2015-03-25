@@ -155,44 +155,30 @@ class Loadable():
         self.time = time
         self.saveformat = saveformat
         self.function = function
-        self.hash = None
-        self.data = None
 
         assert self.saveformat in loadable_formats
 
     def __call__(self):
         """Load file"""
+        t0 = time()
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
-        # Check if function has changed. If not, return function without re-reading
-        if self.hash != None and self.hash == self._compute_hash():
-            cbc_log(20, "Not re-reading: "+self.filename+", Timestep: "+str(self.timestep))
-            return self.data
-        
+
         if self.saveformat == 'hdf5':
             hdf5file = HDF5File(mpi_comm_world(), self.filename, 'r')
             hdf5file.read(self.function, self.fieldname+str(self.timestep))
             del hdf5file
-            self.data = self.function
-            self.hash = self._compute_hash()
+            data = self.function
         elif self.saveformat in ["xml", "xml.gz"]:
             V = self.function.function_space()
             self.function.assign(Function(V, self.filename))
-            self.data = self.function
-            self.hash = self._compute_hash()
+            data = self.function
         elif self.saveformat == "shelve":
             shelvefile = shelve.open(self.filename, 'r')
-            self.data = shelvefile[str(self.timestep)]
+            data = shelvefile[str(self.timestep)]
             shelvefile.close()
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
-        return self.data
+        return data
     
-    def _compute_hash(self):
-        if self.saveformat in ["hdf5", "xml", "xml.gz"]:
-            _hash = hash(self.function.vector().array().tostring())
-        else:
-            _hash = None
-        return _hash
-
 from dolfin import Mesh, HDF5File, Function
 from cbcpost import SpacePool
 def create_function_from_metadata(pp, fieldname, metadata, saveformat):

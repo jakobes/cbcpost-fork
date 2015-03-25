@@ -61,9 +61,7 @@ class Replay(Parameterized):
         self.postproc = postprocessor
         self._functions = {}
 
-        #self.timer = Timer(self.params.timer_frequency)
         self.timer = self.postproc._timer
-        #self.timer._N = 0
 
     @classmethod
     def default_params(cls):
@@ -177,7 +175,6 @@ class Replay(Parameterized):
                     or field.params.plot):
                 continue
 
-            keys = self._check_field_coverage(replay_plan, fieldname)
             # Check timesteps covered by current field
             keys = self._check_field_coverage(replay_plan, fieldname)
 
@@ -191,22 +188,22 @@ class Replay(Parameterized):
 
                 if dep[0] in dep_fields:
                     continue
-                
+
+                # Copy dependency and set save/plot to False. If dependency should be
+                # plotted/saved, this field will be added separately.
                 dependency = self.postproc._fields[dep[0]]
-                if dependency.params.save or dependency.params.plot:
-                    dependency = copy.copy(dependency)
-                    dependency.params.save = False
-                    dependency.params.plot = False
+                dependency = copy.copy(dependency)
+                dependency.params.save = False
+                dependency.params.plot = False
 
                 dep_fields.append(dependency)
-            fields = dep_fields + [field]
 
             added_to_postprocessor = False
             for i, (ppkeys, ppt_dep, pp) in enumerate(postprocessors):
                 if t_dep == ppt_dep and set(keys) == set(ppkeys):
-                    for f in fields:
-                        if f.name not in pp._fields:
-                            pp.add_field(f)
+                    pp.add_fields(dep_fields, exists_reaction="ignore")
+                    pp.add_field(field, exists_reaction="replace")
+
                     added_to_postprocessor = True
                     break
                 else:
@@ -215,53 +212,11 @@ class Replay(Parameterized):
             # Create new postprocessor if no suitable postprocessor found
             if not added_to_postprocessor:
                 pp = PostProcessor(self.postproc.params, self.postproc._timer)
-                fields = dep_fields + [field]
-
-                for f in fields:
-                    if f.name not in pp._fields:
-                        pp.add_field(f)
+                pp.add_fields(dep_fields, exists_reaction="ignore")
+                pp.add_field(field, exists_reaction="replace")
+                
                 postprocessors.append([keys, t_dep, pp])
 
-            
-        """
-        for fieldname in self.postproc._sorted_fields_keys:
-            field = self.postproc._fields[fieldname]
-            if not field.params.save:
-                continue
-
-            # Check timesteps covered by current field
-            keys = self._check_field_coverage(replay_plan, fieldname)
-            print fieldname#, keys
-
-            # Get the time dependency for the field
-            t_dep = min([dep[1] for dep in self.postproc._dependencies[fieldname]]+[0])
-
-            # Append field to correct postprocessor
-            # TODO: Determine what the best way to do this is
-            added_to_postprocessor = False
-            for i, (ppkeys, ppt_dep, pp) in enumerate(postprocessors):
-                if t_dep == 0 and set(keys).issubset(set(ppkeys)):
-                    # TODO: Check this extend
-                    ppkeys.extend(keys)
-                    pp.add_field(field)
-                    added_to_postprocessor = True
-                    break
-                elif t_dep == ppt_dep and keys == ppkeys:
-                    pp.add_field(field)
-                    added_to_postprocessor = True
-                    break
-                else:
-                    continue
-
-            # Create new postprocessor if no suitable postprocessor found
-            if not added_to_postprocessor:
-                pp = PostProcessor({"casedir": self.postproc.get_casedir()})
-                dep_fields = list(set([self.postproc._fields[dep[0]] for dep in self.postproc._full_dependencies[fieldname] if dep[0] not in ["t", "timestep"]]))
-                fields = dep_fields + [field]
-                #import ipdb; ipdb.set_trace()
-                pp.add_fields(fields)
-                postprocessors.append([keys, t_dep, pp])
-        """
         postprocessors = sorted(postprocessors, key=itemgetter(1), reverse=True)
 
         t_independent_fields = []
@@ -280,6 +235,7 @@ class Replay(Parameterized):
             # Load solution at this timestep (all available fields)
             solution = replay_plan[timestep]
             t = solution.pop("t")
+
             # Cycle through postprocessors and update if required
             for ppkeys, ppt_dep, pp in postprocessors:
                 if timestep in ppkeys:
@@ -291,19 +247,18 @@ class Replay(Parameterized):
                         for dep in reversed(pp._dependencies[field]):
                             if not have_necessary_deps(solution, pp, dep[0]):
                                 solution[dep[0]] = lambda: None
-                    #pp.update_all(solution, t, timestep, self._get_spaces(), problem)
                     pp.update_all(solution, t, timestep)
 
                     # Clear None-objects from solution
                     [solution.pop(k) for k in solution.keys() if not solution[k]]
 
                     # Update solution to avoid re-computing data
-                    for fieldname in pp._cache[0]:
-                        if fieldname not in solution:
-                            if fieldname in t_independent_fields:
-                                value = pp._cache[0][fieldname]
-                                #solution[fieldname] = lambda value=value: value # Memory leak!
-                                solution[fieldname] = MiniCallable(value)
+                    for fieldname,value in pp._cache[0].items():
+                        if fieldname in t_independent_fields:
+                            value = pp._cache[0][fieldname]
+                            #solution[fieldname] = lambda value=value: value # Memory leak!
+                            solution[fieldname] = MiniCallable(value)
+                                
 
             self.timer.increment()
             if self.params.check_memory_frequency != 0 and timestep%self.params.check_memory_frequency==0:
@@ -315,12 +270,6 @@ class Replay(Parameterized):
                     v.value = None
                     del v
                     solution.pop(f)
-            
-
-                    
-                
-            
-                
 
         for ppkeys, ppt_dep, pp in postprocessors:
             pp.finalize_all()

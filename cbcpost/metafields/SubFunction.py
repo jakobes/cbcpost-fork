@@ -51,6 +51,8 @@ class SubFunction(MetaField):
 
     def before_first_compute(self, get):
         u = get(self.valuename)
+        if u == None:
+            return None
 
         V = u.function_space()
         element = V.ufl_element()
@@ -73,6 +75,11 @@ class SubFunction(MetaField):
 
     def compute(self, get):
         u = get(self.valuename)
+        if u == None:
+            return None
+        
+        if not hasattr(self, "u"):
+            self.before_first_compute(get)
 
         if u.rank() == 1:
             u = u.split()

@@ -166,8 +166,60 @@ class Replay(Parameterized):
             self._functions[fieldname] = create_function_from_metadata(self.postproc, fieldname, metadata, saveformat)
         return self._functions[fieldname]
 
+    def backup_playlog(self):
+        "Create a backup of the playlog"
+        if MPI.rank(mpi_comm_world()) == 0:
+            casedir = self.postproc.get_casedir()
+            playlog_file = os.path.join(casedir, "play.db")
+            i = 0
+            backup_file = playlog_file+".bak"+str(i)
+            
+            while os.path.isfile(backup_file):
+                i += 1
+                backup_file = playlog_file+".bak"+str(i)
+            os.system("cp %s %s" %(playlog_file, backup_file))
+        MPI.barrier(mpi_comm_world())
+
+    def revert_casedir(self):
+        "Use backup playlog to remove all (newly introduced) fields."
+        if MPI.rank(mpi_comm_world()) == 0:
+            current_playlog = dict(self.postproc.get_playlog('r'))
+
+            casedir = self.postproc.get_casedir()
+            playlog_file = os.path.join(casedir, "play.db")
+            i = 0
+            backup_file = playlog_file+".bak"+str(i)
+            while os.path.isfile(backup_file):
+                i += 1
+                backup_file = playlog_file+".bak"+str(i)
+            i -= 1
+            backup_file = playlog_file+".bak"+str(i)
+
+            os.system("cp %s %s" %(backup_file, playlog_file))
+            os.system("rm %s" %backup_file)
+            
+            backup_playlog = self.postproc.get_playlog('r')
+            assert set(current_playlog.keys()) == set(backup_playlog.keys())
+
+            current_fields = set()
+            backup_fields = set()
+            
+            keys = [k for k in current_playlog.keys() if k.isdigit()]
+            for k in keys:
+                current_fields.update(current_playlog[k].get("fields", dict()).keys())
+                backup_fields.update(backup_playlog[k].get("fields",dict()).keys())
+
+            fields_to_remove = current_fields-backup_fields
+
+            for field in fields_to_remove:
+                os.system("rm -r %s/%s" %(casedir,field))
+
+
     def replay(self):
         "Replay problem with given postprocessor."
+        # Backup play log
+        self.backup_playlog()
+        
         # Set up for replay
         replay_plan = self._fetch_history()
         postprocessors = []

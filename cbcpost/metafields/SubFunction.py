@@ -17,6 +17,7 @@
 """Functionality to construct a subfunction of a Field."""
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import import_fenicstools
+from cbcpost import SpacePool
 
 from dolfin import (Function, VectorFunctionSpace, FunctionSpace, MPI, mpi_comm_world,
                     FunctionAssigner, interpolate)
@@ -59,17 +60,14 @@ class SubFunction(MetaField):
         family = element.family()
         degree = element.degree()
 
-        if u.rank() == 1:
-            FS = VectorFunctionSpace(self.mesh, family, degree)
-            FS_scalar = FS.sub(0).collapse()
+        spaces = SpacePool(self.mesh)
+        FS = spaces.get_custom_space(element.family(), element.degree(), element.value_shape())
+        if u.rank() > 0:
+            FS_scalar = spaces.get_custom_space(element.family(), element.degree(), ())
             self.assigner = FunctionAssigner(FS, [FS_scalar]*FS.num_sub_spaces())
             self.us = []
             for i in range(FS.num_sub_spaces()):
                 self.us.append(Function(FS_scalar))
-        elif u.rank() == 0:
-            FS = FunctionSpace(self.mesh, family, degree)
-        else:
-            raise Exception("Does not support TensorFunctionSpace yet")
 
         self.u = Function(FS, name=self.name)
 
@@ -81,7 +79,7 @@ class SubFunction(MetaField):
         if not hasattr(self, "u"):
             self.before_first_compute(get)
 
-        if u.rank() == 1:
+        if u.rank() > 0:
             u = u.split()
             U = []
             for i, _u in enumerate(u):
@@ -90,10 +88,7 @@ class SubFunction(MetaField):
             MPI.barrier(mpi_comm_world())
 
             self.assigner.assign(self.u, U)
-
-        elif u.rank() == 0:
-            #U = self._ft.interpolate_nonmatching_mesh(u, self.u.function_space())
-            #U = _interpolate(self.u, u)
+        else:
             _interpolate(self.u, u)
             MPI.barrier(mpi_comm_world())
 

@@ -114,7 +114,7 @@ def safe_mkdir(dir):
     # Create directory
     if not os.path.isdir(dir):
         try:
-            os.makedirs(dir)
+            os.makedirs(dir, mode=0775)
         except:
             # Allow race condition when multiple processes
             # work in same directory, ignore exception.

@@ -132,6 +132,7 @@ class Magnitude(MetaField):
                     except:
                         r = self.f.vector().local_range()
                         self.f.vector()[r[0]:r[1]] = np.sqrt(self.f.vector()[r[0]:r[1]])
+                    self.f.vector().apply('')
 
                 return self.f
         elif isinstance(u, Iterable) and all(isinstance(_u, Number) for _u in u):

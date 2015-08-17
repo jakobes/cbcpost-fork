@@ -24,7 +24,8 @@
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
                                             distribution, gather)
 from cbcpost.utils import cbc_warning
-from dolfin import MPI, mpi_comm_world, Mesh, MeshEditor
+from dolfin import MPI, mpi_comm_world, Mesh, MeshEditor, dolfin_version
+from distutils.version import LooseVersion, StrictVersion
 import numpy as np
 
 def create_submesh(mesh, markers, marker):
@@ -114,8 +115,10 @@ def create_submesh(mesh, markers, marker):
     global_index_start = sum(global_cell_distribution[:MPI.rank(mesh.mpi_comm())])
 
     for index, cell in enumerate(sub_cells):
-        #mesh_editor.add_cell(index, global_index_start+index, *cell)
-        mesh_editor.add_cell(index, global_index_start+index, np.array(cell, dtype=np.uintp))
+        if LooseVersion(dolfin_version()) >= LooseVersion("1.6.0"):
+            mesh_editor.add_cell(index, *cell)
+        else:
+            mesh_editor.add_cell(int(index), global_index_start+index, np.array(cell, dtype=np.uintp))
 
     for local_index, (global_index, coordinates) in sub_vertices.items():
         #print coordinates
@@ -161,6 +164,7 @@ if __name__ == '__main__':
         subdomains = AutoSubDomain(lambda x: x[0]<0.5)
         subdomains.mark(cell_domains, 1)
 
+        
         if MPI.size(mpi_comm_world()) == 1:
             submesh = SubMesh(mesh, cell_domains, 1)
         else:
@@ -185,5 +189,8 @@ if __name__ == '__main__':
             print "Volume: ", v
         #u = Function(V)
     #File("u.pvd") << u
-
+    #import ipdb; ipdb.set_trace()
+    #print mesh.num_cells()
+    #print dir(mesh)
+    #print mesh.cells()
 

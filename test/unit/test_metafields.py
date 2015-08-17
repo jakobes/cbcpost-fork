@@ -103,9 +103,6 @@ def compute_regular_timesteps(problem):
     assert abs( (timesteps[1]-timesteps[0]) - dt) < 1e-8, "Timestep size does not match specified dt."
     assert timesteps[-1] >= T-dt/1e6, "Timestep range not including end time."
 
-    #if timesteps[-1] > T+dt/1e6:
-    #    cbc_warning("End time for simulation does not match end time set for problem (T-T0 not a multiple of dt).")
-
     return dt, timesteps, problem.params.start_timestep
 
 def test_TimeDerivative(problem, pp, start_time, end_time, dt):
@@ -710,7 +707,6 @@ def test_Boundary(problem, pp, start_time, end_time, dt):
         ) < 1e-8
 
 def test_DomainAvg_DomainSD(problem, pp, start_time, end_time, dt):
-    #parameters["form_compiler"]["quadrature_degree"] = 1
     # Setup some mock scheme state
     dt, timesteps, start_timestep = compute_regular_timesteps(problem)
     mesh = problem.mesh
@@ -755,22 +751,22 @@ def test_DomainAvg_DomainSD(problem, pp, start_time, end_time, dt):
         pp.update_all({}, t, timestep)
 
         v = assemble(Constant(1)*dx(domain=mesh))
-        v_dx0 = assemble(Constant(1)*dx(0, domain=mesh), cell_domains=cell_domains)
-        v_dx1 = assemble(Constant(1)*dx(1, domain=mesh), cell_domains=cell_domains)
+        v_dx0 = assemble(Constant(1)*dx(0, domain=mesh, subdomain_data=cell_domains))
+        v_dx1 = assemble(Constant(1)*dx(1, domain=mesh, subdomain_data=cell_domains))
         v_ds = assemble(Constant(1)*ds(domain=mesh))
-        v_ds0 = assemble(Constant(1)*ds(0, domain=mesh), exterior_facet_domains=facet_domains)
-        v_ds1 = assemble(Constant(1)*ds(1, domain=mesh), exterior_facet_domains=facet_domains)
+        v_ds0 = assemble(Constant(1)*ds(0, domain=mesh, subdomain_data=facet_domains))
+        v_ds1 = assemble(Constant(1)*ds(1, domain=mesh, subdomain_data=facet_domains))
 
         u = pp.get("MockFunctionField")
         uv = pp.get("MockVectorFunctionField")
 
         avg = assemble(u*dx)/v
-        avg_dx0 = assemble(u*dx(0), cell_domains=cell_domains)/v_dx0
-        avg_dx1 = assemble(u*dx(1), cell_domains=cell_domains)/v_dx1
+        avg_dx0 = assemble(u*dx(0, subdomain_data=cell_domains))/v_dx0
+        avg_dx1 = assemble(u*dx(1, subdomain_data=cell_domains))/v_dx1
 
         avg_ds = assemble(u*ds)/v_ds
-        avg_ds0 = assemble(u*ds(0), exterior_facet_domains=facet_domains)/v_ds0
-        avg_ds1 = assemble(u*ds(1), exterior_facet_domains=facet_domains)/v_ds1
+        avg_ds0 = assemble(u*ds(0, subdomain_data=facet_domains))/v_ds0
+        avg_ds1 = assemble(u*ds(1, subdomain_data=facet_domains))/v_ds1
         
         assert abs(pp.get("DomainAvg_MockFunctionField") - avg) < 1e-8
         assert abs(pp.get("DomainAvg_MockFunctionField-dx0") - avg_dx0) < 1e-8
@@ -780,12 +776,12 @@ def test_DomainAvg_DomainSD(problem, pp, start_time, end_time, dt):
         assert abs(pp.get("DomainAvg_MockFunctionField-ds1") - avg_ds1) < 1e-8
         
         std = sqrt(assemble((u-Constant(avg))**2*dx)/v)
-        std_dx0 = sqrt(assemble((u-Constant(avg_dx0))**2*dx(0), cell_domains=cell_domains)/v_dx0)
-        std_dx1 = sqrt(assemble((u-Constant(avg_dx1))**2*dx(1), cell_domains=cell_domains)/v_dx1)
+        std_dx0 = sqrt(assemble((u-Constant(avg_dx0))**2*dx(0, subdomain_data=cell_domains))/v_dx0)
+        std_dx1 = sqrt(assemble((u-Constant(avg_dx1))**2*dx(1, subdomain_data=cell_domains))/v_dx1)
         
         std_ds = sqrt(assemble((u-Constant(avg_ds))**2*ds)/v_ds)
-        std_ds0 = sqrt(assemble((u-Constant(avg_ds0))**2*ds(0), exterior_facet_domains=facet_domains)/v_ds0)
-        std_ds1 = sqrt(assemble((u-Constant(avg_ds1))**2*ds(1), exterior_facet_domains=facet_domains)/v_ds1)
+        std_ds0 = sqrt(assemble((u-Constant(avg_ds0))**2*ds(0, subdomain_data=facet_domains))/v_ds0)
+        std_ds1 = sqrt(assemble((u-Constant(avg_ds1))**2*ds(1, subdomain_data=facet_domains))/v_ds1)
         
         assert abs(pp.get("DomainSD_MockFunctionField") - std) < 1e-8
         assert abs(pp.get("DomainSD_MockFunctionField-dx0") - std_dx0) < 1e-8
@@ -795,12 +791,12 @@ def test_DomainAvg_DomainSD(problem, pp, start_time, end_time, dt):
         assert abs(pp.get("DomainSD_MockFunctionField-ds1") - std_ds1) < 1e-8
 
         avg = [assemble(uv[i]*dx)/v for i in xrange(D)]
-        avg_dx0 = [assemble(uv[i]*dx(0), cell_domains=cell_domains)/v_dx0 for i in xrange(D)]
-        avg_dx1 = [assemble(uv[i]*dx(1), cell_domains=cell_domains)/v_dx1 for i in xrange(D)]
+        avg_dx0 = [assemble(uv[i]*dx(0, subdomain_data=cell_domains))/v_dx0 for i in xrange(D)]
+        avg_dx1 = [assemble(uv[i]*dx(1, subdomain_data=cell_domains))/v_dx1 for i in xrange(D)]
 
         avg_ds = [assemble(uv[i]*ds)/v_ds for i in xrange(D)]
-        avg_ds0 = [assemble(uv[i]*ds(0), exterior_facet_domains=facet_domains)/v_ds0 for i in xrange(D)]
-        avg_ds1 = [assemble(uv[i]*ds(1), exterior_facet_domains=facet_domains)/v_ds1 for i in xrange(D)]
+        avg_ds0 = [assemble(uv[i]*ds(0, subdomain_data=facet_domains))/v_ds0 for i in xrange(D)]
+        avg_ds1 = [assemble(uv[i]*ds(1, subdomain_data=facet_domains))/v_ds1 for i in xrange(D)]
 
         assert max(abs(x-y) for x,y in zip(avg, pp.get("DomainAvg_MockVectorFunctionField"))) < 1e-8
         assert max(abs(x-y) for x,y in zip(avg_dx0, pp.get("DomainAvg_MockVectorFunctionField-dx0"))) < 1e-8
@@ -811,13 +807,12 @@ def test_DomainAvg_DomainSD(problem, pp, start_time, end_time, dt):
         assert max(abs(x-y) for x,y in zip(avg_ds1, pp.get("DomainAvg_MockVectorFunctionField-ds1"))) < 1e-8
         
         std = [sqrt(assemble((uv[i]-Constant(avg[i]))**2*dx)/v) for i in xrange(D)]
-        std_dx0 = [sqrt(assemble((uv[i]-Constant(avg_dx0[i]))**2*dx(0), cell_domains=cell_domains)/v_dx0) for i in xrange(D)]
-        std_dx1 = [sqrt(assemble((uv[i]-Constant(avg_dx1[i]))**2*dx(1), cell_domains=cell_domains)/v_dx1) for i in xrange(D)]
+        std_dx0 = [sqrt(assemble((uv[i]-Constant(avg_dx0[i]))**2*dx(0, subdomain_data=cell_domains))/v_dx0) for i in xrange(D)]
+        std_dx1 = [sqrt(assemble((uv[i]-Constant(avg_dx1[i]))**2*dx(1, subdomain_data=cell_domains))/v_dx1) for i in xrange(D)]
         
         std_ds = [sqrt(assemble((uv[i]-Constant(avg_ds[i]))**2*ds)/v_ds) for i in xrange(D)]
-        std_ds0 = [sqrt(assemble((uv[i]-Constant(avg_ds0[i]))**2*ds(0), exterior_facet_domains=facet_domains)/v_ds0) for i in xrange(D)]
-        std_ds1 = [sqrt(assemble((uv[i]-Constant(avg_ds1[i]))**2*ds(1), exterior_facet_domains=facet_domains)/v_ds1) for i in xrange(D)]
-        
+        std_ds0 = [sqrt(assemble((uv[i]-Constant(avg_ds0[i]))**2*ds(0, subdomain_data=facet_domains))/v_ds0) for i in xrange(D)]
+        std_ds1 = [sqrt(assemble((uv[i]-Constant(avg_ds1[i]))**2*ds(1, subdomain_data=facet_domains))/v_ds1) for i in xrange(D)]
         
         assert max(abs(x-y) for x,y in zip(std, pp.get("DomainSD_MockVectorFunctionField"))) < 1e-8
         assert max(abs(x-y) for x,y in zip(std_dx0, pp.get("DomainSD_MockVectorFunctionField-dx0"))) < 1e-8
@@ -860,12 +855,12 @@ def test_Restrict(problem, pp, start_time, end_time, dt):
         # Run postprocessing step
         pp.update_all({}, t, timestep)
 
-        assert abs(assemble(pp.get("MockFunctionField")*dx(1), cell_domains=cell_domains) - \
+        assert abs(assemble(pp.get("MockFunctionField")*dx(1, subdomain_data=cell_domains)) - \
                    assemble(pp.get("Restrict_MockFunctionField")*dx)) < 1e-8
 
         uv = pp.get("MockVectorFunctionField")
         uvr = pp.get("Restrict_MockVectorFunctionField")
-        assert abs(assemble(inner(uv,uv)*dx(1), cell_domains=cell_domains) - assemble(inner(uvr, uvr)*dx)) < 1e-8
+        assert abs(assemble(inner(uv,uv)*dx(1, subdomain_data=cell_domains)) - assemble(inner(uvr, uvr)*dx)) < 1e-8
 
 @require_fenicstools14
 def test_SubFunction(problem, pp, start_time, end_time, dt):
@@ -902,8 +897,6 @@ def test_SubFunction(problem, pp, start_time, end_time, dt):
     for timestep, t in enumerate(timesteps, start_timestep):
         # Run postprocessing step
         pp.update_all({}, t, timestep)
-        #assert errornorm(interpolate(mff.expr, Q_sub), pp.get("SubFunction_MockFunctionField"), degree_rise=0) < 1e-8
-        #assert errornorm(interpolate(mvff.expr, V_sub), pp.get("SubFunction_MockVectorFunctionField"), degree_rise=0) < 1e-8
         assert abs(norm(interpolate(mff.expr, Q_sub)) - norm(pp.get("SubFunction_MockFunctionField"))) < 1e-8
         assert abs(norm(interpolate(mvff.expr, V_sub)) - norm(pp.get("SubFunction_MockVectorFunctionField"))) < 1e-8
 
@@ -930,7 +923,6 @@ def test_Magnitude(problem, pp, start_time, end_time, dt):
         Magnitude("MockVectorFunctionField"),
     ])
     
-    #self.expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
     if D == 2:
         vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2))", t=0.0)
     elif D == 3:
@@ -948,7 +940,4 @@ def test_Magnitude(problem, pp, start_time, end_time, dt):
 
         assert norm(f.vector()-pp.get("Magnitude_MockFunctionField").vector())<1e-12
         assert norm(fv.vector()-pp.get("Magnitude_MockVectorFunctionField").vector())<1e-12
-    
-        
-    
     

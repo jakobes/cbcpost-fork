@@ -17,6 +17,7 @@
 
 from dolfin import Cell, Facet
 from numpy import where
+from distutils.version import LooseVersion, StrictVersion
 
 def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
     "Find the mapping between dofs on boundary and boundary dofs of full mesh"
@@ -66,7 +67,8 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                 cdofs = cell_dofs[V_dm.tabulate_entity_dofs(0, mesh_list_idx)]
 
                 for bdof, cdof in zip(bdofs, cdofs):
-                    if dolfin_version() in ["1.4.0+", "1.5.0"]:
+                    #if dolfin_version() in ["1.4.0+", "1.5.0", "1.6.0"]:
+                    if LooseVersion(dolfin_version()) > LooseVersion("1.4.0"):
                         bdof = Vb_dm.local_to_global_index(bdof)
                         cdof = V_dm.local_to_global_index(cdof)
                     if not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
@@ -77,7 +79,8 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
             bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(2,0)]
             cdofs = cell_dofs[V_dm.tabulate_entity_dofs(3,0)]
             for bdof, cdof in zip(bdofs, cdofs):
-                if dolfin_version() in ["1.4.0+", "1.5.0"]:
+                #if dolfin_version() in ["1.4.0+", "1.5.0"]:
+                if LooseVersion(dolfin_version()) > LooseVersion("1.4.0"):
                     bdof = Vb_dm.local_to_global_index(bdof)
                     cdof = V_dm.local_to_global_index(cdof)
 
@@ -91,9 +94,11 @@ if __name__ == '__main__':
     import numpy as np
     mesh = UnitCubeMesh(3,3,3)
     #mesh = UnitSquareMesh(4,4)
-    V = VectorFunctionSpace(mesh, "CG", 1)
+    #V = VectorFunctionSpace(mesh, "CG", 1)
+    V = FunctionSpace(mesh, "CG", 1)
     bmesh = BoundaryMesh(mesh, "exterior")
-    Vb = VectorFunctionSpace(bmesh, "CG", 1)
+    #Vb = VectorFunctionSpace(bmesh, "CG", 1)
+    Vb = FunctionSpace(bmesh, "CG", 1)
     
     
     dm = V.dofmap()
@@ -104,9 +109,9 @@ if __name__ == '__main__':
     values = np.array(mapping.values(), dtype=np.intc)
     
     t = 3.0
-    #expr = Expression("1+x[0]*x[1]*t", t=t)
+    expr = Expression("1+x[0]*x[1]*t", t=t)
     #expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
-    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
+    #expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
     
     u = interpolate(expr, V)
     ub = interpolate(expr, Vb)
@@ -142,6 +147,8 @@ if __name__ == '__main__':
     #exit()
     #ub2.vector().__setitem__(keys, u.vector().__getitem__(values))
     #ub2.vector()[keys] = u.vector()[values]
+    print "Keys: ", keys
+    print "Values: ", values
     get_set_vector(ub2.vector(), keys, u.vector(), values)
     
     print assemble(sqrt(inner(ub2,ub2))*dx)

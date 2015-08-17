@@ -320,12 +320,16 @@ def test_store_mesh(casedir):
 
     e = Expression("1+x[1]")
 
-    C1 = assemble(e*dx(1, domain=mesh), cell_domains=celldomains)
-    C2 = assemble(e*dx(1, domain=mesh2), cell_domains=celldomains2)
+    #C1 = assemble(e*dx(1, domain=mesh), cell_domains=celldomains)
+    C1 = assemble(e*dx(1, domain=mesh, subdomain_data=celldomains))
+    #C2 = assemble(e*dx(1, domain=mesh2), cell_domains=celldomains2)
+    C2 = assemble(e*dx(1, domain=mesh2, subdomain_data=celldomains2))
     assert abs(C1-C2) < 1e-10
 
-    F1 = assemble(e*ds(1, domain=mesh),exterior_facet_domains=facetdomains)
-    F2 = assemble(e*ds(1, domain=mesh2), exterior_facet_domains=facetdomains2)
+    #F1 = assemble(e*ds(1, domain=mesh),exterior_facet_domains=facetdomains)
+    #F2 = assemble(e*ds(1, domain=mesh2), exterior_facet_domains=facetdomains2)
+    F1 = assemble(e*ds(1, domain=mesh, subdomain_data=facetdomains))
+    F2 = assemble(e*ds(1, domain=mesh2, subdomain_data=facetdomains2))
     assert abs(F1-F2) < 1e-10
 
 def test_store_params(casedir):

@@ -26,7 +26,7 @@ cbcpost is Copyright (2011-2014) by the authors and Simula Research Laboratory.
 Documentation
 -------------
 
-TODO
+Documentation is availble at [http://cbcpost.readthedocs.org/en/latest/](http://cbcpost.readthedocs.org/en/latest/).
 
 Installation
 ------------
@@ -51,4 +51,3 @@ Please report bugs and other issues through the bitbucket issue tracker at:
 More about the Center for Biomedical Computing can be found at
 
   http://cbc.simula.no
-

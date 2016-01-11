@@ -274,9 +274,22 @@ def test_str_rendering():
     s = str(record)
     assert record["identity"] == pdid
 
-def test_arg_rendering():
-    pass # TODO
-
-def test_arg_parsing():
-    pass # TODO
-
+def test_arg_rendering_parsing():
+    pdid = ParamDict(a=1, b=2)
+    pdin = ParamDict(a=1, b=3)
+    pdout = ParamDict(a=1, b=4)
+    record = ParamDict(a="foo", b="bar", c=(1,2,"foo"),
+                       identity=pdid,
+                       input=pdin,
+                       output=pdout)
+    
+    pd_default = ParamDict(a=None,b=None)
+    pd = ParamDict(identity=pd_default,
+                   input=pd_default,
+                   output=pd_default,
+                   c = None,
+                   **pd_default)
+    
+    assert pd != record
+    pd.parse_args(record.render_args())
+    assert pd == record

@@ -266,7 +266,7 @@ class ParamDict(dict):
         p = self
         for s in subs:
             p = p[s]
-        if vname in self:
+        if vname in p:
             #value = value.split(',')
             value = re.split("\s*,\s*",value)
             for i,v in enumerate(value):
@@ -302,7 +302,7 @@ class ParamDict(dict):
         args = re.sub("=\s+", "=", args)
         args = re.sub("['\"()[]", "", args)
         
-        m = re.findall(r'([^\s]+\S+)=(.+?(?=\s+\S+=|$))', args)
+        m = re.findall(r'([^\s]*\S+)=(.+?(?=\s+\S+=|$))', args)
         
         for k, v in m:
             self.arg_assign(k, v)

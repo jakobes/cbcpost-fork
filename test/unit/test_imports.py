@@ -19,7 +19,8 @@ def test_imports():
         exec("from cbcpost import %s" %mf)
 
     # Tools
-    tools = ["ParamDict", "Parameterized", "SpacePool", "get_grad_space"]
+    tools = ["ParamDict", "Parameterized", "SpacePool", "get_grad_space",
+             "set_parse_command_line_arguments", "get_parse_command_line_arguments"]
     for t in tools:
         exec("from cbcpost import %s" %t)
 

@@ -26,11 +26,13 @@ del _defaultmod
 
 _use_cmdline_args = False
 def set_parse_command_line_arguments(option):
+    "Switch on/off command line argument parsing"
     assert option in [0,1,True,False]
     global _use_cmdline_args 
     _use_cmdline_args = option
 
 def get_parse_command_line_arguments():
+    "Return whether to parse command line arguments"
     return _use_cmdline_args
 
 

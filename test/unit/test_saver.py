@@ -269,7 +269,7 @@ def test_get_casedir(casedir):
     pp.update_all({}, 0.0, 0)
 
     assert len(os.listdir(pp.get_casedir())) == 1
-    pp._saver._clean_casedir()
+    pp.clean_casedir()
     assert len(os.listdir(pp.get_casedir())) == 0
 
 def test_playlog(casedir):

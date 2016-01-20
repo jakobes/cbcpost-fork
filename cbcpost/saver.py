@@ -82,6 +82,7 @@ class Saver():
 
     def _clean_casedir(self):
         "Cleans out all files produced by cbcpost in the current casedir."
+        MPI.barrier(mpi_comm_world())
         if on_master_process():
             if os.path.isdir(self.get_casedir()):
                 try:

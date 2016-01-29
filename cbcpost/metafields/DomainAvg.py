@@ -18,7 +18,7 @@
 
 from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import cbc_warning
-from dolfin import assemble, dx, Function, Constant, Measure, MeshFunction
+from dolfin import assemble, dx, Function, Constant, Measure, MeshFunctionSizet
 
 def _init_measure(measure="default", cell_domains=None, facet_domains=None, indicator=None):
     assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"

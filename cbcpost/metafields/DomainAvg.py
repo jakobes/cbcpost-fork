@@ -83,7 +83,7 @@ class DomainAvg(MetaField):
             return
 
         # Find mesh/domain
-        if isinstance(self.dI.subdomain_data(), MeshFunction):
+        if isinstance(self.dI.subdomain_data(), MeshFunctionSizet):
             mesh = self.dI.subdomain_data().mesh()
         elif isinstance(u, Function):
             mesh = u.function_space().mesh()

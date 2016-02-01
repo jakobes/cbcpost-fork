@@ -74,10 +74,10 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                     if not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
                         continue
                     dofmap_to_boundary[bdof] = cdof
-
-        if V_dm.num_entity_dofs(3) > 0 and V_dm.num_entity_dofs(0) == 0:
-            bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(2,0)]
-            cdofs = cell_dofs[V_dm.tabulate_entity_dofs(3,0)]
+        
+        if V_dm.num_entity_dofs(D+1) > 0 and V_dm.num_entity_dofs(0) == 0:
+            bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(D,0)]
+            cdofs = cell_dofs[V_dm.tabulate_entity_dofs(D+1,0)]
             for bdof, cdof in zip(bdofs, cdofs):
                 #if dolfin_version() in ["1.4.0+", "1.5.0"]:
                 if LooseVersion(dolfin_version()) > LooseVersion("1.4.0"):
@@ -92,13 +92,13 @@ if __name__ == '__main__':
     from cbcpost.utils.utils import get_set_vector
     from dolfin import *
     import numpy as np
-    mesh = UnitCubeMesh(3,3,3)
-    #mesh = UnitSquareMesh(4,4)
+    #mesh = UnitCubeMesh(3,3,3)
+    mesh = UnitSquareMesh(4,4)
     #V = VectorFunctionSpace(mesh, "CG", 1)
-    V = FunctionSpace(mesh, "CG", 1)
+    V = FunctionSpace(mesh, "DG", 0)
     bmesh = BoundaryMesh(mesh, "exterior")
     #Vb = VectorFunctionSpace(bmesh, "CG", 1)
-    Vb = FunctionSpace(bmesh, "CG", 1)
+    Vb = FunctionSpace(bmesh, "DG", 0)
     
     
     dm = V.dofmap()

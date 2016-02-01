@@ -257,7 +257,7 @@ class Saver():
         # TODO: Link vector when function has been written to hash
         datafile.write(data.vector(), field_name+str(timestep)+"/vector")
 
-        # HDF5File.close is broken in 1.4, but fixed in dev.
+        # HDF5File.close is broken in 1.4
         if dolfin_version() == "1.4.0+":
             datafile.close()
         del datafile

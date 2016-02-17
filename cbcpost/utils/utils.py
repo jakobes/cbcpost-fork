@@ -17,14 +17,41 @@
 """Smaller utilities used across cbcpost."""
 
 import keyword
-import os
+import os, imp, sys
+from types import ModuleType
 from time import time
 from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning, dolfin_version
 
 def import_fenicstools():
     "Import fenicstools helper function."
-    import fenicstools
+    if hasattr(import_fenicstools, "_fenicstools"):
+        return import_fenicstools._fenicstools
+    
+    imp.find_module("fenicstools")
+    try:
+        import fenicstools
+    except:
+        location = imp.find_module("fenicstools")[1]
+        fenicstools = ModuleType("fenicstools")
+        _syspath = sys.path
+        sys.path = [location]
+
+        from Probe import Probe, Probes
+        from common import getMemoryUsage
+        import WeightedGradient
+        from WeightedGradient import weighted_gradient_matrix, compiled_gradient_module
+        fenicstools.Probe = Probe
+        fenicstools.Probes = Probes
+        fenicstools.getMemoryUsage = getMemoryUsage
+        fenicstools.weighted_gradient_matrix = weighted_gradient_matrix
+        fenicstools.compiled_gradient_module = compiled_gradient_module
+        fenicstools.WeightedGradient = WeightedGradient
+        
+        sys.path = _syspath
+    import_fenicstools._fenicstools = fenicstools
     return fenicstools
+
+
 
 def on_master_process():
     """Return True if on process number 0."""

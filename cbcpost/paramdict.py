@@ -300,7 +300,7 @@ class ParamDict(dict):
         #args = args.replace("")
         args = re.sub("\s+=", "=", args)
         args = re.sub("=\s+", "=", args)
-        args = re.sub("['\"()[]", "", args)
+        args = re.sub("[\]'\"()[]", "", args)
         
         m = re.findall(r'([^\s]*\S+)=(.+?(?=\s+\S+=|$))', args)
         

@@ -78,7 +78,12 @@ class Magnitude(MetaField):
                     for i in xrange(u.function_space().num_sub_spaces()):
                         Vi = u.function_space().extract_sub_space([i]).collapse()
                         dmi = Vi.dofmap()
-                        diff = dmi.tabulate_all_coordinates(mesh)-dm0.tabulate_all_coordinates(mesh)
+                        try:
+                            # For 1.6.0+ and newer
+                            diff = Vi.tabulate_dof_coordinates()-V.tabulate_dof_coordinates()
+                        except:
+                            # For 1.6.0 and older
+                            diff = dmi.tabulate_all_coordinates(mesh)-dm0.tabulate_all_coordinates(mesh)    
                         if len(diff) > 0:
                             max_diff = max(abs(diff))
                         else:

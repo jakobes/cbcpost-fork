@@ -6,7 +6,7 @@ from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField,
 from collections import defaultdict
 
 from cbcpost import *
-from cbcpost.utils import cbc_warning, create_submesh
+from cbcpost.utils import cbc_warning, create_submesh, import_fenicstools
 
 import pytest
 
@@ -40,7 +40,7 @@ def has_h5py():
 
 def has_fenicstools():
     try:
-        import fenicstools
+        import_fenicstools()
         return True
     except:
         return False

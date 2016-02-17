@@ -38,8 +38,14 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
     if V.num_sub_spaces() > 0:
         mapping = {}
         if MPI.size(mpi_comm_world()) == 1:
-            all_coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(V.dim(), D)
-            all_coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Vb.dim(), D)
+            try:
+                # For 1.6.0+ and newer
+                all_coords = V.tabulate_dof_coordinates().reshape(V.dim(), D)
+                all_coordsb = Vb.tabulate_dof_coordinates().reshape(Vb.dim(), D)
+            except:
+                # For 1.6.0 and older
+                all_coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(V.dim(), D)
+                all_coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Vb.dim(), D)
         else:
             all_coords = None
             all_coordsb = None
@@ -61,15 +67,31 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
         if _all_coords != None:
             coords = _all_coords[V.dofmap().dofs()]
         else:
-            coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
+            try:
+                # For 1.6.0+ and newer
+                coords = V.collapse().tabulate_dof_coordinates().reshape(N, D)
+            except:
+                # For 1.6.0 and older
+                coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
         
         if _all_coordsb != None:
             coordsb = _all_coordsb[Vb.dofmap().dofs()]
         else:
-            coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
+            try:
+                # For 1.6.0+ and newer
+                coordsb = Vb.collapse().tabulate_dof_coordinates().reshape(Nb, D)
+            except:
+                # For 1.6.0 and older
+                coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
     else:
-        coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
-        coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
+        try:
+            # For 1.6.0+ and newer
+            coords = V.tabulate_dof_coordinates().reshape(N, D)
+            coordsb = Vb.tabulate_dof_coordinates().reshape(Nb, D)
+        except:
+            # For 1.6.0 and older
+            coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
+            coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
 
     # Build KDTree to compute distances from coordinates in base
     kdtree = KDTree(coords)

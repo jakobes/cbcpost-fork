@@ -206,7 +206,10 @@ class Saver():
             datafile.parameters["rewrite_function_mesh"] = False
             datafile.parameters["flush_output"] = True
             self._datafile_cache[key] = datafile
-        datafile << (data, float(t))
+        try:
+            datafile.write(data, float(t))
+        except:
+            datafile << (data, float(t))
         return metadata
 
     def _update_hdf5_file(self, field_name, saveformat, data, timestep, t):

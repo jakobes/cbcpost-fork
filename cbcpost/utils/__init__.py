@@ -25,6 +25,7 @@ from restriction_map import restriction_map
 from submesh import create_submesh
 from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
 from Slice import Slice
+from connectivity import compute_connectivity
 
 
 from inspect import getmodule as _getmodule

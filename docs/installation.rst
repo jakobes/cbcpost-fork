@@ -27,7 +27,7 @@ The installation of cbcpost requires the following environment:
     * Numpy
     * Scipy
     * dbhash, dbm or gdbm
-    * (`FEniCS <http://fenicsproject.org>`_) 1.4.0
+    * `FEniCS <http://fenicsproject.org>`_ 1.4.0 or newer
 
 To install FEniCS, please refer to the `FEniCS download page
 <http://fenicsproject.org/download/>`_. cbcpost follows the same version numbering

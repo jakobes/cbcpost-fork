@@ -21,6 +21,11 @@ from cbcpost.utils.connectivity import compute_connectivity
 from cbcpost.utils.submesh import create_submesh
 import numpy as np
 
+class Slice(Mesh):
+    "Deprecated Slice-class"
+    def __init__(self, *args, **kwargs):
+        raise RuntimeError("Deprecated. Use create_slice to create slicemesh.")
+
 def create_slice(basemesh, point, normal, closest_region=False, crinkle_clip=False):
     """Create a slicemesh from a basemesh.
 

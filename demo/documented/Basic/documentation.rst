@@ -140,12 +140,12 @@ We can also define fields to inspect parts of other fields. For this, we use som
 For this problem, the domain of a different diffusivity lies entirely within the unit cube, and thus it may
 make sense to view some of the interior. We start by creating (sub)meshes of the domains we wish to inspect: ::
 
-    from cbcpost.utils import create_submesh, Slice
+    from cbcpost.utils import create_submesh, create_slice
     celldomains = CellFunction("size_t", mesh)
     celldomains.set_all(0)
     AutoSubDomain(inside).mark(celldomains, 1)
 
-    slicemesh = Slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
+    slicemesh = create_slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
     submesh = create_submesh(mesh, celldomains, 1)
 
 We then add instances of the fields :class:`.PointEval`, :class:`.SubFunction` and :class:`.Restrict` to the

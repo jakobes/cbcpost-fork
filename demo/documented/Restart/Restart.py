@@ -73,8 +73,8 @@ pp.add_field(SolutionField("Temperature", dict(save=True,
                                                plot_args=dict(range_min=-params.amplitude, range_max=params.amplitude),
                                                )))
 
-from cbcpost.utils import Slice
-slicemesh = Slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
+from cbcpost.utils import create_slice
+slicemesh = create_slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
 pp.add_fields([
     SubFunction("Temperature", slicemesh, dict(plot=True, plot_args=dict(range_min=-params.amplitude, range_max=params.amplitude, mode="color"))),
     ])

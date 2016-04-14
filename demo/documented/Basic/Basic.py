@@ -77,12 +77,12 @@ pp.add_fields([
     ])
 
 # Inspect part of solution
-from cbcpost.utils import create_submesh, Slice
+from cbcpost.utils import create_submesh, create_slice
 cell_domains = CellFunction("size_t", mesh)
 cell_domains.set_all(0)
 AutoSubDomain(inside).mark(cell_domains, 1)
 
-slicemesh = Slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
+slicemesh = create_slice(mesh, (0.7,0.5,0.5), (0.0,0.0,1.0))
 submesh = create_submesh(mesh, cell_domains, 1)
 
 pp.add_fields([

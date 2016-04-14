@@ -31,7 +31,6 @@ class Parameterized(object):
         self.params.replace(params)
         if get_parse_command_line_arguments():
             args = sys.argv[1:]
-            args = " ".join(args)
             self.params.parse_args(args)
 
         # Assert for each subclass that we have all keys,

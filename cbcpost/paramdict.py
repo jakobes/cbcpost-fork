@@ -296,8 +296,9 @@ class ParamDict(dict):
 
     def parse_args(self, args):
         "Parse command line arguments into self"
-        #m = re.findall(r'([^ =]+)=([^ ]+)', args)
-        #args = args.replace("")
+        if isinstance(args, list):
+            args = " ".join(args)
+
         args = re.sub("\s+=", "=", args)
         args = re.sub("=\s+", "=", args)
         args = re.sub("[\]'\"()[]", "", args)

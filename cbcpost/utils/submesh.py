@@ -51,8 +51,8 @@ def create_submesh(mesh, markers, marker):
     base_global_vertex_indices = sorted([mesh.topology().global_indices(0)[vi] for vi in base_vertex_indices])
 
     gi = mesh.topology().global_indices(0)
-    shared_global_indices = set(base_vertex_indices).intersection(set(mesh.topology().shared_entities(0).keys()))
-    shared_global_indices = [gi[vi] for vi in shared_global_indices]
+    shared_local_indices = set(base_vertex_indices).intersection(set(mesh.topology().shared_entities(0).keys()))
+    shared_global_indices = [gi[vi] for vi in shared_local_indices]
 
     unshared_global_indices = list(set(base_global_vertex_indices)-set(shared_global_indices))
     unshared_vertices_dist = distribution(len(unshared_global_indices))
@@ -132,7 +132,34 @@ def create_submesh(mesh, markers, marker):
     # FIXME: Set up shared entities
     # What damage does this do?
     submesh.topology().shared_entities(0)[0] = []
+    # The code below sets up shared vertices, but lacks shared facets.
+    # It is considered incomplete, and therefore commented out
+    '''
+    #submesh.topology().shared_entities(0)[0] = []
+    from dolfin import compile_extension_module
+    cpp_code = """
+    void set_shared_entities(Mesh& mesh, std::size_t idx, const Array<std::size_t>& other_processes)
+    {
+        std::set<unsigned int> set_other_processes;
+        for (std::size_t i=0; i<other_processes.size(); i++)
+        {
+            set_other_processes.insert(other_processes[i]);
+            //std::cout << idx << " --> " << other_processes[i] << std::endl;
+        }
+        //std::cout << idx << " --> " << set_other_processes[0] << std::endl;
+        mesh.topology().shared_entities(0)[idx] = set_other_processes;
+    }
+    """
+    
+    set_shared_entities = compile_extension_module(cpp_code).set_shared_entities
+    base_se = mesh.topology().shared_entities(0)
+    se = submesh.topology().shared_entities(0)
 
+    for li in shared_local_indices:
+        arr = np.array(base_se[li], dtype=np.uintp)
+        sub_li = base_to_sub_local_indices[li]
+        set_shared_entities(submesh, base_to_sub_local_indices[li], arr)
+    '''
     return submesh
 
 

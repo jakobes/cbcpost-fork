@@ -1,3 +1,22 @@
+# Copyright (C) 2010-2014 Simula Research Laboratory
+#
+# This file is part of CBCPOST.
+#
+# CBCPOST is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CBCPOST is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+"""
+Functionality for computing connectivity of a mesh. 
+"""
 from dolfin import *
 import numpy as np
 from collections import deque
@@ -27,6 +46,9 @@ def _compute_connected_vertices(mesh, start=0):
 
 from cbcpost.utils.mpi_utils import broadcast, distribution, gather
 def compute_connectivity(mesh, cell_connectivity=True):
+    """Compute connected regions of mesh.
+    Regions are considered connected if they share a vertex through an edge.
+    """
     # Compute first vertex connectivity (defined by sharing edges)
     mesh.init(0,1)
     regions = VertexFunction("size_t", mesh)

@@ -145,6 +145,12 @@ class Field(Parameterized):
         "Called each time the quantity should be computed."
         raise NotImplementedError("A Field must implement the compute function!")
 
+    def explicit_dependencies(self):
+        """Can be overloaded to explicitly specify dependencies. This is useful for complex
+        fields where the normal dependency-checks fail.
+        """
+        return None
+
     # --- Helper functions
 
     def expr2function(self, expr, function):

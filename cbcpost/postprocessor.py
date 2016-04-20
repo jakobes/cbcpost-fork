@@ -55,7 +55,7 @@ class DependencyException(Exception):
 builtin_fields = ("t", "timestep")
 
 def find_dependencies(field):
-    "Read dependencies from source code in field.compute function"
+    "Read dependencies from source code in field.compute functions"
 
     # Get source of compute functions
     s = inspect.getsource(field.before_first_compute)
@@ -98,12 +98,12 @@ def find_dependencies(field):
             dep[0] = dep[0].replace("'","")
         else:
             # If get(self.somevariable), get the string hiding at self.somevariable
-            dep[0] = eval(dep[0].replace(self_arg, "field", 1))
+            #dep[0] = eval(dep[0].replace(self_arg, "field", 1))
 
             # TODO: Test alternative solution without eval (a matter of principle) and with better check:
-            #s, n = dep[0].split(".")
-            #assert s == self_arg, "Only support accessing strings through self."
-            #dep[0] = getattr(field, n)
+            s, n = dep[0].split(".")
+            assert s == self_arg, "Only support accessing strings through self."
+            dep[0] = getattr(field, n)
 
             # TODO: Possible to get variable in other cases through more introspection?
             #       Probably not necessary, just curious.
@@ -255,7 +255,10 @@ class PostProcessor(Parameterized):
         self.add_fields(field.add_fields(), "ignore")
 
         # Analyze dependencies of field through source inspection
-        deps = find_dependencies(field)
+        deps = field.explicit_dependencies()
+        if deps == None:
+            deps = find_dependencies(field)
+
         for dep in deps:
             if dep[0] not in self._fields and dep[0] not in builtin_fields:
                 raise DependencyException(fieldname=field.name, dependency=dep[0])

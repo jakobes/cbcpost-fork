@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """Functionality for slicing a mesh."""
-from dolfin import Constant, MeshEditor, Mesh, MPI, mpi_comm_world
+from dolfin import Constant, MeshEditor, Mesh, MPI, mpi_comm_world, Point
 from cbcpost.utils.mpi_utils import distribute_meshdata, distribution
 from cbcpost.utils.connectivity import compute_connectivity
 from cbcpost.utils.submesh import create_submesh
@@ -47,7 +47,7 @@ def create_slice(basemesh, point, normal, closest_region=False, crinkle_clip=Fal
     """
     assert basemesh.geometry().dim() == 3, "Can only slice 3D-meshes."
 
-    P = np.array([point[0], point[1], point[2]])
+    P = np.array([point[0], point[1], point[2]], dtype=np.double)
 
     # Create unit normal
     n = np.array([normal[0],normal[1], normal[2]])

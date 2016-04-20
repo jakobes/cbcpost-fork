@@ -65,6 +65,10 @@ class Field(Parameterized):
         +----------------------+-----------------------+-------------------------------------------------------------------+
         | plot_args            | {}                    | Keyword arguments to pass to dolfin.plot.                         |
         +----------------------+-----------------------+-------------------------------------------------------------------+
+        | safe                 | True                  | Trigger safe computation. This allows get-calls to this field     |
+        |                      |                       | outside postprocessor. Set to False to rely on postprocessor      |
+        |                      |                       | and improve efficiency.                                           |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
         | save                 | False                 | Save Field after a directly triggered computation                 |
         +----------------------+-----------------------+-------------------------------------------------------------------+
         | save_as              | 'determined by data'  | Format(s) to save in. Allowed save formats:                       |
@@ -100,6 +104,7 @@ class Field(Parameterized):
             # Trigger and configure action after each direct compute request
             plot = False,
             plot_args={},
+            safe = True,
             save = False,
             save_as = cls.default_save_as(),
 

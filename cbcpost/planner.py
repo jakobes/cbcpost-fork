@@ -44,6 +44,8 @@ class Planner():
         # If we later wish to move configuration of field compute frequencies to NSPostProcessor,
         # it's easy to swap here with e.g. fp = self._field_params[field.name]
         fp = field.params
+        if not (fp.save or fp.plot or fp.safe):
+            return False
 
         # Limit by timestep interval
         s = fp.start_timestep
@@ -82,6 +84,9 @@ class Planner():
         # FIXME: This shouldn't be necessary. Required today to return a "running" timeintegral,
         # while also making sure that end-points are included.
         if not field.__class__.default_params()["finalize"] and not fp["finalize"]:
+            return False
+
+        if not (fp.save or fp.plot or fp.safe):
             return False
 
         # Already finalized

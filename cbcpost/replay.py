@@ -248,6 +248,7 @@ class Replay(Parameterized):
                 dependency = copy.copy(dependency)
                 dependency.params.save = False
                 dependency.params.plot = False
+                dependency.params.safe = False
 
                 dep_fields.append(dependency)
 
@@ -278,7 +279,7 @@ class Replay(Parameterized):
                 t_independent_fields.append(fieldname)
             elif min(t for dep,t in self.postproc._full_dependencies[fieldname]) == 0:
                 t_independent_fields.append(fieldname)
-        
+
         # Run replay
         sorted_keys = sorted(replay_plan.keys())
         N = max(sorted_keys)

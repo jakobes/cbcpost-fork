@@ -478,7 +478,8 @@ class PostProcessor(Parameterized):
         finalized = []
         for name in self._sorted_fields_keys:
             field = self._fields[name]
-            if field.params.finalize and name not in self._finalized:
+            fp = field.params
+            if fp.finalize and (fp.safe or fp.plot or fp.save) and name not in fp:
                 self.get(name, compute=False, finalize=True)
                 finalized.append(field)
 

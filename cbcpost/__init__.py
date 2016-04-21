@@ -38,6 +38,7 @@ def get_parse_command_line_arguments():
 
 # Helper functionality
 from cbcpost.spacepool import SpacePool, get_grad_space
+from cbcpost.meshpool import MeshPool
 from cbcpost.paramdict import ParamDict
 from cbcpost.parameterized import Parameterized
 

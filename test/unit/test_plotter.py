@@ -15,10 +15,6 @@ def test_pyplot():
     pp.update_all({}, 1.6, 3)
 
 def test_dolfinplot(mesh):
-    # TODO: This fails in dolfin 1.3 sometimes
-    if mesh.geometry().dim() == 2:
-        return
-
     pp = PostProcessor()
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(1,0)

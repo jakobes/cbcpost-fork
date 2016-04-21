@@ -27,10 +27,10 @@ class MeshPool(Mesh):
     "A mesh pool to reuse meshes across a program."
     _existing = weakref.WeakValueDictionary()
 
-    def __new__(cls, mesh, tolerance=1e-8):
+    def __new__(cls, mesh, tolerance=1e-12):
         X = SpatialCoordinate(mesh)
-        test = assemble(dot(X,X)*CellVolume(mesh)*dx())*assemble(Constant(1)*dx(domain=mesh))
-        
+        test = assemble(dot(X,X)*CellVolume(mesh)**(0.25)*dx())*assemble(Constant(1)*dx(domain=mesh))
+
         # Do a garbage collect to collect any garbage references
         # Needed for full parallel compatibility
         gc.collect()

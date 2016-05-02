@@ -7,26 +7,29 @@ def test_imports():
         exec("from cbcpost import %s" %c)
 
     # Field bases
-    field_bases = ["SolutionField", "Field", "MetaField", "MetaField2"]
+    field_bases = ["SolutionField", "Field", "MetaField", "MetaField2", "OperatorField", "ConstantField"]
     for f in field_bases:
         exec("from cbcpost import %s" %f)
 
     # Meta fields
     metafields = ["Boundary", "DomainAvg", "ErrorNorm", "Magnitude", "Maximum",
                   "Minimum", "Norm", "PointEval", "Restrict", "SubFunction", "TimeAverage",
-                  "TimeDerivative", "TimeIntegral", "DomainSD"]
+                  "TimeDerivative", "TimeIntegral", "DomainSD",
+                  "Add", "Subtract", "Multiply", "Divide"]
     for mf in metafields:
         exec("from cbcpost import %s" %mf)
 
     # Tools
     tools = ["ParamDict", "Parameterized", "SpacePool", "get_grad_space",
-             "set_parse_command_line_arguments", "get_parse_command_line_arguments"]
+             "set_parse_command_line_arguments", "get_parse_command_line_arguments",
+             "MeshPool"]
     for t in tools:
         exec("from cbcpost import %s" %t)
 
     # Modules
     modules = ["fieldbases", "meta_fields", "metafields", "planner", "plotter", "postprocessor",
-               "paramdict", "parameterized", "replay", "restart", "saver", "spacepool", "utils"]
+               "paramdict", "parameterized", "replay", "restart", "saver", "spacepool", "utils",
+               "meshpool"]
 
     # Check that imported core, field bases, meta fields and tools match entire cbcpost, excluding modules
     import cbcpost

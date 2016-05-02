@@ -207,7 +207,7 @@ class Loadable():
         return data
     
 from dolfin import Mesh, HDF5File, Function
-from cbcpost import SpacePool
+from cbcpost import SpacePool, MeshPool
 def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     "Create a function from metadata"
     assert metadata['type'] == 'Function'
@@ -223,6 +223,9 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
         hdf5file = HDF5File(mpi_comm_world(), os.path.join(pp.get_savedir(fieldname), "mesh.hdf5"), 'r')
         hdf5file.read(mesh, "Mesh", False)
         del hdf5file
+
+    # Replace loaded mesh if same mesh is loaded previously
+    mesh = MeshPool(mesh)
 
     shape = eval(metadata["element_value_shape"])
     degree = eval(metadata["element_degree"])

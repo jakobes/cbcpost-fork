@@ -19,6 +19,7 @@
 from dolfin import TestFunction, assemble, inner, dx, project, error, CellVolume
 from cbcpost import ParamDict, Parameterized
 
+
 class Field(Parameterized):
     """ Base class for all fields.
 
@@ -194,13 +195,34 @@ class Field(Parameterized):
         return result
 
     def __add__(self, o):
+        from cbcpost.metafields import Add
         return Add(self,o)
 
+    def __radd__(self, o):
+        from cbcpost.metafields import Add
+        return Add(o, self)
+
     def __mul__(self, o):
+        from cbcpost.metafields import Multiply
         return Multiply(self, o)
 
+    def __rmul__(self, o):
+        from cbcpost.metafields import Multiply
+        return Multiply(o, self)
+
     def __div__(self, o):
-        return Division(self,o)
+        from cbcpost.metafields import Divide
+        return Divide(self,o)
+
+    def __rdiv__(self, o):
+        from cbcpost.metafields import Divide
+        return Divide(o, self)
 
     def __sub__(self,o):
+        from cbcpost.metafields import Subtract
         return Subtract(self,o)
+
+    def __rsub__(self,o):
+        from cbcpost.metafields import Subtract
+        return Subtract(o, self)
+

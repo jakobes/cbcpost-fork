@@ -17,6 +17,7 @@
 """Functionality to implement operators on two fields"""
 from cbcpost.fieldbases.MetaField2 import MetaField2
 from cbcpost.fieldbases.ConstantField import ConstantField
+from cbcpost.fieldbases.Field import Field
 
 class OperatorField(MetaField2):
     "Base class for all operators on fields"

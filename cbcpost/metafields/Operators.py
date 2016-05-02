@@ -17,6 +17,7 @@
 """Different basic operators subclassing OperatorField"""
 from __future__ import division
 from cbcpost.fieldbases.OperatorField import OperatorField
+from numpy import nan
 
 class Add(OperatorField):
     """Add two fields"""
@@ -52,4 +53,6 @@ class Divide(OperatorField):
         b = get(self.valuename2)
         if a is None or b is None:
             return None
+        if b == 0.0:
+            return nan
         return a/b

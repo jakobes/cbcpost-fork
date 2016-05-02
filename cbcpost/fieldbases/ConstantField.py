@@ -22,5 +22,15 @@ class ConstantField(Field):
     def __init__(self, value, *params, **kwparams):
         Field.__init__(self, *params, **kwparams)
         self.value = value
+        #if self.label is None:
+        #    self.label = str(self.value)
+
+    @property
+    def name(self):
+        """Return name of field. By default this is *classname_valuename-label*,
+        but can be overloaded in subclass.
+        """
+        return str(self.value)
+
     def compute(self, get):
         return self.value

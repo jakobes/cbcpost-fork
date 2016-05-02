@@ -940,4 +940,107 @@ def test_Magnitude(problem, pp, start_time, end_time, dt):
 
         assert norm(f.vector()-pp.get("Magnitude_MockFunctionField").vector())<1e-12
         assert norm(fv.vector()-pp.get("Magnitude_MockVectorFunctionField").vector())<1e-12
+
+
+def test_Operators(problem, pp, start_time, end_time, dt):
+    # Setup some mock scheme state
+    dt, timesteps, start_timestep = compute_regular_timesteps(problem)
+    spacepool = SpacePool(problem.mesh)
+    Q = spacepool.get_space(1,0)
+    V = spacepool.get_space(1,1)
     
+    D = problem.mesh.geometry().dim()
+
+
+    pp.add_fields([
+        MockFunctionField(Q),
+        MockVectorFunctionField(V),
+        MockTupleField(),
+    ])
+
+    fields = [
+        Norm("MockFunctionField"),
+        Norm("MockFunctionField", dict(norm_type='L2')),
+        Norm("MockFunctionField", dict(norm_type='H10')),
+        Norm("MockVectorFunctionField"),
+        Norm("MockVectorFunctionField", dict(norm_type='L2')),
+        Norm("MockVectorFunctionField", dict(norm_type='H10')),
+        ]
+    pp.add_fields(fields)
+    
+    exact = dict()
+    exact["Norm_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q))
+    exact["Norm_L2_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q), 'L2')
+    exact["Norm_H10_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q), 'H10')
+    if D == 2:
+        exact["Norm_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V))
+        exact["Norm_L2_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'L2')
+        exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'H10')
+    elif D == 3:
+        exact["Norm_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V))
+        exact["Norm_L2_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'L2')
+        exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'H10')
+
+    for f1 in fields:
+        print f1.name
+        pp.add_field(f1+2.0)
+        pp.add_field(2.0+f1)
+        pp.add_field(f1-2.0)
+        pp.add_field(2.0-f1)
+        pp.add_field(f1*2.0)
+        pp.add_field(2.0*f1)
+        pp.add_field(f1/2.0)
+        pp.add_field(2.0/f1)
+        for f2 in fields:
+            pp.add_field(f1+f2)
+            pp.add_field(f1*f2)
+            pp.add_field(f1-f2)
+            pp.add_field(f1/f2)
+
+    # Update postprocessor for a number of timesteps, this is where the main code under test is
+    for timestep, t in enumerate(timesteps, start_timestep):
+        # Run postprocessing step
+        pp.update_all({}, t, timestep)
+        """
+        # Skip these time consuming tests
+        if start_time < t < end_time:
+            for f1 in fields:
+                E1 = exact[f1.name](t)
+                assert abs(pp.get("Add_%s_2.0" %f1.name) - (2.0+E1)) < 1e-14
+                assert abs(pp.get("Add_2.0_%s" %f1.name) - (2.0+E1)) < 1e-14
+                assert abs(pp.get("Subtract_%s_2.0" %f1.name) - (E1-2.0)) < 1e-14
+                assert abs(pp.get("Subtract_2.0_%s" %f1.name) - (2.0-E1)) < 1e-14
+                assert abs(pp.get("Multiply_%s_2.0" %f1.name) - (2.0*E1)) < 1e-14
+                assert abs(pp.get("Multiply_2.0_%s" %f1.name) - (2.0*E1)) < 1e-14
+                assert abs(pp.get("Divide_%s_2.0" %f1.name) - (E1/2.0)) < 1e-14
+                if abs(E1) > 1e-14:
+                    assert abs(pp.get("Divide_2.0_%s" %f1.name) - (2.0/E1)) < 1e-14
+                
+                for f2 in fields:
+                    E2 = exact[f2.name](t)
+                    assert abs(pp.get("Add_%s_%s" %(f1.name, f2.name))-(E1+E2)) < 1e-14
+                    assert abs(pp.get("Multiply_%s_%s" %(f1.name, f2.name))-(E1*E2)) < 1e-14
+                    assert abs(pp.get("Subtract_%s_%s" %(f1.name, f2.name))-(E1-E2)) < 1e-14
+                    if abs(E2) > 1e-14:
+                        assert abs(pp.get("Divide_%s_%s" %(f1.name, f2.name))-(E1/E2)) < 1e-14
+        """
+    pp.finalize_all()
+    for f1 in fields:
+        E1 = exact[f1.name](t)
+        assert abs(pp.get("Add_%s_2.0" %f1.name) - (2.0+E1)) < 1e-14
+        assert abs(pp.get("Add_2.0_%s" %f1.name) - (2.0+E1)) < 1e-14
+        assert abs(pp.get("Subtract_%s_2.0" %f1.name) - (E1-2.0)) < 1e-14
+        assert abs(pp.get("Subtract_2.0_%s" %f1.name) - (2.0-E1)) < 1e-14
+        assert abs(pp.get("Multiply_%s_2.0" %f1.name) - (2.0*E1)) < 1e-14
+        assert abs(pp.get("Multiply_2.0_%s" %f1.name) - (2.0*E1)) < 1e-14
+        assert abs(pp.get("Divide_%s_2.0" %f1.name) - (E1/2.0)) < 1e-14
+        if abs(E1) > 1e-14:
+            assert abs(pp.get("Divide_2.0_%s" %f1.name) - (2.0/E1)) < 1e-14
+        
+        for f2 in fields:
+            E2 = exact[f2.name](t)
+            assert abs(pp.get("Add_%s_%s" %(f1.name, f2.name))-(E1+E2)) < 1e-14
+            assert abs(pp.get("Multiply_%s_%s" %(f1.name, f2.name))-(E1*E2)) < 1e-14
+            assert abs(pp.get("Subtract_%s_%s" %(f1.name, f2.name))-(E1-E2)) < 1e-14
+            if abs(E2) > 1e-14:
+                assert abs(pp.get("Divide_%s_%s" %(f1.name, f2.name))-(E1/E2)) < 1e-14

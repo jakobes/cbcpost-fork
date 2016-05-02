@@ -26,7 +26,7 @@ def import_fenicstools():
     "Import fenicstools helper function."
     if hasattr(import_fenicstools, "_fenicstools"):
         return import_fenicstools._fenicstools
-    
+
     imp.find_module("fenicstools")
     try:
         import fenicstools
@@ -46,7 +46,7 @@ def import_fenicstools():
         fenicstools.weighted_gradient_matrix = weighted_gradient_matrix
         fenicstools.compiled_gradient_module = compiled_gradient_module
         fenicstools.WeightedGradient = WeightedGradient
-        
+
         sys.path = _syspath
     import_fenicstools._fenicstools = fenicstools
     return fenicstools
@@ -205,7 +205,7 @@ class Loadable():
             shelvefile.close()
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         return data
-    
+
 from dolfin import Mesh, HDF5File, Function
 from cbcpost import SpacePool, MeshPool
 def create_function_from_metadata(pp, fieldname, metadata, saveformat):

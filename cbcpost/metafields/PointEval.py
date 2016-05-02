@@ -75,7 +75,7 @@ class PointEval(MetaField):
     """Evaluate a Field in points.
 
     :param points: List of Points or tuples
-    
+
     .. note::
 
         This field requires fenicstools.
@@ -86,7 +86,7 @@ class PointEval(MetaField):
         MetaField.__init__(self, value, params, name, label)
         self.points = points
         self._ft = import_fenicstools()
-    
+
     @classmethod
     def default_params(cls):
         """
@@ -104,7 +104,7 @@ class PointEval(MetaField):
             broadcast_results=True,
             )
         return params
-    
+
 
     def before_first_compute(self, get):
         u = get(self.valuename)
@@ -145,7 +145,7 @@ class PointEval(MetaField):
         # Fetch array with probe values at this timestep
         #results = self.probes.array(self._probetimestep)
         results = self.probes.array()
-        
+
         if MPI.rank(mpi_comm_world()) != 0:
             results = np.array([], dtype=np.float_)
 

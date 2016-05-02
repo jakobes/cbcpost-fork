@@ -36,7 +36,7 @@ class Multiply(OperatorField):
         if a is None or b is None:
             return None
         return a*b
-            
+
 class Subtract(OperatorField):
     """Subtract two fields"""
     def compute(self, get):

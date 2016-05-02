@@ -38,7 +38,7 @@ namespace dolfin
     {
         VecSqrtAbs(vec->down_cast<PETScVector>().vec());
     }
-    
+
 }
 """
 try:
@@ -65,7 +65,7 @@ class Magnitude(MetaField):
                 mesh = V.mesh()
                 el = V.ufl_element()
                 self.f = Function(V)
-                
+
                 # Find out if we can operate directly on vectors, or if we have to use a projection
                 # We can operate on vectors if all sub-dofmaps are ordered the same way
                 # For simplicity, this is only tested for CG- or DG0-spaces
@@ -83,7 +83,7 @@ class Magnitude(MetaField):
                             diff = Vi.tabulate_dof_coordinates()-V.tabulate_dof_coordinates()
                         except:
                             # For 1.6.0 and older
-                            diff = dmi.tabulate_all_coordinates(mesh)-dm0.tabulate_all_coordinates(mesh)    
+                            diff = dmi.tabulate_all_coordinates(mesh)-dm0.tabulate_all_coordinates(mesh)
                         if len(diff) > 0:
                             max_diff = max(abs(diff))
                         else:
@@ -111,7 +111,7 @@ class Magnitude(MetaField):
 
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if isinstance(u, Function):
             if not hasattr(self, "use_project"):
                 self.before_first_compute(get)

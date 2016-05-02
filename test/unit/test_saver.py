@@ -94,7 +94,7 @@ def test_hdf5_save(mesh, casedir):
 
         assert md['saveformats'] == ['hdf5']
         md.close()
-        
+
         assert len(os.listdir(pp.get_savedir(mf.name))) == 2
 
         # Read back
@@ -278,7 +278,7 @@ def test_playlog(casedir):
     # Test playlog
     assert not os.path.isfile(os.path.join(casedir, 'play.db'))
     MPI.barrier(mpi_comm_world())
-    
+
     pp.update_all({}, 0.0, 0)
 
     playlog = pp.get_playlog('r')

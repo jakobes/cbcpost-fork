@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """
-Functionality for computing connectivity of a mesh. 
+Functionality for computing connectivity of a mesh.
 """
 from dolfin import *
 import numpy as np
@@ -54,7 +54,7 @@ def compute_connectivity(mesh, cell_connectivity=True):
     regions = VertexFunction("size_t", mesh)
     regions.set_all(0)
     i = 0
-    
+
     while True:
         i += 1
 
@@ -65,12 +65,12 @@ def compute_connectivity(mesh, cell_connectivity=True):
         tic()
         connectivity = _compute_connected_vertices(mesh, start)
         regions.array()[connectivity.array()] = i
-    
+
     dist = distribution(np.max(regions.array()))
 
     # Make all regions separate (regions on different processes are currently considered disjoint)
     regions.array()[:] += np.sum(dist[:MPI.rank(mesh.mpi_comm())])
-    
+
     # Find global indices of all vertices shared by more than one process
     global_indices = mesh.topology().global_indices(0)
     se = mesh.topology().shared_entities(0)
@@ -81,15 +81,15 @@ def compute_connectivity(mesh, cell_connectivity=True):
     gi = gather(gi_local, 0)
     gi = np.hstack(gi).flatten()
     gi = broadcast(gi, 0)
-    
+
     # gi is now common on all processes
-    
+
     # Connect disjointed regions through shared vertices
     while True:
         v = regions.array()[se.keys()]
         d = dict(zip(gi_local,v))
         shift = dict()
-            
+
         for gidx in gi:
             lidx = mapping.get(gidx, -1)
             this_v = d.get(gidx, np.inf)
@@ -105,8 +105,8 @@ def compute_connectivity(mesh, cell_connectivity=True):
 
         for k,v in shift.items():
             regions.array()[regions.array()==k] = v
-        
-        # Condense regions, so that M == number of regions        
+
+        # Condense regions, so that M == number of regions
         M = int(MPI.max(mesh.mpi_comm(), float(np.max(regions.array()))))
         values = np.unique(regions.array())
         for i in range(1,M+1):
@@ -114,7 +114,7 @@ def compute_connectivity(mesh, cell_connectivity=True):
             if has_value == 0:
                 regions.array()[regions.array()>i] -= 1
                 values = np.unique(regions.array())
-    
+
     if cell_connectivity:
         cf = CellFunction("size_t", mesh)
         cf.set_all(0)
@@ -132,13 +132,13 @@ if __name__ == '__main__':
     #print "hei"
     domain = mshr.Sphere(Point(-1.0,0.0,0.0), 0.8)+mshr.Sphere(Point(1.0,0.0,0.0), 0.8)
     domain += mshr.Sphere(Point(0.0,1.5,0.0), 0.8)+mshr.Sphere(Point(0.0,-1.5,0.0), 0.8)
-    
+
     #domain = mshr.Circle(Point(-1.0,0.0), 0.8)+mshr.Circle(Point(1.0,0.0), 0.8)
     mesh = mshr.generate_mesh(domain, 20)
     #from IPython import embed; embed()
     tic()
     connectivity = compute_connectivity(mesh)
     print mesh.size_global(0), mesh.size_global(3), toc()
-    
+
     File("connectivity.xdmf") << connectivity
-    
+

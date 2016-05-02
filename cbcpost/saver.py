@@ -74,7 +74,7 @@ class Saver():
         self.flush_frequency = flush_frequency
 
         self._create_casedir()
-        
+
 
     def get_casedir(self):
         "Return case directory."
@@ -94,16 +94,16 @@ class Saver():
                     all_fields = []
                     for v in playlog.values():
                         all_fields += v.get("fields", {}).keys()
-    
+
                     all_fields = list(set(all_fields))
                     playlog.close()
-    
+
                     for field in all_fields:
                         rmtree(os.path.join(self.get_casedir(), field))
-    
+
                     for f in ["mesh.hdf5", "play.db", "params.txt",
                               "params.pickle"]:
-    
+
                         if os.path.isfile(os.path.join(self.get_casedir(), f)):
                             os.remove(os.path.join(self.get_casedir(), f))
 
@@ -393,7 +393,7 @@ class Saver():
                 f.sync()
             if self._playlog[self.get_casedir()] != None:
                 self._playlog[self.get_casedir()].sync()
-            
+
             for key, f in self._datafile_cache.iteritems():
                 fieldname, saveformat = key
                 if saveformat == "shelve":
@@ -448,7 +448,7 @@ class Saver():
         self._update_metadata_file(field_name, data, t, timestep, save_as, metadata)
         self._timer.completed("PP: update metadata")
         self._fill_playlog(field, timestep, save_as)
-        
+
         self._timer.completed("PP: update playlog")
 
 

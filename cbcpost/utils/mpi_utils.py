@@ -26,13 +26,13 @@ def broadcast(array, from_process):
     "Broadcast array to all processes"
     if not hasattr(broadcast, "cpp_module"):
         cpp_code = '''
-    
+
         namespace dolfin {
             std::vector<double> broadcast(const MPI_Comm mpi_comm, const Array<double>& inarray, int from_process)
             {
                 int this_process = dolfin::MPI::rank(mpi_comm);
                 std::vector<double> outvector(inarray.size());
-    
+
                 if(this_process == from_process) {
                     for(int i=0; i<inarray.size(); i++)
                     {
@@ -41,17 +41,17 @@ def broadcast(array, from_process):
                 }
                 dolfin::MPI::barrier(mpi_comm);
                 dolfin::MPI::broadcast(mpi_comm, outvector, from_process);
-    
+
                 return outvector;
             }
         }
         '''
         cpp_module = compile_extension_module(cpp_code, additional_system_headers=["dolfin/common/MPI.h"])
-        
+
         broadcast.cpp_module = cpp_module
-    
+
     cpp_module = broadcast.cpp_module
-    
+
     if MPI.rank(mpi_comm_world()) == from_process:
         array = np.array(array, dtype=np.float)
         shape = array.shape
@@ -59,10 +59,10 @@ def broadcast(array, from_process):
     else:
         array = np.array([], dtype=np.float)
         shape = np.array([], dtype=np.float_)
-    
+
     shape = cpp_module.broadcast(mpi_comm_world(), shape, from_process)
     array = array.flatten()
-    
+
     out_array = cpp_module.broadcast(mpi_comm_world(), array, from_process)
     if len(shape) != 0:
         out_array = out_array.reshape(*shape)
@@ -79,9 +79,9 @@ def distribution(number):
                 // Variables to help in synchronization
                 int num_processes = dolfin::MPI::size(mpi_comm);
                 int this_process = dolfin::MPI::rank(mpi_comm);
-    
+
                 std::vector<uint> distribution(num_processes);
-    
+
                 for(uint i=0; i<num_processes; i++) {
                     if(i==this_process) {
                         distribution[i] = number;
@@ -107,15 +107,15 @@ def gather(array, on_process=0, flatten=False):
             std::vector<double> gather(const MPI_Comm mpi_comm, const Array<double>& inarray, int on_process)
             {
                 int this_process = dolfin::MPI::rank(mpi_comm);
-    
+
                 std::vector<double> outvector(dolfin::MPI::size(mpi_comm)*dolfin::MPI::sum(mpi_comm, inarray.size()));
                 std::vector<double> invector(inarray.size());
-    
+
                 for(int i=0; i<inarray.size(); i++)
                 {
                     invector[i] = inarray[i];
                 }
-    
+
                 dolfin::MPI::gather(mpi_comm, invector, outvector, on_process);
                 return outvector;
             }

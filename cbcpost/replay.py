@@ -173,7 +173,7 @@ class Replay(Parameterized):
             playlog_file = os.path.join(casedir, "play.db")
             i = 0
             backup_file = playlog_file+".bak"+str(i)
-            
+
             while os.path.isfile(backup_file):
                 i += 1
                 backup_file = playlog_file+".bak"+str(i)
@@ -197,13 +197,13 @@ class Replay(Parameterized):
 
             os.system("cp %s %s" %(backup_file, playlog_file))
             os.system("rm %s" %backup_file)
-            
+
             backup_playlog = self.postproc.get_playlog('r')
             assert set(current_playlog.keys()) == set(backup_playlog.keys())
 
             current_fields = set()
             backup_fields = set()
-            
+
             keys = [k for k in current_playlog.keys() if k.isdigit()]
             for k in keys:
                 current_fields.update(current_playlog[k].get("fields", dict()).keys())
@@ -219,7 +219,7 @@ class Replay(Parameterized):
         "Replay problem with given postprocessor."
         # Backup play log
         self.backup_playlog()
-        
+
         # Set up for replay
         replay_plan = self._fetch_history()
         postprocessors = []
@@ -268,7 +268,7 @@ class Replay(Parameterized):
                 pp = PostProcessor(self.postproc.params, self.postproc._timer)
                 pp.add_fields(dep_fields, exists_reaction="ignore")
                 pp.add_field(field, exists_reaction="replace")
-                
+
                 postprocessors.append([keys, t_dep, pp])
 
         postprocessors = sorted(postprocessors, key=itemgetter(1), reverse=True)
@@ -312,7 +312,7 @@ class Replay(Parameterized):
                             value = pp._cache[0][fieldname]
                             #solution[fieldname] = lambda value=value: value # Memory leak!
                             solution[fieldname] = MiniCallable(value)
-                                
+
 
             self.timer.increment()
             if self.params.check_memory_frequency != 0 and timestep%self.params.check_memory_frequency==0:

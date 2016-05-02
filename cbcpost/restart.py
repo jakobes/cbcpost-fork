@@ -49,7 +49,7 @@ def find_solution_presence(pp, playlog, fields):
                 is_present = True
             elif fieldname in fields:
                 is_present = True
-            
+
             if is_present:
                 function = None
                 metadata = metadatas.setdefault(fieldname, shelve.open(os.path.join(pp.get_savedir(fieldname), "metadata.db"), 'r'))
@@ -251,7 +251,7 @@ class Restart(Parameterized):
         MPI.barrier(mpi_comm_world())
         if self.params.rollback_casedir:
             self._correct_postprocessing(ts)
-        
+
         return result
 
 
@@ -273,7 +273,7 @@ class Restart(Parameterized):
 
         MPI.barrier(mpi_comm_world())
         all_fields_to_clean = []
-        
+
         for k,v in playlog_to_remove.items():
             if not "fields" in v:
                 continue
@@ -282,7 +282,7 @@ class Restart(Parameterized):
         all_fields_to_clean = list(set(all_fields_to_clean))
         for fieldname in all_fields_to_clean:
             self._clean_field(fieldname, restart_timestep)
-            
+
 
     def _clean_field(self, fieldname, restart_timestep):
         "Deletes data from field found at timestep>restart_timestep."
@@ -378,7 +378,7 @@ class Restart(Parameterized):
                     continue
 
                 fullpath = os.path.join(self._pp.get_savedir(fieldname), i['filename'])
-                
+
                 if on_master_process():
                     os.remove(fullpath)
                 MPI.barrier(mpi_comm_world())
@@ -397,12 +397,12 @@ class Restart(Parameterized):
             txtfile = open(txtfilename, 'r')
             txtfilelines = txtfile.readlines()
             txtfile.close()
-    
+
             num_lines_to_strp = ['txt' in v for v in del_metadata.values()].count(True)
-    
+
             txtfile = open(txtfilename, 'w')
             [txtfile.write(l) for l in txtfilelines[:-num_lines_to_strp]]
-            
+
             txtfile.close()
 
     def _clean_shelve(self, fieldname, del_metadata):
@@ -428,16 +428,16 @@ class Restart(Parameterized):
                 if not os.path.isfile(h5_filename):
                     break
                 i = i + 1
-            
+
             xdmf_filename = basename+"_RS"+str(i)+".xdmf"
             MPI.barrier(mpi_comm_world())
 
             if on_master_process():
                 os.rename(basename+".h5", h5_filename)
                 os.rename(basename+".xdmf", xdmf_filename)
-    
+
                 f = open(xdmf_filename, 'r').read()
-    
+
                 new_f = open(xdmf_filename, 'w')
                 new_f.write(f.replace(os.path.split(basename)[1]+".h5", os.path.split(h5_filename)[1]))
                 new_f.close()

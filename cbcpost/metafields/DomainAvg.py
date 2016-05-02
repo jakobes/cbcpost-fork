@@ -35,13 +35,13 @@ def _init_measure(measure="default", cell_domains=None, facet_domains=None, indi
         dI = measure
     else:
         raise TypeError("Unable to create a domain measure from provided domains or measure.")
-    
+
     return dI
 
 def _init_label(measure):
     if measure.integral_type() == "cell" and measure.subdomain_id() == "everywhere":
         return None
-    
+
     if measure.integral_type() == "cell":
         label = "dx"
     elif measure.integral_type() == "exterior_facet":
@@ -53,9 +53,9 @@ def _init_label(measure):
 
     if measure.subdomain_id() != "everywhere":
         label += str(measure.subdomain_id())
-    
+
     return label
-    
+
 
 class DomainAvg(MetaField):
     """Compute the domain average for a specified domain. Default to computing
@@ -71,7 +71,7 @@ class DomainAvg(MetaField):
     If cell_domains/facet_domains and indicator given, this overrides given measure.
     """
     def __init__(self, value, params=None, name="default", label=None, measure="default", cell_domains=None, facet_domains=None, indicator=None):
-        self.dI = _init_measure(measure, cell_domains, facet_domains, indicator)       
+        self.dI = _init_measure(measure, cell_domains, facet_domains, indicator)
         if label == None:
             label = _init_label(self.dI)
         MetaField.__init__(self, value, params, name, label)

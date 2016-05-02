@@ -275,23 +275,23 @@ class ParamDict(dict):
                     continue
                 except:
                     pass
-                
+
                 try:
                     value[i] = float(v)
                     continue
                 except:
                     pass
-                
+
                 if v in ["True", "true"]:
                     value[i] = True
                 elif v in ["False", "false"]:
                     value[i] = False
-        
+
             if len(value) == 1:
                 value = value[0]
             else:
                 value = tuple(value)
-    
+
             p[vname] = value
 
     def parse_args(self, args):
@@ -302,9 +302,9 @@ class ParamDict(dict):
         args = re.sub("\s+=", "=", args)
         args = re.sub("=\s+", "=", args)
         args = re.sub("[\]'\"()[]", "", args)
-        
+
         m = re.findall(r'([^\s]*\S+)=(.+?(?=\s+\S+=|$))', args)
-        
+
         for k, v in m:
             self.arg_assign(k, v)
 

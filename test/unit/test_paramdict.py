@@ -282,14 +282,14 @@ def test_arg_rendering_parsing():
                        identity=pdid,
                        input=pdin,
                        output=pdout)
-    
+
     pd_default = ParamDict(a=None,b=None)
     pd = ParamDict(identity=pd_default,
                    input=pd_default,
                    output=pd_default,
                    c = None,
                    **pd_default)
-    
+
     assert pd != record
     pd.parse_args(record.render_args())
     assert pd == record

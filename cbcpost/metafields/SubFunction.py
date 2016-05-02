@@ -26,7 +26,7 @@ def _interpolate(u, u0):
     try:
         # Use dolfins LagrangeInterpolator if defined
         from dolfin import LagrangeInterpolator
-        LagrangeInterpolator().interpolate(u,u0)        
+        LagrangeInterpolator().interpolate(u,u0)
     except:
         # Otherwise, use fenicstools
         ft = import_fenicstools()
@@ -34,16 +34,16 @@ def _interpolate(u, u0):
 
     return u
 
-    
+
 
 
 class SubFunction(MetaField):
     """SubFunction is used to interpolate a Field on a non-matching mesh.
-    
+
     .. note::
 
         v1.4.0: This field requires fenicstools.
-    
+
     """
 
     def __init__(self, field, mesh, *args, **kwargs):
@@ -75,7 +75,7 @@ class SubFunction(MetaField):
         u = get(self.valuename)
         if u == None:
             return None
-        
+
         if not hasattr(self, "u"):
             self.before_first_compute(get)
 

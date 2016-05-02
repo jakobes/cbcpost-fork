@@ -114,7 +114,7 @@ class TimeIntegral(MetaField):
         if not hasattr(self, "T0"):
             self.T0 = t0
         self.T1 = t1
-        
+
         self.tprev = t1
         self.uprev = u1
         #print "Integrated %s from %f to %f" %(self.valuename, self.T0, self.T1)

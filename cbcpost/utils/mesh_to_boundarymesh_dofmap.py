@@ -24,7 +24,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
     from dolfin import dolfin_version, MPI, mpi_comm_world
     #if dolfin_version() != '1.4.0' and MPI.size(mpi_comm_world()) > 1:
     #    raise RuntimeError("mesh_to_boundarymesh_dofmap is currently not supported in parallel in version %s" %(dolfin_version()))
-    
+
     assert V.ufl_element().family() == Vb.ufl_element().family()
     assert V.ufl_element().degree() == Vb.ufl_element().degree()
 
@@ -74,7 +74,7 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                     if not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
                         continue
                     dofmap_to_boundary[bdof] = cdof
-        
+
         if V_dm.num_entity_dofs(D+1) > 0 and V_dm.num_entity_dofs(0) == 0:
             bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(D,0)]
             cdofs = cell_dofs[V_dm.tabulate_entity_dofs(D+1,0)]
@@ -99,29 +99,29 @@ if __name__ == '__main__':
     bmesh = BoundaryMesh(mesh, "exterior")
     #Vb = VectorFunctionSpace(bmesh, "CG", 1)
     Vb = FunctionSpace(bmesh, "DG", 0)
-    
-    
+
+
     dm = V.dofmap()
     dmb = Vb.dofmap()
-    
+
     mapping = mesh_to_boundarymesh_dofmap(bmesh, V, Vb)
     keys = np.array(mapping.keys(), dtype=np.intc)
     values = np.array(mapping.values(), dtype=np.intc)
-    
+
     t = 3.0
     expr = Expression("1+x[0]*x[1]*t", t=t)
     #expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
     #expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
-    
+
     u = interpolate(expr, V)
     ub = interpolate(expr, Vb)
-    
+
     print MPI.sum(mpi_comm_world(), len(mapping.keys()))
     print MPI.sum(mpi_comm_world(), len(mapping.values()))
-    
+
     print assemble(sqrt(inner(u,u))*ds)
     print assemble(sqrt(inner(ub,ub))*dx)
-    
+
     ub2 = Function(Vb)
     """
     for i in range(2):
@@ -150,15 +150,15 @@ if __name__ == '__main__':
     print "Keys: ", keys
     print "Values: ", values
     get_set_vector(ub2.vector(), keys, u.vector(), values)
-    
+
     print assemble(sqrt(inner(ub2,ub2))*dx)
     print assemble(sqrt(inner(u,u))*ds)
     #plot(ub2)
     #plot(ub)
     #interactive()
-    
+
     #print erroro
     File("ub.pvd") << ub
     File("ub2.pvd") << ub2
-    
+
 

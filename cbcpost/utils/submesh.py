@@ -150,7 +150,7 @@ def create_submesh(mesh, markers, marker):
         mesh.topology().shared_entities(0)[idx] = set_other_processes;
     }
     """
-    
+
     set_shared_entities = compile_extension_module(cpp_code).set_shared_entities
     base_se = mesh.topology().shared_entities(0)
     se = submesh.topology().shared_entities(0)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         subdomains = AutoSubDomain(lambda x: x[0]<0.5)
         subdomains.mark(cell_domains, 1)
 
-        
+
         if MPI.size(mpi_comm_world()) == 1:
             submesh = SubMesh(mesh, cell_domains, 1)
         else:

@@ -185,8 +185,8 @@ class Field(Parameterized):
 
         else:
             error("No action selected, need to choose either assemble, project or interpolate.")
-    
-    
+
+
     def __copy__(self):
         cls = self.__class__
         result = cls.__new__(cls)

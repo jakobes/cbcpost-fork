@@ -31,7 +31,7 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
     assert V.ufl_element().family() == Vb.ufl_element().family(), "ufl elements differ in the two spaces"
     assert V.ufl_element().degree() == Vb.ufl_element().degree(), "ufl elements differ in the two spaces"
     assert V.ufl_element().cell() == Vb.ufl_element().cell(), "ufl elements differ in the two spaces"
-    
+
     D = V.mesh().geometry().dim()
 
     # Recursively call this function if V has sub-spaces
@@ -73,7 +73,7 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
             except:
                 # For 1.6.0 and older
                 coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
-        
+
         if _all_coordsb != None:
             coordsb = _all_coordsb[Vb.dofmap().dofs()]
         else:
@@ -99,8 +99,8 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
 
     mapping = {}
     request_dofs = np.array([])
-    
-    
+
+
     distances, indices = kdtree.query(coordsb)
 
     for i, subdof in enumerate(dmb.dofs()):

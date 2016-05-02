@@ -62,7 +62,7 @@ def create_slice(basemesh, point, normal, closest_region=False, crinkle_clip=Fal
     # Only cells with vertices on both sides of the plane intersect the plane
     operator = np.less
     npos = np.sum(vsplit[basemesh.cells()] < 0, 1)
-    
+
     intersection_cells = basemesh.cells()[(npos > 0) & (npos < 4)]
 
     if len(intersection_cells) == 0:
@@ -83,7 +83,7 @@ def create_slice(basemesh, point, normal, closest_region=False, crinkle_clip=Fal
             # Split cell into triangles
             for i in xrange(len(cell)-2):
                 cells.append(cell[i:i+3])
-    
+
         cells = []
         index = 0
         indexes = {}
@@ -91,27 +91,27 @@ def create_slice(basemesh, point, normal, closest_region=False, crinkle_clip=Fal
             a = operator(vsplit[c], 0)
             positives = c[np.where(a==True)[0]]
             negatives = c[np.where(a==False)[0]]
-    
+
             cell = []
             for pp_ind in positives:
                 pp = basemesh.coordinates()[pp_ind]
-    
+
                 for pn_ind in negatives:
                     pn = basemesh.coordinates()[pn_ind]
                     if (pp_ind, pn_ind) not in indexes:
                         # Calculate intersection point with the plane
                         d = np.dot(P-pp, n)/np.dot(pp-pn, n)
                         ip = pp+(pp-pn)*d
-    
+
                         indexes[(pp_ind, pn_ind)] = (index, ip)
                         index += 1
-    
+
                     cell.append(indexes[(pp_ind, pn_ind)][0])
-    
-    
+
+
             add_cell(cells, cell)
         MPI.barrier(mpi_comm_world())
-    
+
         # Assign global indices
         # TODO: Assign global indices properly
         dist = distribution(index)
@@ -120,55 +120,55 @@ def create_slice(basemesh, point, normal, closest_region=False, crinkle_clip=Fal
         for idx, p in indexes.values():
             vertices[idx] = (global_idx, p)
             global_idx += 1
-    
-    
+
+
         global_num_cells = MPI.sum(mpi_comm_world(), len(cells))
         global_num_vertices = MPI.sum(mpi_comm_world(), len(vertices))
-        
+
         mesh = Mesh()
-    
+
         # Return empty mesh if no intersections were found
         if global_num_cells == 0:
             mesh_editor = MeshEditor()
             mesh_editor.open(mesh, "triangle", 2, 3)
-    
+
             mesh_editor.init_vertices(0)
             mesh_editor.init_cells(0)
-    
+
             mesh_editor.close()
         else:
 
             # Distribute mesh if empty on any processors
             cells, vertices = distribute_meshdata(cells, vertices)
-        
+
             # Build mesh
             mesh_editor = MeshEditor()
             mesh_editor.open(mesh, "triangle", 2, 3)
-        
+
             mesh_editor.init_vertices(len(vertices))
             mesh_editor.init_cells(len(cells))
-        
+
             for index, cell in enumerate(cells):
                 mesh_editor.add_cell(index, cell[0], cell[1], cell[2])
-        
+
             for local_index, (global_index, coordinates) in vertices.items():
                 mesh_editor.add_vertex_global(int(local_index), int(global_index), coordinates)
-        
+
             mesh_editor.close()
             mesh.topology().init(0, len(vertices), global_num_vertices)
             mesh.topology().init(2, len(cells), global_num_cells)
 
-    
+
     if closest_region and mesh.size_global(0) > 0:
         assert MPI.size(mpi_comm_world())==1, "Extract closest region does not work in parallel"
         regions = compute_connectivity(mesh)
         i,d = mesh.bounding_box_tree().compute_closest_entity(Point(P))
-        
+
         if d == MPI.min(mesh.mpi_comm(), d):
             v = regions[int(i)]
         else:
             v = 0
-        
+
         v = MPI.max(mesh.mpi_comm(), v)
         mesh = create_submesh(mesh, regions, v)
 
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     domain = mshr.Sphere(Point(-1.0,0.0,0.0), 1.2)+mshr.Sphere(Point(1.0,0.0,0.0), 1.2)
     mesh = mshr.generate_mesh(domain, 30)
     p = np.array([1.0,1.0,0.0])
-    
+
     n = np.array([0,1,0])
 
     slicemesh = create_slice(mesh, p, n, closest_region=False, crinkle_clip=True)

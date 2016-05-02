@@ -31,9 +31,9 @@ class OperatorField(MetaField2):
         if not isinstance(value2, (str, Field)):
             value2 = ConstantField(value2)
             self._add_fields.append(value2)
-        
+
         MetaField2.__init__(self, value1, value2, *params, **kwparams)
-    
+
     def add_fields(self):
         return self._add_fields
 

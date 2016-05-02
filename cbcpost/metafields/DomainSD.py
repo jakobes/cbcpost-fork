@@ -40,10 +40,10 @@ class DomainSD(DomainAvg):
 
     def compute(self, get):
         u = get(self.valuename)
-        
+
         if u == None:
             return
-        
+
         assert isinstance(u, Function), "Unable to compute stdev of object of type %s" %type(u)
 
         # Compute the domain average using a dummy get-function passed to the DomainAvg compute
@@ -61,5 +61,5 @@ class DomainSD(DomainAvg):
             stdev = sqrt(var)
         else:
             stdev = [sqrt(v) for v in var]
-        
+
         return stdev

@@ -129,7 +129,7 @@ class PostProcessor(Parameterized):
             self._timer = Timer()
 
         self._extrapolate = self.params.extrapolate
-        
+
 
         # Storage of actual fields
         self._fields = {}

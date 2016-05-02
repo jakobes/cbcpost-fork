@@ -64,7 +64,7 @@ class Planner():
         pct, pcts = self._last_trigger_time[field.name]
         if timestep - pcts < fp.stride_timestep:
             return False
-        if t - pct < fp.stride_time:
+        if t - pct < fp.stride_time-eps:
             return False
 
         # Accept!
@@ -86,8 +86,8 @@ class Planner():
         if not field.__class__.default_params()["finalize"] and not fp["finalize"]:
             return False
 
-        if not (fp.save or fp.plot or fp.safe):
-            return False
+        #if not (fp.save or fp.plot or fp.safe):
+        #    return False
 
         # Already finalized
         #if field.name in self._finalized:

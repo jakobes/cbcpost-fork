@@ -40,13 +40,24 @@ class TimeIntegral(MetaField):
 
     def compute(self, get):
         t1 = get("t")
-        t0 = get("t", -1)
+        if hasattr(self, "tprev"):
+            t0 = self.tprev
+        else:
+            t0 = get("t", -1)
+        #self.tprev = t1
+        #t0 = get("t", -1)
 
         assert t0 <= self.params.end_time+EPS and t1 >= self.params.start_time-EPS, "Trying to compute integral outside the integration limits!"
 
         # Get integrand
         u1 = get(self.valuename)
-        u0 = get(self.valuename, -1)
+        if hasattr(self, "uprev"):
+            u0 = self.uprev
+        else:
+            u0 = get(self.valuename, -1)
+            #u0 = u1
+            #self.uprev = u0
+        #u0 = get(self.valuename, -1)
 
         assert u0 != "N/A" and u1 != "N/A", "u0=%s, u1=%s" %(str(u0), str(u1))
 
@@ -103,6 +114,9 @@ class TimeIntegral(MetaField):
         if not hasattr(self, "T0"):
             self.T0 = t0
         self.T1 = t1
+        
+        self.tprev = t1
+        self.uprev = u1
         #print "Integrated %s from %f to %f" %(self.valuename, self.T0, self.T1)
 
         if not self.params.finalize:

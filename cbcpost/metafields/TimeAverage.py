@@ -61,6 +61,9 @@ class TimeAverage(TimeIntegral):
         if ti == None:
             return None
 
+        if self.T1 == self.T0:
+            return ti
+
         scale_factor = 1.0/(self.T1-self.T0)
 
         if isinstance(ti, Function):

@@ -20,5 +20,7 @@ from Field import Field
 from SolutionField import SolutionField
 from MetaField import MetaField
 from MetaField2 import MetaField2
+from ConstantField import ConstantField
+from OperatorField import OperatorField
 
-__all__ = ["Field", "SolutionField", "MetaField", "MetaField2"]
+__all__ = ["Field", "SolutionField", "MetaField", "MetaField2", "OperatorField"]

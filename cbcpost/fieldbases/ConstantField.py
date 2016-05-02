@@ -14,37 +14,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
-"""Fields that require input parameters. This is typically fields that
-can be used on different fields, for example time derivatives, averages,
-parts of fields etc.
-"""
-from Operators import Add, Divide, Subtract, Multiply
+"""Helper class for setting a constant field."""
+from cbcpost.fieldbases.Field import Field
 
-# Fields that need input
-meta_fields = [
-    # Inspecting parts of fields
-    "SubFunction",
-    "PointEval",
-    "Boundary",
-    "Restrict",
-
-    # Spatial analysis of other fields
-    "Norm",
-    "ErrorNorm",
-    "DomainAvg",
-    "DomainSD",
-    "Magnitude",
-    "Minimum",
-    "Maximum",
-
-    # Transient analysis of other fields
-    "TimeIntegral",
-    "TimeAverage",
-    "TimeDerivative",
-    
-    # Operators
-    #"Add",
-    #"Subtract",
-    #"Multiply",
-    #"Divide",
-    ]
+class ConstantField(Field):
+    """Class for setting constant values. Helpful in dependency inspection."""
+    def __init__(self, value, *params, **kwparams):
+        Field.__init__(self, *params, **kwparams)
+        self.value = value
+    def compute(self, get):
+        return self.value

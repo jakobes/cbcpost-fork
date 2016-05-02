@@ -192,3 +192,15 @@ class Field(Parameterized):
         result.__dict__.update(self.__dict__)
         result.params = ParamDict(self.params)
         return result
+
+    def __add__(self, o):
+        return Add(self,o)
+
+    def __mul__(self, o):
+        return Multiply(self, o)
+
+    def __div__(self, o):
+        return Division(self,o)
+
+    def __sub__(self,o):
+        return Subtract(self,o)

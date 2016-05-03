@@ -32,5 +32,10 @@ class ConstantField(Field):
         """
         return str(self.value)
 
+    @name.setter
+    def name(self, value):
+        """Set name property"""
+        self._name = value
+
     def compute(self, get):
         return self.value

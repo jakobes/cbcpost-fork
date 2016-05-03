@@ -27,6 +27,9 @@ class Field(Parameterized):
     :param label: Specify a label. The label will be added to the name, if name is default.
 
     """
+    _recording = False
+    _record = []
+    
     def __init__(self, params=None, name="default", label=None):
         Parameterized.__init__(self, params)
         if label:
@@ -34,6 +37,9 @@ class Field(Parameterized):
         else:
             self.label = None
         self._name = name
+
+        if Field._recording:
+            Field._record.append(self)
 
     # --- Parameters
 
@@ -133,6 +139,11 @@ class Field(Parameterized):
         else:
             n = self._name
         return n
+    
+    @name.setter
+    def name(self, value):
+        """Set name property"""
+        self._name = value
 
     # --- Main interface
     def add_fields(self):
@@ -225,4 +236,15 @@ class Field(Parameterized):
     def __rsub__(self,o):
         from cbcpost.metafields import Subtract
         return Subtract(o, self)
+
+    @classmethod
+    def start_recording(cls):
+        cls._recording = True
+
+    @classmethod
+    def stop_recording(cls):
+        cls._recording = False
+        records = cls._record
+        cls._record = []
+        return records
 

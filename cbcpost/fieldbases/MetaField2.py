@@ -43,6 +43,11 @@ class MetaField2(Field):
 
         return n
 
+    @name.setter
+    def name(self, value):
+        """Set name property"""
+        self._name = value
+
     def compute(self, get):
         get(self.valuename1)
         get(self.valuename2)

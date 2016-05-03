@@ -90,9 +90,16 @@ class Replay(Parameterized):
         for key, value in playlog.items():
             replay_solutions[int(key)] = {"t": value["t"]}
             data[int(key)] = value
+
+        from cbcpost import ConstantField
+        constant_fields = [f for f in self.postproc._fields.values() if isinstance(f, ConstantField)]
+
         playlog.close()
         metadata_files = {}
         for timestep in sorted(data.keys()):
+            for f in constant_fields:
+                replay_solutions[timestep][f.name] = MiniCallable(f.compute(None))
+
             if "fields" not in data[timestep]:
                 continue
 
@@ -153,12 +160,12 @@ class Replay(Parameterized):
         if len(dependencies) == 0:
             return False
         else:
-            checks = []
             for dep_field, dep_time in dependencies:
                 if dep_time != 0:
                     continue
-                checks.append(self._recursive_dependency_check(plan, key, dep_field))
-            return all(checks)
+                if not self._recursive_dependency_check(plan, key, dep_field):
+                    return False
+            return True
 
 
     def _get_function(self, fieldname, metadata, saveformat):

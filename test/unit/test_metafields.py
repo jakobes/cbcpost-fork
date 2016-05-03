@@ -982,7 +982,6 @@ def test_Operators(problem, pp, start_time, end_time, dt):
         exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'H10')
 
     for f1 in fields:
-        print f1.name
         pp.add_field(f1+2.0)
         pp.add_field(2.0+f1)
         pp.add_field(f1-2.0)

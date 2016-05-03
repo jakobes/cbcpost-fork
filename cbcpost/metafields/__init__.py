@@ -36,6 +36,7 @@ meta_fields = [
     "Magnitude",
     "Minimum",
     "Maximum",
+    "Threshold",
 
     # Transient analysis of other fields
     "TimeIntegral",

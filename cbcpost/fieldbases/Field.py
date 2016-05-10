@@ -239,6 +239,7 @@ class Field(Parameterized):
 
     @classmethod
     def start_recording(cls):
+        assert cls._recording == False, "Recording already started!"
         cls._recording = True
 
     @classmethod

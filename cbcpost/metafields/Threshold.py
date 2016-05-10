@@ -38,12 +38,16 @@ class Threshold(MetaField2):
 
         if u == None:
             return
-
-        if not hasattr(self, "u"):
-            self.u = Function(u)
-        if self.params.threshold_by == "below":
-            self.u.vector()[:] = u.vector().array()<threshold
-        elif self.params.threshold_by == "above":
-            self.u.vector()[:] = u.vector().array()>threshold
-
-        return self.u
+        if isinstance(u, Function):
+            if not hasattr(self, "u"):
+                self.u = Function(u)
+            if self.params.threshold_by == "below":
+                self.u.vector()[:] = u.vector().array()<threshold
+            elif self.params.threshold_by == "above":
+                self.u.vector()[:] = u.vector().array()>threshold
+            return self.u
+        else:
+            if self.params.threshold_by == "below":
+                return u<threshold
+            elif self.params.threshold_by == "above":    
+                return u>threshold

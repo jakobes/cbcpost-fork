@@ -30,7 +30,7 @@ class ConstantField(Field):
         """Return name of field. By default this is *classname_valuename-label*,
         but can be overloaded in subclass.
         """
-        return str(self.value)
+        return str(self.value).replace(' ', '_')
 
     @name.setter
     def name(self, value):

@@ -17,6 +17,7 @@
 "Functionality for computing dot product"
 from dolfin import GenericFunction, Function, dot, project, Constant, assemble, dx
 from numpy import dot as npdot
+from cbcpost.fieldbases import MetaField2
 
 class Dot(MetaField2):
     "Compute the dot product between two fields"

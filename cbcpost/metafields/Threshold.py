@@ -28,6 +28,15 @@ class Threshold(MetaField2):
 
     @classmethod
     def default_params(cls):
+        """
+        Default parameters are:
+
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        |Key                   | Default value         |  Description                                                                              |
+        +======================+=======================+===========================================================================================+
+        | threshold_by         | "below"               | Set the function to threshold "above" or "below" threshold function                       |
+        +----------------------+-----------------------+-------------------------------------------------------------------------------------------+
+        """
         params = MetaField2.default_params()
         params.update(threshold_by="below")
         return params

@@ -225,7 +225,7 @@ def create_function_from_metadata(pp, fieldname, metadata, saveformat):
         del hdf5file
 
     # Replace loaded mesh if same mesh is loaded previously
-    mesh = MeshPool(mesh)
+    mesh = MeshPool(mesh, tolerance=0.0)
 
     shape = eval(metadata["element_value_shape"])
     degree = eval(metadata["element_degree"])

@@ -33,6 +33,7 @@ class MeshPool(Mesh):
           Expression(("x[0]", "x[1]")),
           Expression(("x[0]", "x[1]", "x[2]"))]
 
+    #def __new__(cls, mesh, tolerance=1e-12):
     def __new__(cls, mesh, tolerance=1e-12):
         dim = mesh.geometry().dim()
         X = MeshPool._X[dim-1]
@@ -44,14 +45,13 @@ class MeshPool(Mesh):
         # Do a garbage collect to collect any garbage references
         # Needed for full parallel compatibility
         gc.collect()
-
         keys = np.array(MeshPool._existing.keys())
         self = None
         if len(keys) > 0:
-
             diff = np.abs(keys-test)/np.abs(test)
             idx = np.argmin(np.abs(keys-test))
-            if diff[idx] < tolerance:
+
+            if diff[idx] <= tolerance and isinstance(mesh, type(MeshPool._existing[keys[idx]])):
                 self = MeshPool._existing[keys[idx]]
 
         if self == None:

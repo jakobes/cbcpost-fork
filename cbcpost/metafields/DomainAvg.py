@@ -25,6 +25,12 @@ import numpy as np
 
 def _init_measure(measure="default", cell_domains=None, facet_domains=None, indicator=None):
     assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
+    
+    if cell_domains != None:
+        assert isinstance(cell_domains, (MeshFunctionSizet, MeshFunctionInt))
+    
+    if facet_domains != None:
+        assert isinstance(facet_domains, (MeshFunctionSizet, MeshFunctionInt))
 
     if (cell_domains and indicator != None):
         dI = Measure("cell")[cell_domains](indicator)

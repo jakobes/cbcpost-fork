@@ -477,6 +477,8 @@ class PostProcessor(Parameterized):
         "Finalize all Fields after last timestep has been computed."
         finalized = []
         for name in self._sorted_fields_keys:
+            if name in self._finalized:
+                continue
             field = self._fields[name]
             fp = field.params
             if fp.finalize and (fp.safe or fp.plot or fp.save) and name not in fp:

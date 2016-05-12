@@ -62,15 +62,16 @@ class Dot(MetaField2):
         if not hasattr(self, "u"):
             self.u = Function(V)
 
-        if isinstance(u2, Function) and u1.function_space().dim() == u2.function_space().dim():
+        if isinstance(u2, Function) and u1.function_space().dim() == u2.function_space().dim() and u1.value_rank() == 0:
             self.u.vector()[:] = u1.vector().array()*u2.vector().array()
         elif u1.value_rank() == u2.value_rank():
-            project(dot(u1,u2), function=self.u)
+            project(dot(u1,u2), function=self.u, V=self.u.function_space())
         else:
             assert u1.value_rank() == 0
             if isinstance(u1, Constant):
                 self.u.vector()[:] = float(u1)*u2.vector().array()
             else:
-                project(u1*u2, function=self.u)
+                project(u1*u2, function=self.u, V=self.u.function_space())
+
 
         return self.u

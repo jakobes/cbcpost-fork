@@ -259,14 +259,14 @@ class ParamDict(dict):
     # --- Commandline argument translation
     # (should perhaps be placed outside class?)
 
-    def arg_assign(self, name, value):
+    def arg_assign(self, name, value, insert=False):
         "Assign value recursively to self"
         subs = name.split('.')
         subs, vname = subs[:-1], subs[-1]
         p = self
         for s in subs:
             p = p[s]
-        if vname in p:
+        if vname in p or insert:
             #value = value.split(',')
             value = re.split("\s*,\s*",value)
             for i,v in enumerate(value):
@@ -294,7 +294,7 @@ class ParamDict(dict):
 
             p[vname] = value
 
-    def parse_args(self, args):
+    def parse_args(self, args, insert=False):
         "Parse command line arguments into self"
         if isinstance(args, list):
             args = " ".join(args)
@@ -306,7 +306,7 @@ class ParamDict(dict):
         m = re.findall(r'([^\s]*\S+)=(.+?(?=\s+\S+=|$))', args)
 
         for k, v in m:
-            self.arg_assign(k, v)
+            self.arg_assign(k, v, insert)
 
     def render_args(self):
         "Render arguments (inverse of parse_args)"

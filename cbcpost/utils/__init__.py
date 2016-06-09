@@ -23,7 +23,7 @@ from utils import (import_fenicstools, on_master_process, in_serial, strip_code,
                    get_set_vector)
 from restriction_map import restriction_map
 from submesh import create_submesh
-from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap
+from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap, boundarymesh_to_mesh_dofmap
 from slice import create_slice, Slice
 from connectivity import compute_connectivity
 

@@ -19,14 +19,21 @@ from dolfin import Cell, Facet
 from numpy import where
 from distutils.version import LooseVersion, StrictVersion
 
-def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
-    "Find the mapping between dofs on boundary and boundary dofs of full mesh"
+def boundarymesh_to_mesh_dofmap(boundary, Vb, V):
+    "Find the mapping from dofs on boundary FS to dofs on full mesh FS"
+    mapping = mesh_to_boundarymesh_dofmap(boundary, V, Vb, _should_own="bdof")
+    mapping = dict((v,k) for k,v in mapping.iteritems())
+    return mapping
+
+def mesh_to_boundarymesh_dofmap(boundary, V, Vb, _should_own="cdof"):
+    "Find the mapping from dofs on full mesh FS to dofs on boundarymesh FS"
     from dolfin import dolfin_version, MPI, mpi_comm_world
     #if dolfin_version() != '1.4.0' and MPI.size(mpi_comm_world()) > 1:
     #    raise RuntimeError("mesh_to_boundarymesh_dofmap is currently not supported in parallel in version %s" %(dolfin_version()))
 
     assert V.ufl_element().family() == Vb.ufl_element().family()
     assert V.ufl_element().degree() == Vb.ufl_element().degree()
+    assert _should_own in ["cdof", "bdof"]
 
     # Currently only CG1 and DG0 spaces are supported
     assert V.ufl_element().family() in ["Lagrange", "Discontinuous Lagrange"]
@@ -71,9 +78,13 @@ def mesh_to_boundarymesh_dofmap(boundary, V, Vb):
                     if LooseVersion(dolfin_version()) > LooseVersion("1.4.0"):
                         bdof = Vb_dm.local_to_global_index(bdof)
                         cdof = V_dm.local_to_global_index(cdof)
-                    if not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
+
+                    if _should_own == "cdof" and not (V_dm.ownership_range()[0] <= cdof < V_dm.ownership_range()[1]):
                         continue
-                    dofmap_to_boundary[bdof] = cdof
+                    elif _should_own == "bdof" and not (Vb_dm.ownership_range()[0] <= bdof < Vb_dm.ownership_range()[1]):
+                        continue
+                    else:
+                        dofmap_to_boundary[bdof] = cdof
 
         if V_dm.num_entity_dofs(D+1) > 0 and V_dm.num_entity_dofs(0) == 0:
             bdofs = boundary_dofs[Vb_dm.tabulate_entity_dofs(D,0)]
@@ -93,31 +104,38 @@ if __name__ == '__main__':
     from dolfin import *
     import numpy as np
     #mesh = UnitCubeMesh(3,3,3)
-    mesh = UnitSquareMesh(4,4)
-    #V = VectorFunctionSpace(mesh, "CG", 1)
-    V = FunctionSpace(mesh, "DG", 0)
+    mesh = UnitSquareMesh(24,24)
+    V = VectorFunctionSpace(mesh, "CG", 1)
+    #V = FunctionSpace(mesh, "DG", 0)
     bmesh = BoundaryMesh(mesh, "exterior")
-    #Vb = VectorFunctionSpace(bmesh, "CG", 1)
-    Vb = FunctionSpace(bmesh, "DG", 0)
+    Vb = VectorFunctionSpace(bmesh, "CG", 1)
+    #Vb = FunctionSpace(bmesh, "DG", 0)
 
 
     dm = V.dofmap()
     dmb = Vb.dofmap()
 
-    mapping = mesh_to_boundarymesh_dofmap(bmesh, V, Vb)
-    keys = np.array(mapping.keys(), dtype=np.intc)
-    values = np.array(mapping.values(), dtype=np.intc)
+    #mapping = mesh_to_boundarymesh_dofmap(bmesh, V, Vb)
+    #keys = np.array(mapping.keys(), dtype=np.intc)
+    #values = np.array(mapping.values(), dtype=np.intc)
+    D = V
+    Db = Vb
+    local_dofmapping = mesh_to_boundarymesh_dofmap(bmesh, D, Db)
+    #values, keys = zip(*local_dofmapping.iteritems())
+    keys, values = zip(*local_dofmapping.iteritems())
+    values = np.array(values, dtype=np.intc)
+    keys = np.array(keys, dtype=np.intc)
 
     t = 3.0
-    expr = Expression("1+x[0]*x[1]*t", t=t)
-    #expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
+    #expr = Expression("1+x[0]*x[1]*t", t=t)
+    expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
     #expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
 
     u = interpolate(expr, V)
     ub = interpolate(expr, Vb)
 
-    print MPI.sum(mpi_comm_world(), len(mapping.keys()))
-    print MPI.sum(mpi_comm_world(), len(mapping.values()))
+    #print MPI.sum(mpi_comm_world(), len(mapping.keys()))
+    #print MPI.sum(mpi_comm_world(), len(mapping.values()))
 
     print assemble(sqrt(inner(u,u))*ds)
     print assemble(sqrt(inner(ub,ub))*dx)
@@ -149,10 +167,12 @@ if __name__ == '__main__':
     #ub2.vector()[keys] = u.vector()[values]
     print "Keys: ", keys
     print "Values: ", values
-    get_set_vector(ub2.vector(), keys, u.vector(), values)
+    u2 = Function(V)
+    #get_set_vector(ub2.vector(), keys, u.vector(), values)
+    get_set_vector(u2.vector(), values, ub.vector(), keys)
 
-    print assemble(sqrt(inner(ub2,ub2))*dx)
-    print assemble(sqrt(inner(u,u))*ds)
+    print assemble(sqrt(inner(ub,ub))*dx)
+    print assemble(sqrt(inner(u2,u2))*ds)
     #plot(ub2)
     #plot(ub)
     #interactive()

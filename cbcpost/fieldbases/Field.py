@@ -248,4 +248,3 @@ class Field(Parameterized):
         records = cls._record
         cls._record = []
         return records
-

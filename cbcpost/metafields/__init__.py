@@ -43,10 +43,9 @@ meta_fields = [
     "TimeIntegral",
     "TimeAverage",
     "TimeDerivative",
-
     # Operators
-    #"Add",
-    #"Subtract",
-    #"Multiply",
-    #"Divide",
+    "Add",
+    "Subtract",
+    "Multiply",
+    "Divide",
     ]

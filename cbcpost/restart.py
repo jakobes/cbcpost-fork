@@ -407,14 +407,13 @@ class Restart(Parameterized):
 
     def _clean_shelve(self, fieldname, del_metadata):
         shelvefilename = os.path.join(self._pp.get_savedir(fieldname), fieldname+".db")
-        if not os.path.isfile(shelvefilename):
-            return
         if on_master_process():
-            shelvefile = shelve.open(shelvefilename, 'c')
-            for k,v in del_metadata.items():
-                if 'shelve' in v:
-                    shelvefile.pop(str(k))
-            shelvefile.close()
+            if os.path.isfile(shelvefilename):
+                shelvefile = shelve.open(shelvefilename, 'c')
+                for k,v in del_metadata.items():
+                    if 'shelve' in v:
+                        shelvefile.pop(str(k))
+                shelvefile.close()
         MPI.barrier(mpi_comm_world())
 
     def _clean_xdmf(self, fieldname, del_metadata):

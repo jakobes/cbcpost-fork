@@ -2,7 +2,7 @@
 
 from cbcpost import PostProcessor, SpacePool, ParamDict, Norm, SolutionField, Replay, TimeIntegral
 from conftest import MockFunctionField, MockVectorFunctionField, MockTupleField, MockScalarField
-import os, shelve
+import os, shelve, time
 
 
 def test_basic_replay(mesh, casedir):
@@ -52,10 +52,14 @@ def test_basic_replay(mesh, casedir):
 
     replayer = Replay(pp)
     replayer.replay()
-
+    
     # Test that replayed solution is the same as computed in the original "solve"
     for name in rf_names:
+        
+        time.sleep(1)
+        print name
         data = shelve.open(os.path.join(pp.get_savedir(name), name+".db"), 'r')
+
         for i in range(3):
             assert data.get(str(i), None) == checks[i][name] or abs(data.get(str(i), None) - checks[i][name]) < 1e-8
         data.close()

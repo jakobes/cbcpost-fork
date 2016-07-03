@@ -83,6 +83,7 @@ to *get_restart_conditions*: ::
 import pytest
 
 from cbcpost import *
+from cbcpost.utils import on_master_process
 from dolfin import *
 import os, shelve, glob
 from conftest import MockFunctionField
@@ -300,9 +301,10 @@ def test_rollback_casedir(filled_casedir, mesh, t):
                 xmlfiles = glob.glob1(os.path.join(filled_casedir, d),"*."+sf)
                 assert sorted(xmlfiles) == sorted([d+i+"."+sf for i in st])
             elif sf == "shelve":
-                data = shelve.open(os.path.join(filled_casedir, d, d+".db"))
-                assert sorted(data.keys()) == sorted(st)
-                data.close()
+                if on_master_process():
+                    data = shelve.open(os.path.join(filled_casedir, d, d+".db"))
+                    assert sorted(data.keys()) == sorted(st)
+                    data.close()
             elif sf == "txt":
                 data = open(os.path.join(filled_casedir, d, d+".txt"), 'r').readlines()
                 assert len(data) == len(st)

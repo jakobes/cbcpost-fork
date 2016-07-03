@@ -31,6 +31,7 @@ def test_default_save(mesh, casedir):
     pp.update_all({}, 0.0, 0)
     pp.update_all({}, 0.1, 1)
     pp.update_all({}, 0.2, 2)
+    pp.finalize_all()
 
     for mf in [mff, mvff]:
         assert os.path.isdir(pp.get_savedir(mf.name))
@@ -80,6 +81,7 @@ def test_hdf5_save(mesh, casedir):
     pp.update_all({}, 0.0, 0)
     pp.update_all({}, 0.1, 1)
     pp.update_all({}, 0.2, 2)
+    pp.finalize_all()
 
     for mf, FS in [(mff, Q), (mvff, V)]:
         assert os.path.isdir(pp.get_savedir(mf.name))
@@ -120,6 +122,7 @@ def test_xml_save(mesh, casedir):
     pp.update_all({}, 0.0, 0)
     pp.update_all({}, 0.1, 1)
     pp.update_all({}, 0.2, 2)
+    pp.finalize_all()
 
     for mf, FS in [(mff, Q), (mvff, V)]:
         assert os.path.isdir(pp.get_savedir(mf.name))
@@ -161,6 +164,7 @@ def test_xmlgz_save(mesh, casedir):
     pp.update_all({}, 0.0, 0)
     pp.update_all({}, 0.1, 1)
     pp.update_all({}, 0.2, 2)
+    pp.finalize_all()
 
     for mf, FS in [(mff, Q), (mvff, V)]:
         assert os.path.isdir(pp.get_savedir(mf.name))
@@ -198,6 +202,7 @@ def test_shelve_save(mesh, casedir):
     pp.update_all({}, 0.0, 0)
     pp.update_all({}, 0.1, 1)
     pp.update_all({}, 0.2, 2)
+    pp.finalize_all()
 
     for mf in [mtf, msf]:
         assert os.path.isdir(pp.get_savedir(mf.name))
@@ -231,6 +236,7 @@ def test_pvd_save(mesh, casedir):
     pp.update_all({}, 0.0, 0)
     pp.update_all({}, 0.1, 1)
     pp.update_all({}, 0.2, 2)
+    pp.finalize_all()
 
     for mf, FS in [(mff, Q), (mvff, V)]:
         assert os.path.isdir(pp.get_savedir(mf.name))
@@ -280,12 +286,14 @@ def test_playlog(casedir):
     MPI.barrier(mpi_comm_world())
 
     pp.update_all({}, 0.0, 0)
+    pp.finalize_all()
 
     playlog = pp.get_playlog('r')
     assert playlog == {"0": {"t": 0.0}}
     playlog.close()
 
     pp.update_all({}, 0.1, 1)
+    pp.finalize_all()
     playlog = pp.get_playlog('r')
     assert playlog == {"0": {"t": 0.0}, "1": {"t": 0.1}}
     playlog.close()

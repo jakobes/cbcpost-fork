@@ -491,6 +491,7 @@ class PostProcessor(Parameterized):
         self._saver.update(t, timestep, self._cache[0], finalized)
         self._saver._flush_data()
         self._plotter.update(t, timestep, self._cache[0], finalized)
+        self._saver._close_shelves()
         MPI.barrier(mpi_comm_world())
 
 

@@ -55,7 +55,7 @@ from cbcpost.fieldbases import OperatorField
 from cbcpost.fieldbases import ConstantField
 
 from cbcpost.metafields import meta_fields
-from cbcpost.metafields import Add, Subtract, Multiply, Divide
+from cbcpost.metafields.Operators import Add, Subtract, Multiply, Divide
 
 for f in meta_fields:
     exec("from cbcpost.metafields.%s import %s" % (f, f))

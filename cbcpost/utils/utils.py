@@ -34,20 +34,24 @@ def import_fenicstools():
         location = imp.find_module("fenicstools")[1]
         fenicstools = ModuleType("fenicstools")
         _syspath = sys.path
-        sys.path = [location]
+        try:
+            sys.path = [location]
+    
+            from Probe import Probe, Probes
+            from common import getMemoryUsage
+            import WeightedGradient
+            from WeightedGradient import weighted_gradient_matrix, compiled_gradient_module
+            fenicstools.Probe = Probe
+            fenicstools.Probes = Probes
+            fenicstools.getMemoryUsage = getMemoryUsage
+            fenicstools.weighted_gradient_matrix = weighted_gradient_matrix
+            fenicstools.compiled_gradient_module = compiled_gradient_module
+            fenicstools.WeightedGradient = WeightedGradient
+        except:
+            pass
+        finally:
+            sys.path = _syspath
 
-        from Probe import Probe, Probes
-        from common import getMemoryUsage
-        import WeightedGradient
-        from WeightedGradient import weighted_gradient_matrix, compiled_gradient_module
-        fenicstools.Probe = Probe
-        fenicstools.Probes = Probes
-        fenicstools.getMemoryUsage = getMemoryUsage
-        fenicstools.weighted_gradient_matrix = weighted_gradient_matrix
-        fenicstools.compiled_gradient_module = compiled_gradient_module
-        fenicstools.WeightedGradient = WeightedGradient
-
-        sys.path = _syspath
     import_fenicstools._fenicstools = fenicstools
     return fenicstools
 

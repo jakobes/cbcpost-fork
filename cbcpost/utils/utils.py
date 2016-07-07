@@ -25,9 +25,12 @@ from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning, 
 def import_fenicstools():
     "Import fenicstools helper function."
     if hasattr(import_fenicstools, "_fenicstools"):
+        if import_fenicstools._fenicstools == None:
+            raise ImportError("Unable to import fenicstools")
         return import_fenicstools._fenicstools
 
     imp.find_module("fenicstools")
+    fenicstools = None
     try:
         import fenicstools
     except:
@@ -51,7 +54,8 @@ def import_fenicstools():
             pass
         finally:
             sys.path = _syspath
-
+    if fenicstools == None:
+        raise ImportError("Unable to import fenicstools")
     import_fenicstools._fenicstools = fenicstools
     return fenicstools
 

@@ -20,8 +20,9 @@ from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.utils import cbc_warning
 from cbcpost.utils.mpi_utils import gather, broadcast
 from dolfin import (assemble, dx, Function, Constant, Measure, MeshFunctionSizet, MeshFunctionDouble,
-                    MeshFunctionBool, MeshFunctionInt, MeshFunction)
+                    MeshFunctionBool, MeshFunctionInt, MeshFunction, dolfin_version)
 import numpy as np
+from distutils.version import LooseVersion
 
 def _init_measure(measure="default", cell_domains=None, facet_domains=None, indicator=None):
     assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
@@ -176,13 +177,21 @@ class DomainAvg(MetaField):
         # Find mesh/domain
         if isinstance(self.dI.subdomain_data(), MeshFunctionSizet):
             mf = self.dI.subdomain_data()
-            if mf.mesh().id() != u.domain().data().id():
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                test = mf.mesh().id() != u.ufl_domain().ufl_id()
+            else:
+                test = mf.mesh().id() != u.domain().data().id()
+            if test:
                 mf = duplicate_meshfunction(mf, u.domain().data())
             mesh = mf.mesh()
 
             self.dI = self.dI.reconstruct(domain=mesh, subdomain_data=mf)
         else:
-            mesh = u.domain().data()
+            #from IPython import embed; embed()
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                mesh = u.ufl_domain()
+            else:
+                mesh = u.domain().data()
 
         if not self.dI.domain():
             self.dI = self.dI.reconstruct(domain=mesh)

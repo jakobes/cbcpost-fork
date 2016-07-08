@@ -156,6 +156,7 @@ def filled_casedir(mesh, casedir):
         "MockSolutionTupleField": lambda: (t, 3*t, 1+5*t),
         "MockSolutionScalarField": lambda: 3*t,
     }, t, timestep)
+    pp.finalize_all()
 
     return casedir
 

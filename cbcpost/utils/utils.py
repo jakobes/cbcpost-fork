@@ -51,7 +51,7 @@ def import_fenicstools():
             fenicstools.compiled_gradient_module = compiled_gradient_module
             fenicstools.WeightedGradient = WeightedGradient
         except:
-            pass
+            fenicstools = None
         finally:
             sys.path = _syspath
     if fenicstools == None:

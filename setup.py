@@ -4,8 +4,8 @@ import os, sys, platform
 from setuptools import setup
 
 # Version number
-major = 1
-minor = 4
+major = 2016
+minor = 1
 maintenance = 0
 
 with open("README", 'r') as file:

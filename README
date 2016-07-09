@@ -31,7 +31,7 @@ Documentation is availble at http://cbcpost.readthedocs.org/en/latest/.
 Installation
 ------------
 
-cbcpost requires an installation of FEniCS version 1.3, see www.fenicsproject.org.
+cbcpost requires an installation of FEniCS version 2016.1 (version 1.4-1.6 should work, but not tested), see www.fenicsproject.org.
 
 To install simply run
 

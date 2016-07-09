@@ -20,7 +20,8 @@ function spaces used several places in a program.
 """
 
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,
-                    grad, Coefficient)
+                    grad, Coefficient, dolfin_version)
+from distutils.version import LooseVersion
 import weakref, gc
 
 def galerkin_family(degree):
@@ -136,7 +137,10 @@ class SpacePool(object):
             family = "DG"
 
         if shape == "auto":
-            shape = grad(Coefficient(element)).shape()
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                shape = grad(Coefficient(element)).ufl_shape
+            else:
+                shape = grad(Coefficient(element)).shape()
 
         DV = self.get_custom_space(family, degree, shape)
         return DV

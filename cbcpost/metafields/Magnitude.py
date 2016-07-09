@@ -19,9 +19,11 @@ Compute the (piecewise) magnitude of a Field.
 """
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import (project, sqrt, Function, inner, KrylovSolver, assemble, TrialFunction,
-                    TestFunction, MPI, mpi_comm_world, FunctionAssigner, compile_extension_module)
+                    TestFunction, MPI, mpi_comm_world, FunctionAssigner, compile_extension_module,
+                    dolfin_version)
 import numpy as np
 from cbcpost.utils import cbc_warning
+from distutils.version import LooseVersion
 
 # Import for type-checking
 from collections import Iterable
@@ -57,9 +59,15 @@ class Magnitude(MetaField):
         u = get(self.valuename)
 
         if isinstance(u, Function):
-            if u.rank() == 0:
+            
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                rank = len(u.ufl_shape)
+            else:
+                rank = u.rank()
+            
+            if rank == 0:
                 self.f = Function(u.function_space())
-            elif u.rank() >= 1:
+            elif rank >= 1:
                 # Assume all subpaces are equal
                 V = u.function_space().extract_sub_space([0]).collapse()
                 mesh = V.mesh()
@@ -115,12 +123,18 @@ class Magnitude(MetaField):
         if isinstance(u, Function):
             if not hasattr(self, "use_project"):
                 self.before_first_compute(get)
-            if u.rank() == 0:
+
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                rank = len(u.ufl_shape)
+            else:
+                rank = u.rank()
+
+            if rank == 0:
                 self.f.vector().zero()
                 self.f.vector().axpy(1.0, u.vector())
                 self.f.vector().abs()
                 return self.f
-            elif u.rank() >= 1:
+            elif rank >= 1:
                 if self.use_project:
                     b = assemble(sqrt(inner(u,u))*self.v*dx(None))
                     self.projection.solve(self.f.vector(), b)

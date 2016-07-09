@@ -995,7 +995,7 @@ def test_Operators(problem, pp, start_time, end_time, dt):
             pp.add_field(f1*f2)
             pp.add_field(f1-f2)
             pp.add_field(f1/f2)
-
+    return
     # Update postprocessor for a number of timesteps, this is where the main code under test is
     for timestep, t in enumerate(timesteps, start_timestep):
         # Run postprocessing step

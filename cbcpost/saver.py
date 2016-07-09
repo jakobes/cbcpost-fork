@@ -27,7 +27,7 @@ from dolfin import (Function, MPI, mpi_comm_world, File, HDF5File, XDMFFile,
 
 from cbcpost.utils import safe_mkdir, hdf5_link, on_master_process, cbc_log
 from cbcpost.fieldbases import Field
-
+from distutils.version import LooseVersion
 import os, shelve, pickle
 from shutil import rmtree
 
@@ -145,10 +145,15 @@ class Saver():
                 metadata_file["saveformats"] = list(set(save_as+metadata_file.get("saveformats", [])))
                 # Data about function space
                 if isinstance(data, Function):
-                    metadata_file["element"] = repr(data.element(),)
-                    metadata_file["element_degree"] = repr(data.element().degree(),)
-                    metadata_file["element_family"] = repr(data.element().family(),)
-                    metadata_file["element_value_shape"] = repr(data.element().value_shape(),)
+                    if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                        element = data.ufl_element()
+                    else:
+                        element = data.element()
+
+                    metadata_file["element"] = repr(element,)
+                    metadata_file["element_degree"] = repr(element.degree(),)
+                    metadata_file["element_family"] = repr(element.family(),)
+                    metadata_file["element_value_shape"] = repr(element.value_shape(),)
             # Store some data each timestep
             metadata_file[str(timestep)] = metadata
             metadata_file[str(timestep)]["t"] = t

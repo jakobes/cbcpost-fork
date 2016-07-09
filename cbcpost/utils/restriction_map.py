@@ -18,7 +18,8 @@ import numpy as np
 from cbcpost.utils.mpi_utils import broadcast
 from cbcpost.utils import cbc_warning
 from scipy.spatial.ckdtree import cKDTree as KDTree
-from dolfin import MPI, mpi_comm_world
+from dolfin import MPI, mpi_comm_world, dolfin_version
+from distutils.version import LooseVersion
 
 def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
     "Return a map between dofs in Vb to dofs in V. Vb's mesh should be a submesh of V's Mesh."
@@ -64,7 +65,7 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
 
     # Extract coordinates of dofs
     if dm.is_view():
-        if _all_coords != None:
+        if _all_coords is not None:
             coords = _all_coords[V.dofmap().dofs()]
         else:
             try:
@@ -74,7 +75,7 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
                 # For 1.6.0 and older
                 coords = V.collapse().dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
 
-        if _all_coordsb != None:
+        if _all_coordsb is not None:
             coordsb = _all_coordsb[Vb.dofmap().dofs()]
         else:
             try:
@@ -84,11 +85,11 @@ def restriction_map(V, Vb, _all_coords=None, _all_coordsb=None):
                 # For 1.6.0 and older
                 coordsb = Vb.collapse().dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)
     else:
-        try:
+        if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
             # For 1.6.0+ and newer
             coords = V.tabulate_dof_coordinates().reshape(N, D)
             coordsb = Vb.tabulate_dof_coordinates().reshape(Nb, D)
-        except:
+        else:
             # For 1.6.0 and older
             coords = V.dofmap().tabulate_all_coordinates(V.mesh()).reshape(N, D)
             coordsb = Vb.dofmap().tabulate_all_coordinates(Vb.mesh()).reshape(Nb,D)

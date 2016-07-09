@@ -159,7 +159,7 @@ class PointEval(MetaField):
         self.probes.clear()
 
         # Return as list to store without 'array(...)' text.
-        if u.shape():
+        if u.value_rank() > 0:
             if len(results.shape) == 1:
                 return list(results)
             return list(tuple(res) for res in results)

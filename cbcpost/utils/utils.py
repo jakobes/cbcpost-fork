@@ -21,6 +21,7 @@ import os, imp, sys
 from types import ModuleType
 from time import time
 from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning, dolfin_version
+from distutils.version import LooseVersion
 
 def import_fenicstools():
     "Import fenicstools helper function."
@@ -277,7 +278,8 @@ def get_set_vector(setvector, set_indices, getvector, get_indices, temp_array=No
         """
 
         # Very minor change required for dolfin 1.4.0
-        if dolfin_version() == "1.4.0":
+        #if dolfin_version() == "1.4.0":
+        if LooseVersion(dolfin_version()) <= LooseVersion("1.4.0"):
             code = code.replace("get_vector->get", "get_vector->get_local")
 
         cbc_log(20, "Compiling get_set_vector.cppmodule")
@@ -285,7 +287,7 @@ def get_set_vector(setvector, set_indices, getvector, get_indices, temp_array=No
 
     assert len(set_indices) == len(get_indices)
 
-    if temp_array == None:
+    if temp_array is None:
         temp_array = zeros(len(set_indices), dtype=float_)
 
     assert len(temp_array) == len(set_indices)

@@ -238,9 +238,9 @@ class PostProcessor(Parameterized):
         if field.name in self._fields:
             s = "Field with name %s already been added to postprocessor." %field.name
             if exists_reaction == "replace":
-                cbc_log(60, s+" Replacing.")
+                cbc_log(30, s+" Replacing.")
             elif exists_reaction == "ignore":
-                cbc_log(60, s+" Ignoring.")
+                cbc_log(30, s+" Ignoring.")
                 return
             else:
                 raise AssertionError(s)
@@ -467,6 +467,7 @@ class PostProcessor(Parameterized):
 
         self._saver.update(t, timestep, self._cache[0], triggered_or_finalized)
         self._timer.completed("PP: completed saving")
+
         self._plotter.update(t, timestep, self._cache[0], triggered_or_finalized)
         self._timer.completed("PP: completed plotting")
 

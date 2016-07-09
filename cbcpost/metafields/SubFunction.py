@@ -20,7 +20,8 @@ from cbcpost.utils.utils import import_fenicstools
 from cbcpost import SpacePool
 
 from dolfin import (Function, VectorFunctionSpace, FunctionSpace, MPI, mpi_comm_world,
-                    FunctionAssigner, interpolate)
+                    FunctionAssigner, interpolate, dolfin_version)
+from distutils.version import LooseVersion
 
 def _interpolate(u, u0):
     try:
@@ -33,8 +34,6 @@ def _interpolate(u, u0):
         u.assign(ft.interpolate_nonmatching_mesh(u0, u.function_space()))
 
     return u
-
-
 
 
 class SubFunction(MetaField):
@@ -62,7 +61,13 @@ class SubFunction(MetaField):
 
         spaces = SpacePool(self.mesh)
         FS = spaces.get_custom_space(element.family(), element.degree(), element.value_shape())
-        if u.rank() > 0:
+        
+        if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+            rank = len(u.ufl_shape)
+        else:
+            rank = u.rank()
+        
+        if rank > 0:
             FS_scalar = spaces.get_custom_space(element.family(), element.degree(), ())
             self.assigner = FunctionAssigner(FS, [FS_scalar]*FS.num_sub_spaces())
             self.us = []
@@ -79,7 +84,12 @@ class SubFunction(MetaField):
         if not hasattr(self, "u"):
             self.before_first_compute(get)
 
-        if u.rank() > 0:
+        if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+            rank = len(u.ufl_shape)
+        else:
+            rank = u.rank()
+
+        if rank > 0:
             u = u.split()
             U = []
             for i, _u in enumerate(u):

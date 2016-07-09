@@ -34,9 +34,15 @@ def _init_measure(measure="default", cell_domains=None, facet_domains=None, indi
         assert isinstance(facet_domains, (MeshFunctionSizet, MeshFunctionInt))
 
     if (cell_domains and indicator != None):
-        dI = Measure("cell")[cell_domains](indicator)
+        if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+            dI = Measure("cell")(subdomain_data=cell_domains)(indicator)
+        else:
+            dI = Measure("cell")[cell_domains](indicator)
     elif (facet_domains and indicator != None):
-        dI = Measure("exterior_facet")[facet_domains](indicator)
+        if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+            dI = Measure("exterior_facet")(subdomain_data=facet_domains)(indicator)
+        else:
+            dI = Measure("exterior_facet")[facet_domains](indicator)
     elif measure == "default":
         if indicator != None:
             cbc_warning("Indicator specified, but no domains. Will dompute average over entire domain.")
@@ -174,42 +180,52 @@ class DomainAvg(MetaField):
         if u == None:
             return
 
+        if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+            rank = len(u.ufl_shape)
+            shape = u.ufl_shape
+            mesh = u.ufl_domain()._ufl_cargo
+            dIdomain = self.dI.ufl_domain()
+        else:
+            rank = u.rank()
+            shape = u.shape()
+            mesh = u.domain().data()
+            dIdomain = self.dI.domain()
+
+        mesh_id = mesh.id()
+
         # Find mesh/domain
         if isinstance(self.dI.subdomain_data(), MeshFunctionSizet):
             mf = self.dI.subdomain_data()
-            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
-                test = mf.mesh().id() != u.ufl_domain().ufl_id()
-            else:
-                test = mf.mesh().id() != u.domain().data().id()
-            if test:
-                mf = duplicate_meshfunction(mf, u.domain().data())
+            mf_mesh_id = mf.mesh().id()
+
+            if mf_mesh_id != mesh_id:
+                mf = duplicate_meshfunction(mf, mesh)
             mesh = mf.mesh()
 
             self.dI = self.dI.reconstruct(domain=mesh, subdomain_data=mf)
-        else:
-            #from IPython import embed; embed()
-            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
-                mesh = u.ufl_domain()
-            else:
-                mesh = u.domain().data()
 
-        if not self.dI.domain():
+        if dIdomain == None:
             self.dI = self.dI.reconstruct(domain=mesh)
-        assert self.dI.domain()
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                dIdomain = self.dI.ufl_domain()
+            else:
+                dIdomain = self.dI.domain()
+            
+        assert dIdomain != None
 
         # Calculate volume
         if not hasattr(self, "volume"):
             self.volume = assemble(Constant(1)*self.dI)
             assert self.volume > 0
 
-        if u.rank() == 0:
+        if rank == 0:
             value = assemble(u*self.dI)/self.volume
-        elif u.rank() == 1:
+        elif rank == 1:
             value = [assemble(u[i]*self.dI)/self.volume for i in xrange(u.value_size())]
-        elif u.rank() == 2:
+        elif rank == 2:
             value = []
-            for i in xrange(u.shape()[0]):
-                for j in xrange(u.shape()[1]):
+            for i in xrange(shape[0]):
+                for j in xrange(shape[1]):
                     value.append(assemble(u[i,j]*self.dI)/self.volume)
 
         return value

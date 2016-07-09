@@ -19,7 +19,9 @@ from cbcpost.fieldbases.MetaField import MetaField
 from cbcpost.utils.restriction_map import restriction_map
 from cbcpost.utils import cbc_warning, get_set_vector
 
-from dolfin import Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace
+from dolfin import (Function, FunctionSpace, VectorFunctionSpace, TensorFunctionSpace,
+                    dolfin_version)
+from distutils.version import LooseVersion
 #from numpy import array, uint, intc
 import numpy as np
 
@@ -52,10 +54,15 @@ class Restrict(MetaField):
             element = V.ufl_element()
             family = element.family()
             degree = element.degree()
+            
+            if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
+                rank = len(u.ufl_shape)
+            else:
+                rank = u.rank()
 
-            if u.rank() == 0: FS = FunctionSpace(self.submesh, family, degree)
-            elif u.rank() == 1: FS = VectorFunctionSpace(self.submesh, family, degree)
-            elif u.rank() == 2: FS = TensorFunctionSpace(self.submesh, family, degree, symmetry={})
+            if rank == 0: FS = FunctionSpace(self.submesh, family, degree)
+            elif rank == 1: FS = VectorFunctionSpace(self.submesh, family, degree)
+            elif rank == 2: FS = TensorFunctionSpace(self.submesh, family, degree, symmetry={})
 
             self.u = Function(FS)
 

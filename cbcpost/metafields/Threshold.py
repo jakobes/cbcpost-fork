@@ -58,5 +58,5 @@ class Threshold(MetaField2):
         else:
             if self.params.threshold_by == "below":
                 return u<threshold
-            elif self.params.threshold_by == "above":    
+            elif self.params.threshold_by == "above":
                 return u>threshold

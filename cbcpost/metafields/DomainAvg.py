@@ -26,10 +26,10 @@ from distutils.version import LooseVersion
 
 def _init_measure(measure="default", cell_domains=None, facet_domains=None, indicator=None):
     assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
-    
+
     if cell_domains != None:
         assert isinstance(cell_domains, (MeshFunctionSizet, MeshFunctionInt))
-    
+
     if facet_domains != None:
         assert isinstance(facet_domains, (MeshFunctionSizet, MeshFunctionInt))
 
@@ -77,7 +77,7 @@ def duplicate_meshfunction(mf, new_mesh):
     # Rebuild meshfunction
     mesh = mf.mesh()
     dim = mf.dim()
-    
+
     if isinstance(mf, MeshFunctionSizet):
         f = MeshFunction("size_t", new_mesh, dim)
         dtype = np.uintp
@@ -95,10 +95,10 @@ def duplicate_meshfunction(mf, new_mesh):
     connectivity = mesh.topology()(dim,0)().reshape(mesh.num_entities(dim), -1)
     midpoints = np.mean(mesh.coordinates()[connectivity], axis=1)
     indices = np.lexsort(midpoints.T[::-1])
-    
+
     sorted_midpoints = midpoints[indices]
     values = mf.array()[indices]
-    
+
     gdim = midpoints.shape[1]
     sorted_midpoints = sorted_midpoints.flatten()
     sorted_midpoints = gather(sorted_midpoints, 0)
@@ -115,26 +115,26 @@ def duplicate_meshfunction(mf, new_mesh):
     values = np.hstack(values).flatten()
 
     values = broadcast(values, 0)
-    
+
     # Workaround for bug in np.uint64
     if dtype==np.uintp:
         M = max(values)
         if M == dtype(-1):
 
             values[values == M] = -1
-    
+
     values = values.astype(dtype)
     _values = []
     for arr in values:
         _values.append(arr)
     values = np.array(_values, dtype=dtype)
-    
+
     indices = np.lexsort(sorted_midpoints.T[::-1])
     values = values[indices]
     sorted_midpoints = sorted_midpoints[indices]
 
     # Now has full list of midpoint+values on all processes
-    
+
     # Sort midpoints on new mesh on current process
     connectivity = new_mesh.topology()(dim,0)().reshape(new_mesh.num_entities(dim), -1)
     midpoints = np.mean(new_mesh.coordinates()[connectivity], axis=1)
@@ -210,7 +210,7 @@ class DomainAvg(MetaField):
                 dIdomain = self.dI.ufl_domain()
             else:
                 dIdomain = self.dI.domain()
-            
+
         assert dIdomain != None
 
         # Calculate volume

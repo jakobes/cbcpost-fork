@@ -29,7 +29,7 @@ class Field(Parameterized):
     """
     _recording = False
     _record = []
-    
+
     def __init__(self, params=None, name="default", label=None):
         Parameterized.__init__(self, params)
         if label:
@@ -139,7 +139,7 @@ class Field(Parameterized):
         else:
             n = self._name
         return n
-    
+
     @name.setter
     def name(self, value):
         """Set name property"""

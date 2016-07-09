@@ -61,12 +61,12 @@ class SubFunction(MetaField):
 
         spaces = SpacePool(self.mesh)
         FS = spaces.get_custom_space(element.family(), element.degree(), element.value_shape())
-        
+
         if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
             rank = len(u.ufl_shape)
         else:
             rank = u.rank()
-        
+
         if rank > 0:
             FS_scalar = spaces.get_custom_space(element.family(), element.degree(), ())
             self.assigner = FunctionAssigner(FS, [FS_scalar]*FS.num_sub_spaces())

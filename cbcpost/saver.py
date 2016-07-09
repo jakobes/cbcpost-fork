@@ -412,7 +412,7 @@ class Saver():
                 f.sync()
                 f.close()
                 self._metadata_cache[k] = None
-                
+
             if self._playlog[self.get_casedir()] != None:
                 self._playlog[self.get_casedir()].sync()
                 self._playlog[self.get_casedir()].close()

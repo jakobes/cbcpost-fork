@@ -40,7 +40,7 @@ def import_fenicstools():
         _syspath = sys.path
         try:
             sys.path = [location]
-    
+
             from Probe import Probe, Probes
             from common import getMemoryUsage
             import WeightedGradient

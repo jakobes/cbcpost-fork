@@ -59,12 +59,12 @@ class Magnitude(MetaField):
         u = get(self.valuename)
 
         if isinstance(u, Function):
-            
+
             if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
                 rank = len(u.ufl_shape)
             else:
                 rank = u.rank()
-            
+
             if rank == 0:
                 self.f = Function(u.function_space())
             elif rank >= 1:

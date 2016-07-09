@@ -54,7 +54,7 @@ class Restrict(MetaField):
             element = V.ufl_element()
             family = element.family()
             degree = element.degree()
-            
+
             if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
                 rank = len(u.ufl_shape)
             else:

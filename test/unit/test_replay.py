@@ -9,7 +9,7 @@ def test_basic_replay(mesh, casedir):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(1,0)
     V = spacepool.get_space(1,1)
-    
+
     pp = PostProcessor(dict(casedir=casedir))
     pp.add_fields([
         MockFunctionField(Q, dict(save=True)),
@@ -23,7 +23,7 @@ def test_basic_replay(mesh, casedir):
 
     # Add fields, but don't save (for testing)
     pp.add_fields(replay_fields(False))
-    
+
     # Solutions to check against
     checks = {}
     pp.update_all({}, 0.0, 0)
@@ -50,7 +50,7 @@ def test_basic_replay(mesh, casedir):
 
     replayer = Replay(pp)
     replayer.replay()
-    
+
     # Test that replayed solution is the same as computed in the original "solve"
     for name in rf_names:
         data = shelve.open(os.path.join(pp.get_savedir(name), name+".db"), 'r')

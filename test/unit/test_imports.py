@@ -15,7 +15,7 @@ def test_imports():
     metafields = ["Boundary", "DomainAvg", "ErrorNorm", "Magnitude", "Maximum",
                   "Minimum", "Norm", "PointEval", "Restrict", "SubFunction", "TimeAverage",
                   "TimeDerivative", "TimeIntegral", "DomainSD", "Dot", "Threshold",
-                  "Add", "Subtract", "Multiply", "Divide"]
+                  "Add", "Subtract", "Multiply", "Divide", "Time"]
     for mf in metafields:
         exec("from cbcpost import %s" %mf)
 

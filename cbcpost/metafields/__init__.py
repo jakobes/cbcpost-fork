@@ -48,4 +48,7 @@ meta_fields = [
     #"Subtract",
     #"Multiply",
     #"Divide",
+    
+    # Timekeeping
+    "Time",
     ]

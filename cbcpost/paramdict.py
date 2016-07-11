@@ -303,11 +303,11 @@ class ParamDict(dict):
         args = re.sub("=\s+", "=", args)
         args = re.sub("[\]'\"()[]", "", args)
 
-        m = re.findall(r'([^\s]*\S+)=(.+?(?=\s+\S+=|$))', args)
+        m = re.findall(r'([^\s]*?[^=\s]*)=(.+?(?=\s+\S+=|$))', args)
 
         for k, v in m:
             self.arg_assign(k, v, insert)
-
+            
     def render_args(self):
         "Render arguments (inverse of parse_args)"
-        return "  ".join("%s=%r" % (k, v) for k, v in self.iterdeep())
+        return " ".join("%s=%r" % (k, v) for k, v in self.iterdeep())

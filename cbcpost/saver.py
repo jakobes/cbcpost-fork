@@ -407,11 +407,12 @@ class Saver():
     def _close_shelves(self):
         "Close all shelve files"
         if on_master_process():
-            for k in self._metadata_cache:
+            for k in self._metadata_cache.keys():
                 f = self._metadata_cache[k]
                 f.sync()
                 f.close()
-                self._metadata_cache[k] = None
+                #self._metadata_cache[k] = None
+                self._metadata_cache.pop(k)
 
             if self._playlog[self.get_casedir()] != None:
                 self._playlog[self.get_casedir()].sync()
@@ -419,13 +420,14 @@ class Saver():
                 self._playlog[self.get_casedir()] = None
 
             #for key, f in self._datafile_cache.iteritems():
-            for key in self._datafile_cache:
+            for key in self._datafile_cache.keys():
                 fieldname, saveformat = key
                 if saveformat == "shelve":
                     f = self._datafile_cache[key]
                     f.sync()
                     f.close()
-                    self._datafile_cache[key] = None
+                    #self._datafile_cache[key] = None
+                    self._datafile_cache.pop(key)
 
 
     def _action_save(self, field, data, timestep, t):

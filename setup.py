@@ -8,6 +8,23 @@ major = 2016
 minor = 1
 maintenance = 0
 
+scripts = [
+    os.path.join("scripts", "cbcbatch"),
+    ]
+
+if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
+    # In the Windows command prompt we can't execute Python scripts
+    # without a .py extension. A solution is to create batch files
+    # that runs the different scripts.
+    batch_files = []
+    for script in scripts:
+        batch_file = script + ".bat"
+        f = open(batch_file, "w")
+        f.write('python "%%~dp0\%s" %%*' % os.path.split(script)[1])
+        f.close()
+        batch_files.append(batch_file)
+    scripts.extend(batch_files)
+
 with open("README", 'r') as file:
     readme = file.read()
 
@@ -29,6 +46,7 @@ setup(name = "cbcpost",
           'Topic :: Scientific/Engineering :: Mathematics',
           'Topic :: Software Development :: Libraries :: Python Modules',
           ],
+      scripts = scripts,
       packages = ["cbcpost",
                   "cbcpost.fieldbases",
                   "cbcpost.metafields",

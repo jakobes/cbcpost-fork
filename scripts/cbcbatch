@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+
+from cbcpost import *
+from cbcpost.utils import *
+from dolfin import set_log_level
+set_log_level(31)
+import subprocess
+import os, sys
+from itertools import product
+from collections import Iterable
+from IPython import embed
+import time
+import signal
+
+processes = []
+return_codes = {}
+import atexit
+
+@atexit.register
+def kill_subprocesses():
+    for pro in processes:
+        print "killing..."
+        os.killpg(os.getpgid(pro.pid), signal.SIGTERM)  
+
+def num_running(processes):
+    for i in reversed(range(len(processes))):
+        pro = processes[i]
+        if pro.poll() is not None:
+            cbc_log(40, "Process with PID: %d is completed" %pro.pid)
+            return_codes[pro.pid][1] = pro.poll()
+            del processes[i]
+        else:
+            cbc_log(30, "Process with PID: %d is running" %pro.pid)
+    N = len(processes)
+    cbc_log(35, "Number of running processes is %d" %N)
+    return N
+
+# Find runnable file
+runnable = sys.argv[1]
+assert os.path.isfile(runnable), "Unable to find file %s" %runnable
+assert os.path.splitext(runnable)[1] == ".py", "Runnable file should be a python file"
+
+# Parse default params
+batch_params = ParamDict(
+    num_cores=1,
+    casedir="BatchResults"
+)
+batch_params.parse_args(sys.argv[2:])
+
+# Parse other params (remove params reserved for batch_params)
+args = ParamDict()
+args.parse_args(sys.argv[2:], insert=True)
+for k,v in args.items():
+    if k in batch_params:
+        args.pop(k)
+    elif not isinstance(v, Iterable) or isinstance(v, str):
+        args[k] = [v]
+
+all_params = ParamDict()
+all_params["BatchParams"] = batch_params
+all_params["Params"] = args
+
+    
+# Compute all combinations
+keys, values = zip(*args.items())
+combinations = list(product(*values))
+
+pp = PostProcessor(dict(casedir=batch_params.casedir))
+pp.store_params(all_params)
+
+cbc_print("Number of combinations is: %d" %len(combinations))
+
+@atexit.register
+def write_log():
+    # Write to casedir that combinations are completed
+    completed = os.path.join(pp.get_casedir(), "COMPLETED")
+    with open(completed, 'w') as f:
+        print time.asctime()
+        f.write("Completed batch run at: "+time.asctime()+"\n")
+        N = sum(r==0 for pd, r in return_codes.values())
+        f.write("\n\nSuccessful simulations (%d/%d):\n" %(N,len(combinations)))
+        for pd, r in return_codes.values():
+            if r == 0:
+                f.write(str(pd)+"\n")
+        
+        f.write("\n\nUnsuccessful simulations (%d/%d):\n" %(len(combinations)-N,len(combinations)))
+        for pd, r in return_codes.values():
+            if r != 0:
+                f.write(str(pd)+"\n")
+
+
+started = os.path.join(pp.get_casedir(), "STARTED")
+with open(started, 'w') as f:
+    print time.asctime()
+    f.write("Started batch run at: "+time.asctime()+"\n")
+
+# Run all combinations
+for i, combination in enumerate(combinations):
+    pd = ParamDict(zip(keys, combination))
+    cmd_args = pd.render_args()
+    casedir = batch_params.casedir+"_"+cmd_args.replace(" ", "_")
+    #print casedir
+    pd.update(casedir=os.path.join(batch_params.casedir, casedir))
+    cmd_args = pd.render_args()
+
+    while num_running(processes) >= batch_params.num_cores:
+        time.sleep(0.5)
+    cmd = "python %s %s" %(runnable, cmd_args)
+    cbc_print("Starting combination %d/%d (%s) with arguments:" %(i+1, len(combinations), runnable))
+    cbc_log(40, str(pd))
+    pro = subprocess.Popen(cmd, shell=True)
+    processes.append(pro)
+    return_codes[pro.pid] =[pd, None]
+    cbc_log(30, "Started process with PID: %d" %os.getpgid(pro.pid))
+
+while num_running(processes) > 0:
+    time.sleep(1)

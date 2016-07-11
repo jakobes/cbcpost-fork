@@ -29,9 +29,9 @@ class MeshPool(Mesh):
     """
     #_existing = weakref.WeakValueDictionary()
     _existing = dict()
-    _X = [Expression("x[0]"),
-          Expression(("x[0]", "x[1]")),
-          Expression(("x[0]", "x[1]", "x[2]"))]
+    _X = [Expression("x[0]", degree=1),
+          Expression(("x[0]", "x[1]"), degree=1),
+          Expression(("x[0]", "x[1]", "x[2]"), degree=1)]
 
     #def __new__(cls, mesh, tolerance=1e-12):
     def __new__(cls, mesh, tolerance=1e-12):

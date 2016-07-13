@@ -10,7 +10,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
+from IPython import embed
 import sys, os
 class Mock(object):
 
@@ -128,8 +128,60 @@ release = '2016.1.0'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = ['_build']
+from shutil import copyfile
+try:
+    os.system("git checkout index.rst")
+    os.system("git checkout ../Demos/index.rst")
+    
+    #copyfile("index.rst.orig", "index.rst")
+except:
+    pass
+#copyfile("index.rst", "index.rst.orig")
 if "-b latex" in " ".join(sys.argv):
+    # Exclude programmers reference
     exclude_patterns.append("rst_programmers_reference")
+    
+    # Rewrite index
+    with open("index.rst", 'r') as f:
+        r = f.read()
+        r = r.replace("**Contents:**", "")
+        r = r.replace("   rst_programmers_reference/index\n", "")
+    i = r.index("=\n")+2
+    j = r.index(".. toctree::")
+    with open("index.rst", 'w') as f:
+        _r = r[:i]
+        _r += r[j:r.index("Indices and tables")]
+        _r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
+        f.write(_r)
+    with open("introduction.rst", 'w') as f:
+        f.write("Introduction\n=====================================\n")
+        f.write(r[i:j])
+        f.write("""\n\nThis pdf-file is generated from rst-files without a programmers reference. \
+                For the updated documentation and programmers reference, see cbcpost.readthedocs.org.
+                """)
+        
+    with open("Demos/index.rst", 'r') as f:
+        r = f.read()
+        r.replace("**Documented demos**:", "")
+    with open("Demos/index.rst", 'w') as f:
+        f.write(r)
+    
+else:
+    #copyfile("index.rst.orig", "index.rst")
+    _exclude_patterns("introduction")
+    
+    
+latex_elements = {
+# The paper size ('letterpaper' or 'a4paper').
+'papersize': 'a4paper',
+
+# The font size ('10pt', '11pt' or '12pt').
+'pointsize': '11pt',
+'title': 'cbcpost technical report',
+
+# Additional stuff for the LaTeX preamble.
+'preamble': '\usepackage{amsmath}\n\usepackage{amssymb}\n',
+}
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -293,16 +345,7 @@ htmlhelp_basename = 'cbcpostdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
-
-# Additional stuff for the LaTeX preamble.
-'preamble': '\usepackage{amsmath}\n\usepackage{amssymb}\n',
-}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
@@ -329,8 +372,7 @@ latex_documents = [
 #latex_appendices = []
 
 # If false, no module index is generated.
-#latex_domain_indices = True
-
+latex_domain_indices = False
 
 # -- Options for manual page output --------------------------------------------
 

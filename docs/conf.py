@@ -157,7 +157,7 @@ if "-b latex" in " ".join(sys.argv):
         f.write("Introduction\n=====================================\n")
         f.write(r[i:j])
         f.write("""\n\nThis pdf-file is generated from rst-files without a programmers reference. \
-                For the updated documentation and programmers reference, see cbcpost.readthedocs.org.
+                For the updated documentation and programmers reference, see `cbcpost.readthedocs.org <http://cbcpost.readthedocs.org>`_.
                 """)
         
     with open("Demos/index.rst", 'r') as f:

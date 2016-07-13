@@ -2,9 +2,10 @@
 
 rm -rf _build
 sphinx-build -b latex . _build
+
 if [ $? -eq 0 ];
     then
-    if [ $1 == "show" ]
+    if [ ! -z $1 ] && [ $1 == "show" ]
         then
             cd _build
             make

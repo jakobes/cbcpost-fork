@@ -3,7 +3,7 @@
 from cbcpost import *
 from cbcpost.utils import *
 from dolfin import set_log_level
-set_log_level(31)
+set_log_level(0)
 import subprocess
 import os, sys
 from itertools import product
@@ -23,16 +23,19 @@ def kill_subprocesses():
         os.killpg(os.getpgid(pro.pid), signal.SIGTERM)  
 
 def num_running(processes):
+    N = 0
     for i in reversed(range(len(processes))):
-        pro = processes[i]
+        pro,n = processes[i]
         if pro.poll() is not None:
             cbc_log(40, "Process with PID: %d is completed" %pro.pid)
             return_codes[pro.pid][1] = pro.poll()
             del processes[i]
         else:
+            N += n
             cbc_log(30, "Process with PID: %d is running" %pro.pid)
-    N = len(processes)
-    cbc_log(35, "Number of running processes is %d" %N)
+    #N = len(processes)
+    cbc_log(25, "Number of running processes is %d" %N)
+    print "Number of running processes is %d" %N
     return N
 
 # Find runnable file
@@ -43,24 +46,42 @@ assert os.path.splitext(runnable)[1] == ".py", "Runnable file should be a python
 # Parse default params
 batch_params = ParamDict(
     num_cores=1,
-    casedir="BatchResults"
+    casedir="BatchResults",
+    mpirun=None,
+    mpirun_parameter=None,
 )
 batch_params.parse_args(sys.argv[2:])
+
+
 
 # Parse other params (remove params reserved for batch_params)
 args = ParamDict()
 args.parse_args(sys.argv[2:], insert=True)
+additional_args = ParamDict()
 for k,v in args.items():
     if k in batch_params:
         args.pop(k)
     elif not isinstance(v, Iterable) or isinstance(v, str):
-        args[k] = [v]
+        args.pop(k)
+        additional_args[k] = v
 
 all_params = ParamDict()
 all_params["BatchParams"] = batch_params
 all_params["Params"] = args
 
-    
+if batch_params.mpirun is not None:
+    assert max(batch_params.mpirun) <= batch_params.num_cores, "Need to use more cores than the max number of processes for mpirun: num_cores=%d, max cores for mpirun=%d" %(batch_params.num_cores, max(batch_params.mpirun))
+    assert batch_params.mpirun_parameter is not None
+    assert batch_params.mpirun_parameter in args
+    assert len(batch_params.mpirun) == len(args[batch_params.mpirun_parameter])
+    mpi_distribution = dict()
+    for cores, v in zip(batch_params.mpirun, args[batch_params.mpirun_parameter]):
+        mpi_distribution[v] = cores
+        
+#embed()
+#exit()
+
+
 # Compute all combinations
 keys, values = zip(*args.items())
 combinations = list(product(*values))
@@ -94,22 +115,46 @@ with open(started, 'w') as f:
     print time.asctime()
     f.write("Started batch run at: "+time.asctime()+"\n")
 
+
+#outputs = ParamDict()
 # Run all combinations
 for i, combination in enumerate(combinations):
     pd = ParamDict(zip(keys, combination))
     cmd_args = pd.render_args()
     casedir = batch_params.casedir+"_"+cmd_args.replace(" ", "_")
+    casedir = casedir.replace('=',"")
     #print casedir
     pd.update(casedir=os.path.join(batch_params.casedir, casedir))
     cmd_args = pd.render_args()
 
-    while num_running(processes) >= batch_params.num_cores:
-        time.sleep(0.5)
-    cmd = "python %s %s" %(runnable, cmd_args)
+    
+    cmd = "python %s %s %s" %(runnable, cmd_args, additional_args.render_args())
+    
     cbc_print("Starting combination %d/%d (%s) with arguments:" %(i+1, len(combinations), runnable))
     cbc_log(40, str(pd))
-    pro = subprocess.Popen(cmd, shell=True)
-    processes.append(pro)
+    #pro = subprocess.Popen(cmd, shell=True)
+    #output_file = cmd_args.replace(" ", "_")
+    
+    if batch_params.mpirun is not None:
+        key = pd[batch_params.mpirun_parameter]
+        N = mpi_distribution[key]
+        cmd = "mpirun -n %d --bind-to None " %N+cmd
+    else:
+        N = 1
+    while num_running(processes)+N-1 >= batch_params.num_cores:
+        time.sleep(0.5)
+    outputfile = pd.casedir+".log"
+    f = open(outputfile, 'w')
+    pro = subprocess.Popen(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)#), stdout=subprocess.PIPE)
+    #out, err = pro.communicate()
+    #print out
+    #print err
+    #from IPython import embed
+    #embed()
+    
+    #outputs[cmd.replace(' ', '_')+".log"]
+    
+    processes.append((pro,N))
     return_codes[pro.pid] =[pd, None]
     cbc_log(30, "Started process with PID: %d" %os.getpgid(pro.pid))
 

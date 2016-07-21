@@ -265,7 +265,12 @@ class ParamDict(dict):
         subs, vname = subs[:-1], subs[-1]
         p = self
         for s in subs:
-            p = p[s]
+            if s in p:
+                p = p[s]
+            elif insert:
+                p[s] = ParamDict()
+                p = p[s]
+
         if vname in p or insert:
             #value = value.split(',')
             value = re.split("\s*,\s*",value)

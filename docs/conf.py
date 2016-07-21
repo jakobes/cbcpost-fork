@@ -12,6 +12,17 @@
 # serve to show the default.
 from IPython import embed
 import sys, os
+
+from sphinx.highlighting import PygmentsBridge
+from pygments.formatters.latex import LatexFormatter
+
+class CustomLatexFormatter(LatexFormatter):
+    def __init__(self, **options):
+        super(CustomLatexFormatter, self).__init__(**options)
+        #self.verboptions = r"formatcom=\footnotesize"#,frame=single,framerule=1mm,framesep=3mm,rulecolor=\color{red},fillcolor=\color{yellow}"
+
+PygmentsBridge.latex_formatter = CustomLatexFormatter
+
 class Mock(object):
 
     __all__ = []
@@ -42,12 +53,242 @@ for mod_name in MOCK_MODULES:
 
 if not os.path.isdir('_static'): os.mkdir('_static')
 
+def write_programmers_reference(type):
+    assert type in ["html", "latex"]
+    #all_class_docs = dict()
+    if not os.path.isdir("rst_programmers_reference"):
+        os.mkdir("rst_programmers_reference")
+    all_docs = dict()
+    import cbcpost
+    from inspect import isclass, isfunction, ismodule
+    if type == "latex":
+        for k in dir(cbcpost):
+            if not k.startswith('_') and (isclass(getattr(cbcpost,k)) or isfunction(getattr(cbcpost,k))):
+                
+                all_docs[k] = getattr(cbcpost,k).__doc__
+                if hasattr(getattr(cbcpost,k), "default_params"):
+                    default_params = getattr(cbcpost, k).default_params.__doc__
+                    if default_params is None:
+                        default_params = ""
+                    for supercls in getattr(cbcpost,k).mro()[1:]:
+                        try:
+                            _default_params = supercls.default_params.__doc__
+                            if default_params == _default_params:
+                                default_params = ""
+                                break
+                        except:
+                            pass
+                    if k == "Restart":
+                        print default_params
+                    if default_params != "":
+                        default_params = default_params.split("\n")
+                        for i in range(len(default_params)):
+                            l = default_params[i]
+                            if l.strip().startswith('+'):
+                                break
+                        if i < len(default_params):
+                            default_params = default_params[:i]+["\n.. tabularcolumns:: p{5cm}p{4cm}p{6cm}\n"]+default_params[i:]
+                        
+                        default_params = "\n".join(default_params)
+                            
+
+                    if k == "Restart":
+                        print default_params
+
+                    all_docs[k] += "\n\n"+default_params
+                    if k == "Restart":
+                        print repr(all_docs[k])
+                            
+
+        for k in dir(cbcpost.utils):
+            if not k.startswith('_') and (isclass(getattr(cbcpost.utils,k)) or isfunction(getattr(cbcpost.utils,k))):
+                all_docs[k] = getattr(cbcpost.utils,k).__doc__
+                try:
+                    all_docs[k] += getattr(cbcpost.utils,k).default_params.__doc__
+                except:
+                    pass
+
+        from collections import OrderedDict
+        doc_types = OrderedDict()
+        doc_types["Postprocessor"] = ["PostProcessor", "Planner", "Saver", "Plotter"]
+        doc_types["Replay"] = ["Replay"]
+        doc_types["Restart"] = ["Restart"]
+        doc_types["Fields"] = {"Field bases": [], "MetaFields": [], "Operators": []}
+        doc_types["Parameter system"] = ["ParamDict", "Parameterized"]
+        
+        #for f in doc_types["Fields"]:
+        #    for
+        for k in dir(cbcpost):
+            if isclass(getattr(cbcpost, k)):
+                if not issubclass(getattr(cbcpost, k), cbcpost.Field):
+                    continue
+                
+                if issubclass(getattr(cbcpost, k), cbcpost.OperatorField):
+                    doc_types["Fields"]["Operators"].append(k)
+                elif issubclass(getattr(cbcpost, k), (cbcpost.MetaField, cbcpost.MetaField2)) and not (k == "MetaField" or k == "MetaField2"):
+                    doc_types["Fields"]["MetaFields"].append(k)
+                else:
+                    doc_types["Fields"]["Field bases"].append(k)
+
+        def add_lists(doced, d):
+            for k,v in d.items():
+                if isinstance(v, list):
+                    doced += v
+                elif isinstance(v, dict):
+                    add_lists(doced, v)
+                else:
+                    raise RuntimeError("Values of doc types should be either lists or dicts")
+        doced = []
+        add_lists(doced, doc_types)
+        #all_classes = [k for k in dir(cbcpost) if isclass(getattr(cbcpost,k))]
+        #doced = doc_types.keys()+_doc_types.keys()
+        #for d in [_d for _d in doc_types.values()+_doc_types.values() if _d is not None]: doced += d
+        
+        
+        #doced = doc_types.keys()
+        #for d in [_d for _d in doc_types.values() if _d is not None]: doced += d
+        
+        doc_types["Other Classes"] = []
+        doc_types["Other Functions"] = []
+        for k in dir(cbcpost):
+            if isclass(getattr(cbcpost, k)):
+                if k in doced:
+                    continue
+                if issubclass(getattr(cbcpost, k), cbcpost.Field):
+                    continue
+                for d in doced:
+                    _doced = False
+                    try:
+                        mod = getattr(cbcpost, d.lower().replace(' ', '').rstrip('s'))
+                        if k in dir(mod):
+                            _doced = True
+                    except:
+                        pass
+                if not _doced:
+                    doc_types["Other Classes"].append(k)
+            elif isfunction(getattr(cbcpost, k)):
+                doc_types["Other Functions"].append(k)
+                  
+        doc_types["Utilities"] = dict(Classes=[], Functions=[])
+        for k in dir(cbcpost.utils):
+            if k.startswith("_"):
+                continue
+            if isclass(getattr(cbcpost.utils, k)):
+                doc_types["Utilities"]["Classes"].append(k)
+            elif isfunction(getattr(cbcpost.utils, k)):
+                doc_types["Utilities"]["Functions"].append(k)
+            
+        for k,v in doc_types.items():
+            print k, v
+        doced = []
+        add_lists(doced, doc_types)
+        
+        assert set(doced)==set(all_docs.keys())
+        
+        #os.makedirs(type+"_programmers_reference")
+        with open("rst_programmers_reference/index.rst", 'w') as f:
+            f.write("Overview of available functionality\n")
+            f.write("="*45)
+            f.write("\n\n\n.. toctree::\n\n\n")
+            for k in doc_types:
+                f.write("    %s\n" %k.lower().replace(' ',''))
+        
+        
+        def write_to_file(f, k, d, level):
+            assert level in [1,2]
+            if isinstance(d, dict):
+                sep = "_"
+                for k, v in d.items():
+                    f.write(k+"\n")
+                    f.write(sep*45+"\n")
+                    write_to_file(f, k, v, level+1)
+            elif isinstance(d, list):
+                sep = "-"
+                for v in d:
+                    f.write("\n%s\n" %v)
+                    f.write(sep*45+"\n")
+                    doc = all_docs[v].strip()
+                    if v == "Restart":
+                        print doc
+                    doc = doc.split('\n')
+                    i = -1
+                    
+                    while i < len(doc)-1:
+                        i += 1
+                        doc[i] = doc[i].strip()
+                        if doc[i].strip().startswith('.. math::'):
+                            while i < len(doc):
+                                i += 1
+                                l = doc[i].strip()
+                                if doc[i].strip() != "":
+                                    i += 1
+                                    break
+
+                    doc = "\n".join(doc)
+                    if v == "Restart":
+                        print doc
+                        #exit()
+                    try:
+                        i = doc.index(":param")
+                        doc = doc[:i]+"\n\nArguments:\n\n"+doc[i:]
+                    except:
+                        pass
+                    import re
+                    doc = re.sub(r":\s*param\s*", ":", doc)
+                    if v == "Restart":
+                        print doc
+                        #exit()
+
+                    
+                    f.write(doc.strip())
+                    f.write("\n\n")
+            
+        
+        for k,d in doc_types.items():
+            with open("rst_programmers_reference/%s.rst" %k.lower().replace(' ', ''), 'w') as f:
+                f.write(k+"\n")
+                f.write("="*45+"\n")
+                write_to_file(f, k, d, 1)
+                
+            
+
+styles = ['manni',
+ 'igor',
+ 'lovelace',
+ 'xcode',
+ 'vim',
+ 'autumn',
+ 'vs',
+ 'rrt',
+ 'native',
+ 'perldoc',
+ 'borland',
+ 'tango',
+ 'emacs',
+ 'friendly',
+ 'monokai',
+ 'paraiso-dark',
+ 'colorful',
+ 'murphy',
+ 'bw',
+ 'pastie',
+ 'algol_nu',
+ 'paraiso-light',
+ 'trac',
+ 'default',
+ 'algol',
+ 'fruity']
+#pygments_style = "friendly"
+
+
 # on_rtd is whether we are on readthedocs.org
 # Insert cwd in path to be able to import from generate_api_doc
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 if not on_rtd:  # only import and set the theme if we're building docs locally
+    pass
+    """
     import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
@@ -55,6 +296,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     def setup(app):
         #app.add_javascript("custom.js")
         app.add_stylesheet('theme_overrides.css')
+    """
 else:
     sys.path.insert(0, os.getcwd())
     # Override default css to get a larger width for ReadTheDoc build
@@ -131,7 +373,7 @@ exclude_patterns = ['_build']
 from shutil import copyfile
 try:
     os.system("git checkout index.rst")
-    os.system("git checkout ../Demos/index.rst")
+    os.system("git checkout ../demo/documented/index.rst")
     
     #copyfile("index.rst.orig", "index.rst")
 except:
@@ -139,13 +381,13 @@ except:
 #copyfile("index.rst", "index.rst.orig")
 if "-b latex" in " ".join(sys.argv):
     # Exclude programmers reference
-    exclude_patterns.append("rst_programmers_reference")
+    #exclude_patterns.append("rst_programmers_reference")
     
     # Rewrite index
     with open("index.rst", 'r') as f:
         r = f.read()
         r = r.replace("**Contents:**", "")
-        r = r.replace("   rst_programmers_reference/index\n", "")
+        #r = r.replace("   rst_programmers_reference/index\n", "latex_programmers_reference/index")
     i = r.index("=\n")+2
     j = r.index(".. toctree::")
     with open("index.rst", 'w') as f:
@@ -156,9 +398,10 @@ if "-b latex" in " ".join(sys.argv):
     with open("introduction.rst", 'w') as f:
         f.write("Introduction\n=====================================\n")
         f.write(r[i:j])
-        f.write("""\n\nThis pdf-file is generated from rst-files without a programmers reference. \
+        f.write("""\n\nThis pdf-file is generated from rst-files with an incomplete programmers reference. \
                 For the updated documentation and programmers reference, see `cbcpost.readthedocs.org <http://cbcpost.readthedocs.org>`_.
                 """)
+    write_programmers_reference("latex")
         
     with open("Demos/index.rst", 'r') as f:
         r = f.read()
@@ -180,7 +423,13 @@ latex_elements = {
 'title': 'cbcpost technical report',
 
 # Additional stuff for the LaTeX preamble.
-'preamble': '\usepackage{amsmath}\n\usepackage{amssymb}\n',
+'preamble': '''\usepackage{amsmath}
+               \usepackage{amssymb}
+               \usepackage{booktabs}
+               \definecolor{VerbatimColor}{rgb}{0.5,0.7,0.8}
+               \definecolor{VerbatimBorderColor}{rgb}{0,0,0}
+               ''',
+#'table_style': 'booktabs',
 }
 
 # The reST default role (used for this markup: `text`) to use for all documents.
@@ -198,7 +447,7 @@ latex_elements = {
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+
 
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ["cbcpost."]

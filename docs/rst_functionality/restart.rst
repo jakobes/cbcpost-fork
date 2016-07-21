@@ -7,6 +7,7 @@ The restart functionality lets the user set up a problem for restart. This funct
 If we want to restart any problem, where a solution has been stored by cbcpost, we can simply point to the
 case directory:
 
+.. highlight:: python
 .. code-block:: python
 
     from cbcpost import *
@@ -24,6 +25,7 @@ Specify restart time
 
 You can easily specify the restart time to fetch the solution from:
 
+.. highlight:: python
 .. code-block:: python
 
     t0 = 2.5
@@ -39,6 +41,7 @@ Fetch multiple restart times
 For many problems, initial conditions are required at several time points
 prior to the desired restart time. This can be handled through:
 
+.. highlight:: python
 .. code-block:: python
 
     dt = 0.01
@@ -54,6 +57,7 @@ Rollback case directory for restart
 If you wish to write the restarted solution to the same case directory, you will need to clean up the case
 directory to avoid write errors. This is done by setting the parameter *rollback_casedir*:
 
+.. highlight:: python
 .. code-block:: python
 
     t0 = 2.5
@@ -66,6 +70,7 @@ Specifying solution names to fetch
 By default, the Restart-module will search through the case directory for all data stored as a
 :class:`SolutionField`. However, you can also specify other fields to fetch as restart data:
 
+.. highlight:: python
 .. code-block:: python
 
     solution_names = ["MyField", "MyField2"]
@@ -81,6 +86,7 @@ Changing function spaces
 If you wish to restart the simulation using different function spaces, you can pass the function spaces
 to *get_restart_conditions*:
 
+.. highlight:: python
 .. code-block:: python
 
     V = FunctionSpace(mesh, "CG", 3)

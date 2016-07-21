@@ -44,6 +44,10 @@ from cbcpost.parameterized import Parameterized
 
 # Core functionality
 from cbcpost.postprocessor import PostProcessor
+from cbcpost.saver import Saver
+from cbcpost.planner import Planner
+from cbcpost.plotter import Plotter
+
 from cbcpost.restart import Restart
 from cbcpost.replay import Replay
 

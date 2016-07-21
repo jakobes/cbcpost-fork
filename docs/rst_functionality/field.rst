@@ -25,8 +25,8 @@ The viscous stress tensor for a Newtonian fluid is computed as
 
 where :math:`\mu` is the dynamic viscosity, :math:`\mathbf{u}` is the fluid velocity and :math:`p` is the pressure. A Field to compute this might be specified as the following:
 
+.. highlight:: python
 .. code-block:: python
-    :linenos:
 
     from dolfin import *
     from cbcpost import Field
@@ -77,8 +77,8 @@ In this next section, we demonstrate some more functionality one can take advant
 
 A :class:`.Field`-class to compute this can be implemented as
 
+.. highlight:: python
 .. code-block:: python
-    :linenos:
 
     from dolfin import *
     from cbcpost import Field

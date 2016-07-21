@@ -1,6 +1,19 @@
 Replay
--------------------------------
-.. automodule:: cbcpost.replay
-    :members:
-    :undoc-members:
-    :show-inheritance:
+=============================================
+
+Replay
+---------------------------------------------
+Replay class for postprocessing exisiting solution data.
+
+
+Default parameters are:
+
+
+.. tabularcolumns:: p{5cm}p{4cm}p{6cm}
+
++------------------------+-----------------------+--------------------------------------------------------------+
+|Key                     | Default value         |  Description                                                 |
++========================+=======================+==============================================================+
+| check_memory_frequency | 0                     | Frequency to report memory usage                             |
++------------------------+-----------------------+--------------------------------------------------------------+
+

@@ -1,5 +1,41 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2010-2014 Simula Research Laboratory
+#
+# This file is part of CBCPOST.
+#
+# CBCPOST is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CBCPOST is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Executable for running a case
+"""
+
+def usage(params, reason=None):
+    print "\nUsage: \n"
+    print "\tcbcbatch [options] [batch_arguments] casedir"
+    print "\nValid options are: \n"
+    print params
+    print
+    print "Batch arguments should be specified as lists of parameters, such as:"
+    print
+    print "\tcbcbatch casedir=Reults N=[4,8,16,32] dt=[0.1,0.05,0.025]\n"
+    if reason is not None:
+        print "Failed to start cbcdashboard: \n"
+        print reason
+        print
+    exit()
+
 from cbcpost import *
 from cbcpost.utils import *
 from dolfin import set_log_level
@@ -38,11 +74,6 @@ def num_running(processes):
     print "Number of running processes is %d" %N
     return N
 
-# Find runnable file
-runnable = sys.argv[1]
-assert os.path.isfile(runnable), "Unable to find file %s" %runnable
-assert os.path.splitext(runnable)[1] == ".py", "Runnable file should be a python file"
-
 # Parse default params
 batch_params = ParamDict(
     num_cores=1,
@@ -50,9 +81,19 @@ batch_params = ParamDict(
     mpirun=None,
     mpirun_parameter=None,
 )
+
+if len(sys.argv) <= 1:
+    usage(batch_params)
+elif sys.argv[-1] in ["--help", "-h", "--usage"]:
+    usage(batch_params)
+
+# Find runnable file
+runnable = sys.argv[1]
+assert os.path.isfile(runnable), usage(batch_params, "Unable to find file %s" %runnable)
+assert os.path.splitext(runnable)[1] == ".py", usage(batch_params, "Runnable file should be a python file")
+
+
 batch_params.parse_args(sys.argv[2:])
-
-
 
 # Parse other params (remove params reserved for batch_params)
 args = ParamDict()
@@ -69,6 +110,10 @@ all_params = ParamDict()
 all_params["BatchParams"] = batch_params
 all_params["Params"] = args
 
+if len(all_params) == 0:
+    usage(batch_params, "No parameters to ruyn batch run on found.")
+
+
 if batch_params.mpirun is not None:
     assert max(batch_params.mpirun) <= batch_params.num_cores, "Need to use more cores than the max number of processes for mpirun: num_cores=%d, max cores for mpirun=%d" %(batch_params.num_cores, max(batch_params.mpirun))
     assert batch_params.mpirun_parameter is not None
@@ -77,10 +122,6 @@ if batch_params.mpirun is not None:
     mpi_distribution = dict()
     for cores, v in zip(batch_params.mpirun, args[batch_params.mpirun_parameter]):
         mpi_distribution[v] = cores
-        
-#embed()
-#exit()
-
 
 # Compute all combinations
 keys, values = zip(*args.items())
@@ -146,13 +187,6 @@ for i, combination in enumerate(combinations):
     outputfile = pd.casedir+".log"
     f = open(outputfile, 'w')
     pro = subprocess.Popen(cmd, shell=True, stdout=f, stderr=subprocess.STDOUT)#), stdout=subprocess.PIPE)
-    #out, err = pro.communicate()
-    #print out
-    #print err
-    #from IPython import embed
-    #embed()
-    
-    #outputs[cmd.replace(' ', '_')+".log"]
     
     processes.append((pro,N))
     return_codes[pro.pid] =[pd, None]

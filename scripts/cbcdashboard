@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+
+# Copyright (C) 2010-2014 Simula Research Laboratory
+#
+# This file is part of CBCPOST.
+#
+# CBCPOST is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CBCPOST is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import subprocess
+from cbcpost import ParamDict
+import re
+import time
+import atexit
+import signal
+import sys
+
+def usage(params, reason=None):
+    print "\nUsage: \n"
+    print "\tcbcdashboard [options] casedir"
+    print "\nValid options are: \n"
+    print params
+    print
+    if reason is not None:
+        print "Failed to start cbcdashboard: \n"
+        print reason
+        print
+    exit()
+
+params = ParamDict(
+    browser="default",
+    size = (1800,1000),
+)
+
+if len(sys.argv) <= 1:
+    usage(params)
+elif sys.argv[-1] in ["--help", "-h", "--usage"]:
+    usage(params)
+    
+
+
+casedir = sys.argv[-1]
+assert os.path.isdir(casedir), usage(params, "Did notrecognize %s as a valid case directory" %casedir)
+os.environ["CBCDASHBOARD_CASEDIR"] = os.path.join(os.getcwd(), sys.argv[-1])
+os.environ["CBCDASHBOARD_WIDTH"] = str(params.size[0])
+os.environ["CBCDASHBOARD_HEIGHT"] = str(params.size[1])
+
+
+params.parse_args(sys.argv[1:-1])
+
+dir = os.path.dirname(os.path.abspath(__file__))
+p = subprocess.Popen(["jupyter", "notebook", "--no-browser", "-y", "--log-level=0", "--NotebookApp.notebook_dir=%s" %dir])
+
+tries = 0
+port = None
+while tries < 50:
+    tries += 1
+    s = subprocess.check_output("lsof -Pan -p %d -i" %p.pid, shell=True)
+    try:
+        port = int(re.findall("127.0.0.1:(\d*)", s)[0])
+        break
+    except:
+        time.sleep(0.1)
+
+if port is None:
+    raise RuntimeError("Unable to start jupyter server")
+
+import webbrowser
+browser = params.browser
+if browser == "default":
+    browser = webbrowser
+else:
+    browser = webbrowser.get(browser)
+
+browser.open("http://localhost:%d/notebooks/cbcdashboard.ipynb" %port)
+
+try:
+    p.wait()
+except:
+    os.kill(p.pid, signal.SIGSYS)

@@ -11,6 +11,7 @@ maintenance = 0
 scripts = [
     os.path.join("scripts", "cbcbatch"),
     os.path.join("scripts", "cbcdashboard.ipynb"),
+    os.path.join("scripts", "cbcdashboard"),
     ]
 
 if platform.system() == "Windows" or "bdist_wininst" in sys.argv:

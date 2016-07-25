@@ -2,7 +2,7 @@
 
 def test_imports():
     # Core
-    core = ["PostProcessor", "Restart", "Replay"]
+    core = ["PostProcessor", "Restart", "Replay", "Planner", "Plotter", "Saver"]
     for c in core:
         exec("from cbcpost import %s" %c)
 

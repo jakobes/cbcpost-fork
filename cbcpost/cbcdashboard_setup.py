@@ -19,8 +19,6 @@ if __name__ == '__main__':
     print "This file is not runnable. To launch dashboard, run cbcdashboard."
     exit(1)
 from IPython.display import *
-_documentwidth = 1800
-_documentheight = 1000
 
 #### Silence deprecation warnings in traitlets
 # (for some reason needs to be set twice)
@@ -68,7 +66,9 @@ import time
 import threading
 
 relwidth=0.9
-casedir = None
+casedir = os.environ["CBCDASHBOARD_CASEDIR"]
+_documentwidth = int(os.environ["CBCDASHBOARD_WIDTH"])
+_documentheight = int(os.environ["CBCDASHBOARD_HEIGHT"])
 #cwd = None
 
 def set_style(_relwidth=0.9):
@@ -82,13 +82,6 @@ def set_style(_relwidth=0.9):
     </style>
     """))
     display(HTML("<style>.container { width:%d%%; }</style>" %(int(relwidth*100))))
-    
-    global casedir
-    casedir = os.environ["CBCDASHBOARD_CASEDIR"]
-    _documentwidth = int(os.environ["CBCDASHBOARD_WIDTH"])
-    _documentheight = int(os.environ["CBCDASHBOARD_HEIGHT"])
-    #global cwd
-    #cwd = os.environ["CBCDASHBOARD_CWD"]
 
 def setup():
     "Setup dashboard"

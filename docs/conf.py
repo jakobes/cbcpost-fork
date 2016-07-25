@@ -412,7 +412,7 @@ if "-b latex" in " ".join(sys.argv):
     
 else:
     #copyfile("index.rst.orig", "index.rst")
-    _exclude_patterns("introduction")
+    exclude_patterns.append("introduction")
     
     
 latex_elements = {

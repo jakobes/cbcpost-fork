@@ -16,7 +16,10 @@ def test_imports():
                   "Minimum", "Norm", "PointEval", "Restrict", "SubFunction", "TimeAverage",
                   "TimeDerivative", "TimeIntegral", "DomainSD", "Dot", "Threshold",
                   "Add", "Subtract", "Multiply", "Divide", "Time"]
-    for mf in metafields:
+    function_metafields = ["boundary", "domainavg", "errornorm", "magnitude", "maximum",
+                           "minimum", "norm", "domainsd", "restrict", "pointeval",
+                           "threshold", "subfunction"]
+    for mf in metafields+function_metafields:
         exec("from cbcpost import %s" %mf)
 
     # Tools
@@ -36,4 +39,4 @@ def test_imports():
     all_imports = dir(cbcpost)
     all_imports = [m for m in all_imports if m[0] != "_"]
 
-    assert set(core+field_bases+metafields+tools) == set(all_imports)-set(modules)
+    assert set(core+field_bases+metafields+function_metafields+tools) == set(all_imports)-set(modules)

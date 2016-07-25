@@ -9,7 +9,7 @@ The :class:`.Planner`, instantiated by the PostProcessor, handles planning of co
 
 For saving purposes the PostProcessor also creates a :class:`Saver`-instance. This will save Fields as specified by the Field-parameters and computed fields. It saves in a structured manner within a specified case directory.
 
-In addition, there is support for plotting in the :class:`.Plotter`-class, also created within the PostProcessor. It uses either dolfin.plot or pyplot.plot to plot data, based on data format.
+In addition, there is support for plotting in the :class:`.Plotter`-class, also created within the PostProcessor. It uses either dolfin.plot or pyplot.plot to plot data, based on the data format.
 
 .. toctree::
    :maxdepth: 2
@@ -17,6 +17,8 @@ In addition, there is support for plotting in the :class:`.Plotter`-class, also 
    field
    postprocessor
    replay
+   cbcbatch
+   cbcdashboard
    restart
    utilities
 

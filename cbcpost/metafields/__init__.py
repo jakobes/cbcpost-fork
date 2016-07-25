@@ -21,7 +21,7 @@ parts of fields etc.
 from Operators import Add, Divide, Subtract, Multiply
 
 # Fields that need input
-meta_fields = [
+_meta_fields_constant = [
     # Inspecting parts of fields
     "SubFunction",
     "PointEval",
@@ -38,7 +38,8 @@ meta_fields = [
     "Maximum",
     "Threshold",
     "Dot",
-
+]
+_meta_fields_time = [
     # Transient analysis of other fields
     "TimeIntegral",
     "TimeAverage",
@@ -52,3 +53,6 @@ meta_fields = [
     # Timekeeping
     "Time",
     ]
+
+meta_fields = _meta_fields_constant+_meta_fields_time
+

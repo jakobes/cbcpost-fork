@@ -10,6 +10,7 @@ cbcpost - a postprocessing framework for FEniCS
    :numbered:
 
    introduction
+   introduction
    installation
    features
    Demos/index

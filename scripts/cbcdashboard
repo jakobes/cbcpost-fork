@@ -53,11 +53,9 @@ elif sys.argv[-1] in ["--help", "-h", "--usage"]:
 casedir = sys.argv[-1]
 assert os.path.isdir(casedir), usage(params, "Did notrecognize %s as a valid case directory" %casedir)
 os.environ["CBCDASHBOARD_CASEDIR"] = os.path.join(os.getcwd(), sys.argv[-1])
-os.environ["CBCDASHBOARD_WIDTH"] = str(params.size[0])
-os.environ["CBCDASHBOARD_HEIGHT"] = str(params.size[1])
-
-
 params.parse_args(sys.argv[1:-1])
+os.environ["CBCDASHBOARD_WIDTH"] = str(1800)
+os.environ["CBCDASHBOARD_HEIGHT"] = str(1200)
 
 dir = os.path.dirname(os.path.abspath(__file__))
 p = subprocess.Popen(["jupyter", "notebook", "--no-browser", "-y", "--log-level=0", "--NotebookApp.notebook_dir=%s" %dir])

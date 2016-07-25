@@ -10,7 +10,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-from IPython import embed
+#from IPython import embed
 import sys, os
 
 from sphinx.highlighting import PygmentsBridge
@@ -391,8 +391,9 @@ if "-b latex" in " ".join(sys.argv):
     i = r.index("=\n")+2
     j = r.index(".. toctree::")
     with open("index.rst", 'w') as f:
-        _r = r[:i]
-        _r += r[j:r.index("Indices and tables")]
+        #_r = r[:i]
+        _r = r
+        #_r += r[j:r.index("Indices and tables")]
         _r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
         f.write(_r)
     with open("introduction.rst", 'w') as f:
@@ -426,7 +427,7 @@ latex_elements = {
 'preamble': '''\usepackage{amsmath}
                \usepackage{amssymb}
                \usepackage{booktabs}
-               \definecolor{VerbatimColor}{rgb}{0.5,0.7,0.8}
+               \definecolor{VerbatimColor}{rgb}{0.95,0.95,0.95}
                \definecolor{VerbatimBorderColor}{rgb}{0,0,0}
                ''',
 #'table_style': 'booktabs',

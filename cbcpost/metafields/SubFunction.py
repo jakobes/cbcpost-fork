@@ -41,7 +41,7 @@ class SubFunction(MetaField):
 
     .. note::
 
-        v1.4.0: This field requires fenicstools.
+        This field requires fenicstools.
 
     """
 

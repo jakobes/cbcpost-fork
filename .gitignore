@@ -1,0 +1,10 @@
+*.pyc
+*.vtu
+*.pvd
+*.py~
+*~
+build
+docs/_build
+dist/
+cbcpost.egg-info/
+scripts/.ipynb_checkpoints

@@ -23,15 +23,18 @@ Executable for running a case
 
 def usage(params, reason=None):
     print "\nUsage: \n"
-    print "\tcbcbatch [options] [batch_arguments] casedir"
+    print "\tcbcbatch [options] [batch_arguments] runnable"
     print "\nValid options are: \n"
     print params
     print
+    print "Note that the runnable must be a python file using cbcpost postprocessing,"
+    print "and that set_parse_command_line_arguments(True) is set."
+    print
     print "Batch arguments should be specified as lists of parameters, such as:"
     print
-    print "\tcbcbatch casedir=Reults N=[4,8,16,32] dt=[0.1,0.05,0.025]\n"
+    print "\tcbcbatch casedir=Reults N=[4,8,16,32] dt=[0.1,0.05,0.025] run.py\n"
     if reason is not None:
-        print "Failed to start cbcdashboard: \n"
+        print "Failed to start cbcbatch: \n"
         print reason
         print
     exit()

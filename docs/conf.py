@@ -391,9 +391,8 @@ if "-b latex" in " ".join(sys.argv):
     i = r.index("=\n")+2
     j = r.index(".. toctree::")
     with open("index.rst", 'w') as f:
-        #_r = r[:i]
-        _r = r
-        #_r += r[j:r.index("Indices and tables")]
+        _r = r[:i]
+        _r += r[j:r.index("Indices and tables")]
         _r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
         f.write(_r)
     with open("introduction.rst", 'w') as f:

@@ -68,7 +68,7 @@ _add_doc = '\n ** Warning: The function method of accessing metafields is untest
 for f in _meta_fields_constant:
     # Don't overwrite FEniCS dot
     if f != "Dot":
-        def_f_code = """
+        exec("""
 def {0}(value, *args):
     field = {1}("_tmp", *args)
     field.before_first_compute(lambda x: value)
@@ -76,7 +76,6 @@ def {0}(value, *args):
     del field
     return u
 {0}.__doc__ = {1}.__doc__+_add_doc
-        """.format(f.lower(), f)
-        exec(def_f_code)
+        """.format(f.lower(), f))
 del f
 del _add_doc

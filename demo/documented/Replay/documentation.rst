@@ -17,7 +17,8 @@ In the following, we initialize a replay of the heat equation solved in :ref:`Ba
 	pp.add_fields([
 	    SolutionField("Temperature", dict(plot=True)),
 	    Norm("Temperature", dict(save=True, plot=True)),
-	    TimeIntegral("Norm_Temperature", dict(save=True, start_time=0.0, end_time=6.0)),
+	    TimeIntegral("Norm_Temperature", dict(save=True, start_time=0.0,
+											  end_time=6.0)),
 	])
 
 To *replay* the simulation, we do: ::

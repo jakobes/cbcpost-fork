@@ -34,7 +34,7 @@ def inside(x):
 
 class Alpha(Expression):
     "Variable conductivity expression"
-    def __init__(self, alpha0, alpha1):
+    def __init__(self, alpha0, alpha1, **kwargs):
         self.alpha0 = alpha0
         self.alpha1 = alpha1
 

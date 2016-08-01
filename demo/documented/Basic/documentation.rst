@@ -187,7 +187,7 @@ If no norm is specified, the L2-norm (or l2-norm) is computed.
 
 Custom fields
 -----------------------------
-The user may also customize fields as he wishes. In this section we demonstrate two ways to compute the difference
+The user may also customize fields with custom computations. In this section we demonstrate two ways to compute the difference
 in average temperature between the two areas of different diffusivity at any given time. First, we take an
 approach based solely on accessing the *Temperature*-field: ::
 

@@ -24,7 +24,7 @@ By default, cbcbatch runs on a single core, but this can be modified by setting 
         casedir=BatchResults num_cores=8 run.py
 
 This will cause 8 simulations to be run at a time, and new ones started as soon as one core becomes available. Since there may be a large variations in computational
-cost between parameters, it is also supported to tie one of the batch parameters to run in parallell with mpirun:
+cost between parameters, it is also supported to tie one of the batch parameters to run in parallel with mpirun:
 
 .. code-block:: bash
 

@@ -37,8 +37,6 @@ import warnings
 warnings.warn_explicit = new_warn
 warnings.filterwarnings("ignore",category=DeprecationWarning)
 
-from string import ascii_uppercase
-import sys
 import pickle
 
 from dolfin import *
@@ -96,12 +94,12 @@ def setup():
 
     _width = [0.2,0.6,0.2]
     dpi = 80
-    pcwidth = [str(100*x)+"%" for x in _width]
+    #pcwidth = [str(100*x)+"%" for x in _width]
     pxwidth = [str(documentwidth*x)+"px" for x in _width]
     inwidth = [documentwidth*x/dpi for x in _width]
     
     _height = [0.05,0.9,0.05]
-    pcheight = [str(100*x)+"%" for x in _height]
+    #pcheight = [str(100*x)+"%" for x in _height]
     pxheight = [str(documentheight*x)+"px" for x in _height]
     inheight = [documentheight*x/dpi for x in _height]
 
@@ -172,7 +170,7 @@ def setup():
     )
     
     num_all = 0
-    current_casedir = None
+    #current_casedir = None
     casedirs = dict()
     
     # Create containers for matplotlib and pandas
@@ -368,7 +366,7 @@ def setup():
         value_min = np.min(value_data)
         value_max = np.max(value_data)
 
-        if widgets.value_range.default == True:
+        if widgets.value_range.default is True:
             widgets.value_range.unobserve_all()
             widgets.value_range.min = value_min
             widgets.value_range.max = value_max
@@ -619,7 +617,7 @@ def setup():
                                      ]),
         dict(selector="th", props=[("font-size", "36px"),
                                    ("text-align", "center"),
-                                    ("height", "100%"),
+                                   ("height", "100%"),
                                    ("background-color", "#D7D7D7"),
                                    ("min-width", "150px"),
                                    ("padding", "12px")
@@ -678,9 +676,9 @@ def setup():
             # Bug if these are added on first render, without function plot,
             # they are still shown. Therefore, adding them here
             c = list(containers[2][1].children)
-            if not widgets.value_range in c:
+            if widgets.value_range not in c:
                 c.append(widgets.value_range)
-            if not widgets.edge_cb in c:
+            if widgets.edge_cb not in c:
                 c.append(widgets.edge_cb)
             containers[2][1].children = tuple(c)
             #widgets.time.visible = True
@@ -741,7 +739,7 @@ def setup():
     # Event handlers
     def change_batch_param(change):
         "Event handler for when a batch param is changed"
-        new = change["new"]
+        #new = change["new"]
         old = change["old"]
         dd = change["owner"]
         

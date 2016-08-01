@@ -203,8 +203,8 @@ class ParamDict(dict):
     # --- String rendering
 
     def __repr__(self):
-        return "ParamDict([%s])" % ", ".join("(%r, %r)"
-                % (k, self[k]) for k in self._keys)
+        return "ParamDict([%s])" % ", ".join(
+            "(%r, %r)" % (k, self[k]) for k in self._keys)
 
     def __str__(self):
         "Return formatted string representing the dict"

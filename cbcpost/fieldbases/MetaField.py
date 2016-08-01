@@ -34,7 +34,8 @@ class MetaField(Field):
         """
         if self._name == "default":
             n = self.__class__.__name__+"_"+self.valuename
-            if self.label: n += "-"+self.label
+            if self.label:
+                n += "-"+self.label
         else:
             n = self._name
         return n

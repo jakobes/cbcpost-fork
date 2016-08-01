@@ -22,10 +22,10 @@
 """
 
 from cbcpost.utils.mpi_utils import (broadcast, distribute_meshdata,
-                                            distribution, gather)
+                                     distribution, gather)
 from cbcpost.utils import cbc_warning
 from dolfin import MPI, mpi_comm_world, Mesh, MeshEditor, dolfin_version
-from distutils.version import LooseVersion, StrictVersion
+from distutils.version import LooseVersion
 import numpy as np
 
 def create_submesh(mesh, markers, marker):

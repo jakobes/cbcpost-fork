@@ -31,7 +31,8 @@ from cbcpost.fieldbases import Field
 
 from cbcpost.utils import Timer, cbc_log, cbc_warning, strip_code
 
-import inspect, re
+import inspect
+import re
 from collections import defaultdict
 
 class DependencyException(Exception):
@@ -166,7 +167,8 @@ class PostProcessor(Parameterized):
         # Keep track of how many times .get has called each field.compute, for administration:
         self._compute_counts = defaultdict(int) # Actually only used for triggering "before_first_compute"
 
-        if self.params.clean_casedir: self._saver._clean_casedir()
+        if self.params.clean_casedir:
+            self._saver._clean_casedir()
 
         """
         # Callback to be called with fields where the 'callback' action is enabled
@@ -462,7 +464,7 @@ class PostProcessor(Parameterized):
         triggered_or_finalized = []
         for name in self._cache[0]:
             if (name in self._finalize_plan
-                or self._last_trigger_time[name][1] == timestep):
+                    or self._last_trigger_time[name][1] == timestep):
                 triggered_or_finalized.append(self._fields[name])
 
         self._saver.update(t, timestep, self._cache[0], triggered_or_finalized)

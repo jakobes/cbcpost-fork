@@ -28,7 +28,9 @@ from dolfin import (Function, MPI, mpi_comm_world, File, HDF5File, XDMFFile,
 from cbcpost.utils import safe_mkdir, hdf5_link, on_master_process, cbc_log
 from cbcpost.fieldbases import Field
 from distutils.version import LooseVersion
-import os, shelve, pickle
+import os
+import shelve
+import pickle
 from shutil import rmtree
 
 def _get_save_formats(field, data):
@@ -62,6 +64,7 @@ def _get_save_formats(field, data):
 class Saver():
     "Class to handle all saving in cbcpost."
     _playlog = dict()
+
     def __init__(self, timer, casedir, flush_frequency):
         self._timer = timer
         # Caches for file storage
@@ -74,7 +77,6 @@ class Saver():
         self.flush_frequency = flush_frequency
 
         self._create_casedir()
-
 
     def get_casedir(self):
         "Return case directory."

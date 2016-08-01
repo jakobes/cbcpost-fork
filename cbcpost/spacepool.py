@@ -22,7 +22,8 @@ function spaces used several places in a program.
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,
                     grad, Coefficient, dolfin_version)
 from distutils.version import LooseVersion
-import weakref, gc
+import weakref
+import gc
 
 def galerkin_family(degree):
     "Returns CG if degree>0, else DG."

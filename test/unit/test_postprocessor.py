@@ -47,12 +47,12 @@ def test_finalize_all(casedir):
 
     # Nothing finalized yet
     assert pp._finalized == {}
-    assert velocity.finalized == False
+    assert velocity.finalized is False
 
     # finalize_all should finalize velocity only
     pp.finalize_all()
     assert pp._finalized == {"MockVelocity": "u"}
-    assert velocity.finalized == True
+    assert velocity.finalized is True
 
     # Still able to get it
     assert pp.get("MockVelocity") == "u"

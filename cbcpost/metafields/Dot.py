@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 "Functionality for computing dot product"
-from dolfin import GenericFunction, Function, dot, project, Constant, assemble, dx
+
+from dolfin import GenericFunction, Function, dot, project, Constant
 from numpy import dot as npdot
 from cbcpost.fieldbases import MetaField2
 
@@ -57,7 +58,7 @@ class Dot(MetaField2):
             assert u1.value_rank() == 0
             V = u2.function_space()
 
-        N = max([u1.value_rank(), u2.value_rank()])
+        #N = max([u1.value_rank(), u2.value_rank()])
 
         if not hasattr(self, "u"):
             self.u = Function(V)

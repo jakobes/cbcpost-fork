@@ -56,8 +56,8 @@ class SubFunction(MetaField):
 
         V = u.function_space()
         element = V.ufl_element()
-        family = element.family()
-        degree = element.degree()
+        #family = element.family()
+        #degree = element.degree()
 
         spaces = SpacePool(self.mesh)
         FS = spaces.get_custom_space(element.family(), element.degree(), element.value_shape())

@@ -36,6 +36,7 @@ class MiniCallable():
     """Mini callable as a replacement for lambda-functions. """
     def __init__(self, value):
         self.value = value
+
     def __call__(self):
         """ Simply return self.value """
         return self.value

@@ -20,7 +20,8 @@ It also helps reduce memory consumption.
 """
 
 from dolfin import Mesh, Expression, CellVolume, dx, assemble, Constant, dot
-import gc, weakref
+import gc
+import weakref
 import numpy as np
 
 class MeshPool(Mesh):

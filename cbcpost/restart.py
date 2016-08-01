@@ -23,7 +23,9 @@ from cbcpost.utils import (Loadable, loadable_formats, create_function_from_meta
                            cbc_warning, on_master_process)
 
 
-import os, shelve, subprocess
+import os
+import shelve
+import subprocess
 from collections import Iterable, defaultdict
 from numpy import array, where, inf
 
@@ -56,22 +58,28 @@ def find_solution_presence(pp, playlog, fields):
                 if 'hdf5' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+'.hdf5')
 
-                    if fieldname in functions: function = functions[fieldname]
-                    else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'hdf5'))
+                    if fieldname in functions:
+                        function = functions[fieldname]
+                    else:
+                        function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'hdf5'))
 
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'hdf5', function))
                 elif 'xml' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+str(ts)+'.xml')
 
-                    if fieldname in functions: function = functions[fieldname]
-                    else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml'))
+                    if fieldname in functions:
+                        function = functions[fieldname]
+                    else:
+                        function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml'))
 
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'xml', function))
                 elif 'xml.gz' in data["fields"][fieldname]["save_as"]:
                     filename = os.path.join(pp.get_savedir(fieldname), fieldname+str(ts)+'.xml.gz')
 
-                    if fieldname in functions: function = functions[fieldname]
-                    else: function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml.gz'))
+                    if fieldname in functions:
+                        function = functions[fieldname]
+                    else:
+                        function = functions.setdefault(fieldname, create_function_from_metadata(pp, fieldname, metadata, 'xml.gz'))
 
                     present_solution[fieldname].append(Loadable(filename, fieldname, ts, data["t"], 'xml.gz', function))
                 elif 'shelve' in data["fields"][fieldname]["save_as"]:
@@ -100,9 +108,11 @@ def find_restart_items(restart_times, present_solution):
             # Find lower and upper limit
             limits = []
             lower = where(present_times <= restart_time)[0]
-            if len(lower) > 0: limits.append((present_times[lower[-1]], sorted_ps[lower[-1]]))
+            if len(lower) > 0:
+                limits.append((present_times[lower[-1]], sorted_ps[lower[-1]]))
             upper = where(present_times >= restart_time)[0]
-            if len(upper) > 0 and upper[0] != lower[-1]: limits.append((present_times[upper[0]], sorted_ps[upper[0]]))
+            if len(upper) > 0 and upper[0] != lower[-1]:
+                limits.append((present_times[upper[0]], sorted_ps[upper[0]]))
 
             loadables[restart_time][fieldname] = limits
 
@@ -275,7 +285,7 @@ class Restart(Parameterized):
         all_fields_to_clean = []
 
         for k,v in playlog_to_remove.items():
-            if not "fields" in v:
+            if "fields" not in v:
                 continue
             else:
                 all_fields_to_clean += v["fields"].keys()
@@ -301,7 +311,7 @@ class Restart(Parameterized):
         MPI.barrier(mpi_comm_world())
         if on_master_process():
             metadata = shelve.open(os.path.join(self._pp.get_savedir(fieldname), 'metadata.db'), 'w')
-            [metadata.pop(k) for k in metadata_to_remove.keys()]
+            [metadata.pop(key) for key in metadata_to_remove.keys()]
             metadata.close()
         MPI.barrier(mpi_comm_world())
 
@@ -350,7 +360,7 @@ class Restart(Parameterized):
             return
 
         for k, v in del_metadata.items():
-            if not 'hdf5' in v:
+            if 'hdf5' not in v:
                 continue
             else:
                 cpp_module.delete_from_hdf5_file(mpi_comm_world(), hdf5filename, v['hdf5']['dataset'], MPI.size(mpi_comm_world()) > 1)
@@ -384,7 +394,7 @@ class Restart(Parameterized):
                 MPI.barrier(mpi_comm_world())
             """
             #print k,v
-            if not 'filename' in v:
+            if 'filename' not in v:
                 continue
             else:
                 fullpath = os.path.join(self.postprocesor.get_savedir(fieldname), v['filename'])

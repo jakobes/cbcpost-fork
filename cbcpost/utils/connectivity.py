@@ -32,7 +32,7 @@ def _compute_connected_vertices(mesh, start=0):
         idx = queue.popleft()
         v = Vertex(mesh, idx)
         neighbors = set()
-        N = 0
+        #N = 0
         for e in edges(v):
             neighbors.update(e.entities(0).astype(np.int))
 
@@ -75,9 +75,8 @@ def compute_connectivity(mesh, cell_connectivity=True):
     global_indices = mesh.topology().global_indices(0)
     se = mesh.topology().shared_entities(0)
 
-    li = se.keys()
     gi_local = np.array([global_indices[i] for i in se.keys()])
-    mapping = dict(zip(gi_local,li))
+    #mapping = dict(zip(gi_local,se.keys()))
     gi = gather(gi_local, 0)
     gi = np.hstack(gi).flatten()
     gi = broadcast(gi, 0)
@@ -91,7 +90,7 @@ def compute_connectivity(mesh, cell_connectivity=True):
         shift = dict()
 
         for gidx in gi:
-            lidx = mapping.get(gidx, -1)
+            #lidx = mapping.get(gidx, -1)
             this_v = d.get(gidx, np.inf)
             v = int(MPI.min(mesh.mpi_comm(), float(this_v)))
             if this_v == v or this_v == np.inf:
@@ -141,4 +140,3 @@ if __name__ == '__main__':
     print mesh.size_global(0), mesh.size_global(3), toc()
 
     File("connectivity.xdmf") << connectivity
-

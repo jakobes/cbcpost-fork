@@ -14,23 +14,25 @@ params = ParamDict(
     amplitude = 3.0,    # Amplitude of boundary condition
 )
 
-# Create mesh
-mesh = UnitCubeMesh(21,21,21)
-
-# Function spaces
-V = FunctionSpace(mesh, "CG", 1)
-u,v = TrialFunction(V), TestFunction(V)
-
-# Time and time-stepping
-t = params.T0
-timestep = int(t/params.dt)
-dt = Constant(params.dt)
-
+# Load restart data
 restart = Restart(dict(casedir="../Basic/Results/"))
 restart_data = restart.get_restart_conditions()
 
 # Initial condition
 U = restart_data.values()[0]["Temperature"]
+
+# Get mesh and function spaces from loaded data
+V = U.function_space()
+mesh = V.mesh()
+
+# Test and trial functions
+u = TrialFunction(V)
+v = TestFunction(V)
+
+# Time and time-stepping
+t = params.T0
+timestep = int(t/params.dt)
+dt = Constant(params.dt)
 
 # Define inner domain
 def inside(x):

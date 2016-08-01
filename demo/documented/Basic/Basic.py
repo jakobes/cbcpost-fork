@@ -18,7 +18,10 @@ mesh = UnitCubeMesh(21,21,21)
 
 # Function spaces
 V = FunctionSpace(mesh, "CG", 1)
-u,v = TrialFunction(V), TestFunction(V)
+
+# Test and trial functions
+u = TrialFunction(V)
+v = TestFunction(V)
 
 # Time and time-stepping
 t = 0.0

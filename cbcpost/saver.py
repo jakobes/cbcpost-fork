@@ -350,7 +350,7 @@ class Saver():
             if self._playlog[self.get_casedir()] is None:
                 self._playlog[self.get_casedir()] = self._fetch_playlog()
             #playlog = self._fetch_playlog()
-            if self._playlog[self.get_casedir()].has_key(str(timestep)):
+            if str(timestep) in self._playlog[self.get_casedir()]:
                 #playlog.close()
                 return
             self._playlog[self.get_casedir()][str(timestep)] = {"t":float(t)}

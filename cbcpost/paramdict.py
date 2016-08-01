@@ -182,7 +182,7 @@ class ParamDict(dict):
     def pop(self, name, default=None):
         """ Returns Paramdict[name] if the key exists. If the key does not
         exist the default value is returned. """
-        if self.has_key(name):
+        if name in self:
             v = self[name]
             del self[name]
             return v

@@ -137,12 +137,15 @@ def test_TimeDerivative(problem, pp, start_time, end_time, dt):
     # Get and check values from the final timestep
     assert abs( (pp.get("TimeDerivative_t", compute=False)) - (1.0) ) < 1e-8
     assert abs( (pp.get("TimeDerivative_timestep", compute=False)) - (1.0/dt) ) < 1e-8
-    assert errornorm(pp.get("TimeDerivative_MockFunctionField"), interpolate(Expression("x[0]*x[1]"), Q)) < 1e-8
+    assert errornorm(pp.get("TimeDerivative_MockFunctionField"),
+                     interpolate(Expression("x[0]*x[1]", degree=1), Q)) < 1e-8
     D = problem.D
     if D == 2:
-        assert errornorm(pp.get("TimeDerivative_MockVectorFunctionField"), interpolate(Expression(("x[0]", "x[1]")), V)) < 1e-8
+        assert errornorm(pp.get("TimeDerivative_MockVectorFunctionField"),
+                         interpolate(Expression(("x[0]", "x[1]"), degree=1), V)) < 1e-8
     elif D == 3:
-        assert errornorm(pp.get("TimeDerivative_MockVectorFunctionField"), interpolate(Expression(("x[0]", "x[1]", "x[2]")), V)) < 1e-8
+        assert errornorm(pp.get("TimeDerivative_MockVectorFunctionField"),
+                         interpolate(Expression(("x[0]", "x[1]", "x[2]"), degree=1), V)) < 1e-8
 
     assert max( [ abs(x1-x0) for x1,x0 in zip(pp.get("TimeDerivative_MockTupleField"), (1,3,5)) ] ) < 1e-8
 
@@ -178,19 +181,19 @@ def test_TimeIntegral(problem, pp, start_time, end_time, dt):
     assert abs( pp.get("TimeIntegral_t") - (0.5*(end_time**2-start_time**2)) ) < 1e-8
     assert errornorm(
         pp.get("TimeIntegral_MockFunctionField"),
-        interpolate(Expression("t1-t0+0.5*x[0]*x[1]*(t1*t1-t0*t0)", t1=end_time, t0=start_time), Q)
+        interpolate(Expression("t1-t0+0.5*x[0]*x[1]*(t1*t1-t0*t0)", degree=1, t1=end_time, t0=start_time), Q)
         ) < 1e-8
 
     D = problem.D
     if D == 2:
         assert errornorm(
            pp.get("TimeIntegral_MockVectorFunctionField"),
-           interpolate(Expression(("t1-t0+0.5*x[0]*(t1*t1-t0*t0)", "3*(t1-t0)+0.5*x[1]*(t1*t1-t0*t0)"), t1=end_time, t0=start_time), V)
+           interpolate(Expression(("t1-t0+0.5*x[0]*(t1*t1-t0*t0)", "3*(t1-t0)+0.5*x[1]*(t1*t1-t0*t0)"), degree=1, t1=end_time, t0=start_time), V)
         ) < 1e-8
     elif D == 3:
         assert errornorm(
            pp.get("TimeIntegral_MockVectorFunctionField"),
-           interpolate(Expression(("t1-t0+0.5*x[0]*(t1*t1-t0*t0)", "3*(t1-t0)+0.5*x[1]*(t1*t1-t0*t0)", "10*(t1-t0)+0.5*x[2]*(t1*t1-t0*t0)"), t1=end_time, t0=start_time), V)
+           interpolate(Expression(("t1-t0+0.5*x[0]*(t1*t1-t0*t0)", "3*(t1-t0)+0.5*x[1]*(t1*t1-t0*t0)", "10*(t1-t0)+0.5*x[2]*(t1*t1-t0*t0)"), degree=1, t1=end_time, t0=start_time), V)
         ) < 1e-8
 
     I = 0.5*(end_time**2-start_time**2)
@@ -227,19 +230,19 @@ def test_TimeAverage(problem, pp, start_time, end_time, dt):
     assert abs( pp.get("TimeAverage_t") - (0.5*(end_time**2-start_time**2))/(end_time-start_time) ) < 1e-8
     assert errornorm(
         pp.get("TimeAverage_MockFunctionField"),
-        interpolate(Expression("1+0.5*x[0]*x[1]*(t1+t0)", t1=end_time, t0=start_time), Q)
+        interpolate(Expression("1+0.5*x[0]*x[1]*(t1+t0)", degree=1, t1=end_time, t0=start_time), Q)
         ) < 1e-8
 
     D = problem.D
     if D == 2:
         assert errornorm(
            pp.get("TimeAverage_MockVectorFunctionField"),
-           interpolate(Expression(("1+0.5*x[0]*(t1+t0)", "3+0.5*x[1]*(t1+t0)"), t1=end_time, t0=start_time), V)
+           interpolate(Expression(("1+0.5*x[0]*(t1+t0)", "3+0.5*x[1]*(t1+t0)"), degree=1, t1=end_time, t0=start_time), V)
         ) < 1e-8
     elif D == 3:
         assert errornorm(
            pp.get("TimeAverage_MockVectorFunctionField"),
-           interpolate(Expression(("1+0.5*x[0]*(t1+t0)", "3+0.5*x[1]*(t1+t0)", "10+0.5*x[2]*(t1+t0)"), t1=end_time, t0=start_time), V)
+           interpolate(Expression(("1+0.5*x[0]*(t1+t0)", "3+0.5*x[1]*(t1+t0)", "10+0.5*x[2]*(t1+t0)"), degree=1, t1=end_time, t0=start_time), V)
         ) < 1e-8
 
     I = (0.5*end_time*end_time-0.5*start_time*start_time)/(end_time-start_time)
@@ -277,13 +280,13 @@ def test_TimeIntegral_of_TimeDerivative(problem, pp, start_time, end_time, dt):
     err_factor = max(0.0, dt-start_time)
 
     err_t = err_factor*0.5*(1-start_time/dt)
-    err_MockFunctionField = err_factor*norm(interpolate(Expression("0.5*x[0]*x[1]*(1-t0/dt)", dt=dt, t0=start_time), Q))
+    err_MockFunctionField = err_factor*norm(interpolate(Expression("0.5*x[0]*x[1]*(1-t0/dt)", degree=1, dt=dt, t0=start_time), Q))
 
     D = problem.mesh.geometry().dim()
     if D == 2:
-        err_MockVectorFunctionField = err_factor*norm(interpolate(Expression(("0.5*x[0]*(1-t0/dt)", "0.5*x[1]*(1-t0/dt)"), dt=dt, t0=start_time), V))
+        err_MockVectorFunctionField = err_factor*norm(interpolate(Expression(("0.5*x[0]*(1-t0/dt)", "0.5*x[1]*(1-t0/dt)"), degree=1, dt=dt, t0=start_time), V))
     elif D == 3:
-        err_MockVectorFunctionField = err_factor*norm(interpolate(Expression(("0.5*x[0]*(1-t0/dt)", "0.5*x[1]*(1-t0/dt)", "0.5*x[2]*(1-t0/dt)"), dt=dt, t0=start_time), V))
+        err_MockVectorFunctionField = err_factor*norm(interpolate(Expression(("0.5*x[0]*(1-t0/dt)", "0.5*x[1]*(1-t0/dt)", "0.5*x[2]*(1-t0/dt)"), degree=1, dt=dt, t0=start_time), V))
     else:
         raise Exception("D must be 2 or 3")
 
@@ -304,20 +307,20 @@ def test_TimeIntegral_of_TimeDerivative(problem, pp, start_time, end_time, dt):
     assert err_t-1e-8 < abs( pp.get("TimeIntegral_TimeDerivative_t") - (end_time-start_time)) < err_t+1e-8
     assert err_MockFunctionField-1e-8 < \
             errornorm(pp.get("TimeIntegral_TimeDerivative_MockFunctionField"),
-                    interpolate(Expression("x[0]*x[1]*(t1-t0)", t0=start_time, t1=end_time), Q)
+                    interpolate(Expression("x[0]*x[1]*(t1-t0)", degree=1, t0=start_time, t1=end_time), Q)
                    ) < \
           err_MockFunctionField+1e-8
 
     if D == 2:
         assert err_MockVectorFunctionField-1e-8 < \
             errornorm(pp.get("TimeIntegral_TimeDerivative_MockVectorFunctionField"),
-                    interpolate(Expression(("x[0]*(t1-t0)", "x[1]*(t1-t0)"), t0=start_time, t1=end_time), V)
+                    interpolate(Expression(("x[0]*(t1-t0)", "x[1]*(t1-t0)"), degree=1, t0=start_time, t1=end_time), V)
                    ) < \
           err_MockVectorFunctionField+1e-8
     elif D == 3:
         assert err_MockVectorFunctionField-1e-8 < \
             errornorm(pp.get("TimeIntegral_TimeDerivative_MockVectorFunctionField"),
-                    interpolate(Expression(("x[0]*(t1-t0)", "x[1]*(t1-t0)", "x[2]*(t1-t0)"), t0=start_time, t1=end_time), V)
+                    interpolate(Expression(("x[0]*(t1-t0)", "x[1]*(t1-t0)", "x[2]*(t1-t0)"), degree=1, t0=start_time, t1=end_time), V)
                    ) < \
           err_MockVectorFunctionField+1e-8
     else:
@@ -459,15 +462,15 @@ def test_Norm(problem, pp, start_time, end_time, dt):
             assert abs(pp.get("Norm_t") - t) < 1e-14
             assert abs(pp.get("Norm_l2_t") - t) < 1e-14
             assert abs(pp.get("Norm_linf_t") - t) < 1e-14
-            assert abs(pp.get("Norm_MockFunctionField") - norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q))) < 1e-14
+            assert abs(pp.get("Norm_MockFunctionField") - norm(interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Q))) < 1e-14
             if D == 2:
-                assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V))) < 1e-14
-                assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'L2')) < 1e-14
-                assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'H10')) < 1e-14
+                assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V))) < 1e-14
+                assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V), 'L2')) < 1e-14
+                assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V), 'H10')) < 1e-14
             elif D == 3:
-                assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V))) < 1e-14
-                assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'L2')) < 1e-14
-                assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'H10')) < 1e-14
+                assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V))) < 1e-14
+                assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V), 'L2')) < 1e-14
+                assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V), 'H10')) < 1e-14
             assert abs(pp.get("Norm_MockTupleField") - sqrt(t**2+(3*t)**2+(1+5*t)**2)) < 1e-14
             assert abs(pp.get("Norm_l4_MockTupleField") - (t**4+(3*t)**4+(1+5*t)**4)**(0.25)) < 1e-14
             assert abs(pp.get("Norm_linf_MockTupleField") - (1+5*t)) < 1e-14
@@ -477,15 +480,15 @@ def test_Norm(problem, pp, start_time, end_time, dt):
     assert abs(pp.get("Norm_t") - t) < 1e-14
     assert abs(pp.get("Norm_l2_t") - t) < 1e-14
     assert abs(pp.get("Norm_linf_t") - t) < 1e-14
-    assert abs(pp.get("Norm_MockFunctionField") - norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q))) < 1e-14
+    assert abs(pp.get("Norm_MockFunctionField") - norm(interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Q))) < 1e-14
     if D == 2:
-        assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V))) < 1e-14
-        assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'L2')) < 1e-14
-        assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'H10')) < 1e-14
+        assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V))) < 1e-14
+        assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V), 'L2')) < 1e-14
+        assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V), 'H10')) < 1e-14
     elif D == 3:
-        assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V))) < 1e-14
-        assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'L2')) < 1e-14
-        assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'H10')) < 1e-14
+        assert abs(pp.get("Norm_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V))) < 1e-14
+        assert abs(pp.get("Norm_L2_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V), 'L2')) < 1e-14
+        assert abs(pp.get("Norm_H10_MockVectorFunctionField") - norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V), 'H10')) < 1e-14
     assert abs(pp.get("Norm_MockTupleField") - sqrt(t**2+(3*t)**2+(1+5*t)**2)) < 1e-14
     assert abs(pp.get("Norm_l4_MockTupleField") - (t**4+(3*t)**4+(1+5*t)**4)**(0.25)) < 1e-14
     assert abs(pp.get("Norm_linf_MockTupleField") - (1+5*t)) < 1e-14
@@ -573,7 +576,7 @@ def test_ErrorNorm(problem, pp, start_time, end_time, dt):
     class MockFunctionField2(MockFunctionField):
         def before_first_compute(self, get):
             t = get('t')
-            self.expr = Expression("1+x[0]*x[1]*t+0.4", t=t)
+            self.expr = Expression("1+x[0]*x[1]*t+0.4", degree=1, t=t)
 
     class MockVectorFunctionField2(MockVectorFunctionField):
         def before_first_compute(self, get):
@@ -581,9 +584,9 @@ def test_ErrorNorm(problem, pp, start_time, end_time, dt):
 
             D = self.f.function_space().mesh().geometry().dim()
             if D == 2:
-                self.expr = Expression(("1+x[0]*t+0.2", "3+x[1]*t+0.3"), t=t)
+                self.expr = Expression(("1+x[0]*t+0.2", "3+x[1]*t+0.3"), degree=1, t=t)
             elif D == 3:
-                self.expr = Expression(("1+x[0]*t+0.2", "3+x[1]*t+0.3", "10+x[2]*t+0.4"), t=t)
+                self.expr = Expression(("1+x[0]*t+0.2", "3+x[1]*t+0.3", "10+x[2]*t+0.4"), degree=1, t=t)
 
     class MockTupleField2(MockTupleField):
         def compute(self, get):
@@ -622,10 +625,10 @@ def test_ErrorNorm(problem, pp, start_time, end_time, dt):
         pp.update_all({}, t, timestep)
         if start_time < t < end_time:
             assert abs(pp.get("ErrorNorm_MockFunctionField_MockFunctionField2") - \
-                       norm(interpolate(Expression("0.4"), Q))) < 1e-8
+                       norm(interpolate(Expression("0.4", degree=1), Q))) < 1e-8
 
             assert abs(pp.get("ErrorNorm_MockVectorFunctionField_MockVectorFunctionField2") - \
-                       norm(interpolate(Expression(["0.2", "0.3", "0.4"][:D]), V))) < 1e-8
+                       norm(interpolate(Expression(["0.2", "0.3", "0.4"][:D], degree=1), V))) < 1e-8
 
             assert abs(pp.get("ErrorNorm_MockTupleField_MockTupleField2") - \
                        sum([0.2**2, 0.3**2, 0.4**2])**0.5) < 1e-8
@@ -635,10 +638,10 @@ def test_ErrorNorm(problem, pp, start_time, end_time, dt):
     pp.finalize_all()
 
     assert abs(pp.get("ErrorNorm_MockFunctionField_MockFunctionField2") - \
-                       norm(interpolate(Expression("0.4"), Q))) < 1e-8
+                       norm(interpolate(Expression("0.4", degree=1), Q))) < 1e-8
 
     assert abs(pp.get("ErrorNorm_MockVectorFunctionField_MockVectorFunctionField2") - \
-               norm(interpolate(Expression(["0.2", "0.3", "0.4"][:D]), V))) < 1e-8
+               norm(interpolate(Expression(["0.2", "0.3", "0.4"][:D], degree=1), V))) < 1e-8
 
     assert abs(pp.get("ErrorNorm_MockTupleField_MockTupleField2") - \
                sum([0.2**2, 0.3**2, 0.4**2])**0.5) < 1e-8
@@ -675,35 +678,35 @@ def test_Boundary(problem, pp, start_time, end_time, dt):
         if start_time < t < end_time:
             assert errornorm(
                     pp.get("Boundary_MockFunctionField"),
-                    interpolate(Expression("1+x[0]*x[1]*t", t=t), Qb)
+                    interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Qb)
             ) < 1e-8
 
             if D == 2:
                 assert errornorm(
                     pp.get("Boundary_MockVectorFunctionField"),
-                    interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), Vb)
+                    interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), Vb)
                 ) < 1e-8
             else:
                 assert errornorm(
                     pp.get("Boundary_MockVectorFunctionField"),
-                    interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), Vb)
+                    interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), Vb)
                 ) < 1e-8
 
     pp.finalize_all()
     assert errornorm(
              pp.get("Boundary_MockFunctionField"),
-             interpolate(Expression("1+x[0]*x[1]*t", t=t), Qb)
+             interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Qb)
         ) < 1e-8
 
     if D == 2:
         assert errornorm(
             pp.get("Boundary_MockVectorFunctionField"),
-            interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), Vb)
+            interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), Vb)
         ) < 1e-8
     else:
         assert errornorm(
             pp.get("Boundary_MockVectorFunctionField"),
-            interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), Vb)
+            interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), Vb)
         ) < 1e-8
 
 def test_DomainAvg_DomainSD(problem, pp, start_time, end_time, dt):
@@ -924,9 +927,9 @@ def test_Magnitude(problem, pp, start_time, end_time, dt):
     ])
 
     if D == 2:
-        vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2))", t=0.0)
+        vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2))", degree=2, t=0.0)
     elif D == 3:
-        vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2)+pow(10+x[2]*t,2))", t=0.0)
+        vec_expr_mag = Expression("sqrt(pow(1+x[0]*t,2)+pow(3+x[1]*t,2)+pow(10+x[2]*t,2))", degree=2, t=0.0)
 
     for timestep, t in enumerate(timesteps, start_timestep):
         # Run postprocessing step
@@ -969,17 +972,17 @@ def test_Operators(problem, pp, start_time, end_time, dt):
     pp.add_fields(fields)
 
     exact = dict()
-    exact["Norm_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q))
-    exact["Norm_L2_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q), 'L2')
-    exact["Norm_H10_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", t=t), Q), 'H10')
+    exact["Norm_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Q))
+    exact["Norm_L2_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Q), 'L2')
+    exact["Norm_H10_MockFunctionField"] = lambda t: norm(interpolate(Expression("1+x[0]*x[1]*t", degree=1, t=t), Q), 'H10')
     if D == 2:
-        exact["Norm_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V))
-        exact["Norm_L2_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'L2')
-        exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), t=t), V), 'H10')
+        exact["Norm_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V))
+        exact["Norm_L2_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V), 'L2')
+        exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t), V), 'H10')
     elif D == 3:
-        exact["Norm_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V))
-        exact["Norm_L2_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'L2')
-        exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t), V), 'H10')
+        exact["Norm_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V))
+        exact["Norm_L2_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V), 'L2')
+        exact["Norm_H10_MockVectorFunctionField"] = lambda t: norm(interpolate(Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t), V), 'H10')
 
     for f1 in fields:
         pp.add_field(f1+2.0)

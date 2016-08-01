@@ -49,10 +49,10 @@ class Alpha(Expression):
             value[0] = self.alpha0
 
 # Conductivity
-alpha = project(Alpha(params.alpha0, params.alpha1), V)
+alpha = project(Alpha(degree=1, alpha0=params.alpha0, alpha1=params.alpha1), V)
 
 # Boundary condition
-u0 = Expression("ampl*sin(x[0]*2*pi*t)", t=t, ampl=params.amplitude)
+u0 = Expression("ampl*sin(x[0]*2*pi*t)", degree=1, t=t, ampl=params.amplitude)
 bc = DirichletBC(V, u0, "on_boundary")
 
 # Source term

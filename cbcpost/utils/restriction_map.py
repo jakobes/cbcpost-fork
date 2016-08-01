@@ -178,7 +178,7 @@ if __name__ == '__main__':
     mapping = restriction_map(V, Vb)
     print "Time restriction_map: ", toc()
 
-    expr = Expression("x[0]*x[1]+x[2]*x[2]+3.0")
+    expr = Expression("x[0]*x[1]+x[2]*x[2]+3.0", degree=2)
     u = project(expr, V)
     u2 = Function(Vb)
     u2.vector()[mapping.keys()] = u.vector()[mapping.values()]
@@ -190,7 +190,7 @@ if __name__ == '__main__':
 
     mapping = restriction_map(V, Vb)
 
-    expr = Expression(("x[0]*x[1]+x[2]*x[2]+3.0", "2+x[1]*x[2]", "x[0]+3*x[2]"))
+    expr = Expression(("x[0]*x[1]+x[2]*x[2]+3.0", "2+x[1]*x[2]", "x[0]+3*x[2]"), degree=2)
     u = project(expr, V)
     u2 = Function(Vb)
     u2.vector()[mapping.keys()] = u.vector()[mapping.values()]

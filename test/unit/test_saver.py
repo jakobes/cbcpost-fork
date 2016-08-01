@@ -326,7 +326,7 @@ def test_store_mesh(casedir):
     facetdomains2 = FacetFunction("size_t", mesh2)
     f.read(facetdomains2, "FacetDomains")
 
-    e = Expression("1+x[1]")
+    e = Expression("1+x[1]", degree=1)
 
     dx1 = dx(1, domain=mesh, subdomain_data=celldomains)
     dx2 = dx(1, domain=mesh2, subdomain_data=celldomains2)

@@ -200,7 +200,7 @@ if __name__ == '__main__':
         #MPI.barrier(mpi_comm_world())
         #continue
         V = FunctionSpace(submesh, "CG", 2)
-        expr = Expression("x[0]*x[1]*x[1]+4*x[2]")
+        expr = Expression("x[0]*x[1]*x[1]+4*x[2]", degree=2)
         u = project(expr, V)
 
         MPI.barrier(mpi_comm_world())

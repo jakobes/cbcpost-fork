@@ -113,10 +113,10 @@ class SubFunction(MetaField):
 if __name__ == '__main__':
     #from dolfin import *
     from dolfin import (Expression, UnitSquareMesh, errornorm)
-    #expr_scalar = Expression("1+x[0]*x[1]")
-    #expr_vector = Expression(("1+x[0]*x[1]", "x[1]-2"))
-    expr_scalar = Expression("1+x[0]")
-    expr_vector = Expression(("1+x[0]", "x[1]-2"))
+    #expr_scalar = Expression("1+x[0]*x[1]", degree=1)
+    #expr_vector = Expression(("1+x[0]*x[1]", "x[1]-2"), degree=1)
+    expr_scalar = Expression("1+x[0]", degree=1)
+    expr_vector = Expression(("1+x[0]", "x[1]-2"), degree=1)
 
     mesh = UnitSquareMesh(12,12)
 

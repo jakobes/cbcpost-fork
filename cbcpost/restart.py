@@ -189,7 +189,7 @@ class Restart(Parameterized):
                         t1, Lt1 = loadables[t][solution_name][1]
 
                         assert t0 <= t <= t1
-                        if Lt0.function != None:
+                        if Lt0.function is not None:
 
                             # The copy-function raise a PETSc-error in parallel
                             #f = Function(Lt0())

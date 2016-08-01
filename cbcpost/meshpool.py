@@ -54,7 +54,7 @@ class MeshPool(Mesh):
             if diff[idx] <= tolerance and isinstance(mesh, type(MeshPool._existing[keys[idx]])):
                 self = MeshPool._existing[keys[idx]]
 
-        if self == None:
+        if self is None:
             self = mesh
             MeshPool._existing[test] = self
         return self

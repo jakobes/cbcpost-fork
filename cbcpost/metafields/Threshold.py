@@ -45,7 +45,7 @@ class Threshold(MetaField2):
         u = get(self.valuename1)
         threshold = get(self.valuename2)
 
-        if u == None:
+        if u is None:
             return
         if isinstance(u, Function):
             if not hasattr(self, "u"):

@@ -58,7 +58,7 @@ class TimeAverage(TimeIntegral):
 
     def scale(self, ti):
         """Scale the TimeIntegral with :math:`1/(T1-T0)`. """
-        if ti == None:
+        if ti is None:
             return None
 
         if self.T1 == self.T0:

@@ -41,7 +41,7 @@ class DomainSD(DomainAvg):
     def compute(self, get):
         u = get(self.valuename)
 
-        if u == None:
+        if u is None:
             return
 
         assert isinstance(u, Function), "Unable to compute stdev of object of type %s" %type(u)

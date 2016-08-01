@@ -256,7 +256,7 @@ class PostProcessor(Parameterized):
 
         # Analyze dependencies of field through source inspection
         deps = field.explicit_dependencies()
-        if deps == None:
+        if deps is None:
             deps = find_dependencies(field)
 
         for dep in deps:
@@ -340,7 +340,7 @@ class PostProcessor(Parameterized):
                 if self._compute_counts[field.name] == 0:
                     init_data = field.before_first_compute(self.get)
                     self._timer.completed("PP: before first compute %s" %name)
-                    if init_data != None:
+                    if init_data is not None:
                         cbc_warning("Did not expect a return value from \
                                     %s.before_first_compute." %field.__class__)
 

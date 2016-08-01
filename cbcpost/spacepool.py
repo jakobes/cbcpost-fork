@@ -147,6 +147,6 @@ class SpacePool(object):
 
     @property
     def BoundaryMesh(self):
-        if self._boundary == None:
+        if self._boundary is None:
             self._boundary = BoundaryMesh(self.mesh, "exterior")
         return self._boundary

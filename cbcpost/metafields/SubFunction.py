@@ -51,7 +51,7 @@ class SubFunction(MetaField):
 
     def before_first_compute(self, get):
         u = get(self.valuename)
-        if u == None:
+        if u is None:
             return None
 
         V = u.function_space()
@@ -78,7 +78,7 @@ class SubFunction(MetaField):
 
     def compute(self, get):
         u = get(self.valuename)
-        if u == None:
+        if u is None:
             return None
 
         if not hasattr(self, "u"):

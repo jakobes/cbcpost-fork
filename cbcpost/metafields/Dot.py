@@ -25,7 +25,7 @@ class Dot(MetaField2):
         u1 = get(self.valuename1)
         u2 = get(self.valuename2)
 
-        if u1 == None or u2 == None:
+        if u1 is None or u2 is None:
             return
 
         if not (isinstance(u1, GenericFunction) or isinstance(u2, GenericFunction)):

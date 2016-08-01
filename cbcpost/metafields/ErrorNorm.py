@@ -75,7 +75,7 @@ class ErrorNorm(MetaField2):
         u = get(self.valuename1)
         uh = get(self.valuename2)
 
-        if u == None:
+        if u is None:
             return None
 
         if isinstance(uh, Function):

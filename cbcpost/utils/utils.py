@@ -26,7 +26,7 @@ from distutils.version import LooseVersion
 def import_fenicstools():
     "Import fenicstools helper function."
     if hasattr(import_fenicstools, "_fenicstools"):
-        if import_fenicstools._fenicstools == None:
+        if import_fenicstools._fenicstools is None:
             raise ImportError("Unable to import fenicstools")
         return import_fenicstools._fenicstools
 
@@ -55,7 +55,7 @@ def import_fenicstools():
             fenicstools = None
         finally:
             sys.path = _syspath
-    if fenicstools == None:
+    if fenicstools is None:
         raise ImportError("Unable to import fenicstools")
     import_fenicstools._fenicstools = fenicstools
     return fenicstools

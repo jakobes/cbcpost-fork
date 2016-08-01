@@ -27,7 +27,7 @@ class RunningMax(MetaField):
 
         if self._value is None:
             if isinstance(u, Function):
-                self._value = Function(u)
+                self._value = u.copy(deepcopy=True)
             else:
                 self._value = u
         else:

@@ -370,7 +370,7 @@ class PostProcessor(Parameterized):
                 if self._plan[0][name] > 0:
                     if isinstance(data, Function):
                         # TODO: Use function pooling to avoid costly allocations?
-                        data = Function(data)
+                        data = data.copy(deepcopy=True)
 
                 # Cache it!
                 #c[name] = data

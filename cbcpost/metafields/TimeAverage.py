@@ -67,7 +67,7 @@ class TimeAverage(TimeIntegral):
         scale_factor = 1.0/(self.T1-self.T0)
 
         if isinstance(ti, Function):
-            ta = Function(ti)
+            ta = ti.copy(deepcopy=True)
             ta.vector()[:] *= scale_factor
         elif hasattr(ti, "__len__"):
             ta = [scale_factor*_ti for _ti in ti]

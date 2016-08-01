@@ -49,14 +49,14 @@ class Threshold(MetaField2):
             return
         if isinstance(u, Function):
             if not hasattr(self, "u"):
-                self.u = Function(u)
+                self.u = u.copy(deepcopy=True)
             if self.params.threshold_by == "below":
-                self.u.vector()[:] = u.vector().array()<threshold
+                self.u.vector()[:] = u.vector().array() < threshold
             elif self.params.threshold_by == "above":
-                self.u.vector()[:] = u.vector().array()>threshold
+                self.u.vector()[:] = u.vector().array() > threshold
             return self.u
         else:
             if self.params.threshold_by == "below":
-                return u<threshold
+                return u < threshold
             elif self.params.threshold_by == "above":
-                return u>threshold
+                return u > threshold

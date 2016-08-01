@@ -33,7 +33,8 @@ class TimeDerivative(MetaField):
         t1 = get("t")
         t0 = get("t", -1)
         dt = t1 - t0
-        if dt == 0: dt = 1e-14 # Avoid zero-division
+        if dt == 0:
+            dt = 1e-14 # Avoid zero-division
 
         if isinstance(u0, Function):
             # Create function to hold result first time,

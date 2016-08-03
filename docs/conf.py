@@ -147,7 +147,8 @@ def write_programmers_reference(type):
         
         #doced = doc_types.keys()
         #for d in [_d for _d in doc_types.values() if _d is not None]: doced += d
-        
+        function_metafields = sum(doc_types["Fields"].values(), [])
+        function_metafields = [f.lower() for f in function_metafields]
         doc_types["Other Classes"] = []
         doc_types["Other Functions"] = []
         for k in dir(cbcpost):
@@ -166,7 +167,7 @@ def write_programmers_reference(type):
                         pass
                 if not _doced:
                     doc_types["Other Classes"].append(k)
-            elif isfunction(getattr(cbcpost, k)):
+            elif isfunction(getattr(cbcpost, k)) and k not in function_metafields:
                 doc_types["Other Functions"].append(k)
                   
         doc_types["Utilities"] = dict(Classes=[], Functions=[])
@@ -183,7 +184,7 @@ def write_programmers_reference(type):
         doced = []
         add_lists(doced, doc_types)
         
-        assert set(doced)==set(all_docs.keys())
+        assert set(doced)-set(all_docs.keys()) <=set(function_metafields)
         
         #os.makedirs(type+"_programmers_reference")
         with open("rst_programmers_reference/index.rst", 'w') as f:
@@ -373,8 +374,7 @@ exclude_patterns = ['_build']
 from shutil import copyfile
 try:
     os.system("git checkout index.rst")
-    os.system("git checkout ../demo/documented/index.rst")
-    
+    #os.system("git checkout ../demo/documented/index.rst")
     #copyfile("index.rst.orig", "index.rst")
 except:
     pass
@@ -393,7 +393,7 @@ if "-b latex" in " ".join(sys.argv):
     with open("index.rst", 'w') as f:
         _r = r[:i]
         _r += r[j:r.index("Indices and tables")]
-        _r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
+        #_r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
         f.write(_r)
     with open("introduction.rst", 'w') as f:
         f.write("Introduction\n=====================================\n")
@@ -410,8 +410,9 @@ if "-b latex" in " ".join(sys.argv):
         f.write(r)
     
 else:
+    pass
     #copyfile("index.rst.orig", "index.rst")
-    exclude_patterns.append("introduction")
+    #exclude_patterns.append("introduction")
     
     
 latex_elements = {

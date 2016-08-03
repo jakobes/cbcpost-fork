@@ -112,7 +112,7 @@ class PointEval(MetaField):
         # Convert 'Point' instances (not necessary if we
         # just assume tuples as input anyway)
         #dim = spaces.d
-        if u == None:
+        if u is None:
             return
         dim = u.function_space().mesh().geometry().dim()
         self.coords = []

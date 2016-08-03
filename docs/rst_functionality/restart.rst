@@ -61,7 +61,8 @@ directory to avoid write errors. This is done by setting the parameter *rollback
 .. code-block:: python
 
     t0 = 2.5
-    restart = Restart(dict(casedir='Results/', restart_times=t0, rollback_casedir=True))
+    restart = Restart(dict(casedir='Results/', restart_times=t0,
+                           rollback_casedir=True))
     restart_data = restart.get_restart_conditions()
 
 Specifying solution names to fetch

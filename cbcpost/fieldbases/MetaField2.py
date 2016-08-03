@@ -37,7 +37,8 @@ class MetaField2(Field):
         """
         if self._name == "default":
             n = "%s_%s_%s" % (self.__class__.__name__, self.valuename1, self.valuename2)
-            if self.label: n += "_"+self.label
+            if self.label:
+                n += "_"+self.label
         else:
             n = self._name
 

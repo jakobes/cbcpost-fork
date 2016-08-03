@@ -4,8 +4,8 @@ cbcpost
 Description
 -----------
 
-cbcpost is a postprocessing framework designed for time-dependent problems solved using the
-FEniCS project. 
+cbcpost is a postprocessing framework designed for time-dependent
+problems solved using the FEniCS project.
 
 Authors
 -------
@@ -21,7 +21,7 @@ Licence
 cbcpost is licensed under the GNU LGPL, version 3 or (at your option) any
 later version.
 
-cbcpost is Copyright (2011-2014) by the authors and Simula Research Laboratory.
+cbcpost is Copyright (2011-2016) by the authors and Simula Research Laboratory.
 
 Documentation
 -------------

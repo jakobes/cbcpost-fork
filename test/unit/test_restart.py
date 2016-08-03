@@ -112,8 +112,8 @@ def filled_casedir(mesh, casedir):
     ])
 
     D = mesh.geometry().dim()
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=0.0)
-    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], t=0.0)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=0.0)
+    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], degree=1, t=0.0)
 
     t = 0.0; timestep=0; expr.t = t; expr_scalar.t=t;
     pp.update_all({
@@ -181,8 +181,8 @@ def test_restart_from_solutionfield(filled_casedir, mesh, t):
     V = spacepool.get_space(2,1)
 
     D = mesh.geometry().dim()
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
-    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
+    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], degree=1, t=t)
 
     assert abs(norm(data[t]["MockSolutionFunctionField"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
     assert abs(norm(data[t]["MockSolutionVectorFunctionField"]) - norm(interpolate(expr, V))) < 1e-8
@@ -203,7 +203,7 @@ def test_restart_from_xml(filled_casedir, mesh, t):
     Q = spacepool.get_space(2,0)
 
     D = mesh.geometry().dim()
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
 
     assert abs(norm(data[t]["MockFunctionField-xml"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
 
@@ -220,7 +220,7 @@ def test_restart_from_xmlgz(filled_casedir, mesh, t):
     Q = spacepool.get_space(2,0)
 
     D = mesh.geometry().dim()
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
 
     assert abs(norm(data[t]["MockFunctionField-xmlgz"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
 
@@ -236,7 +236,7 @@ def test_restart_from_hdf5(filled_casedir, mesh, t):
     spacepool = SpacePool(mesh)
     Q = spacepool.get_space(2,0)
 
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
 
     assert abs(norm(data[t]["MockFunctionField-hdf5"]) - norm(interpolate(expr_scalar, Q))) < 1e-8
 
@@ -246,7 +246,7 @@ def test_restart_change_function_space(filled_casedir, mesh):
     Q = spacepool.get_space(1,0)
 
     t = 1.0
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
     restart = Restart(dict(casedir=filled_casedir, solution_names="MockFunctionField-hdf5"))
 
     data = restart.get_restart_conditions(function_spaces={"MockFunctionField-hdf5": Q})
@@ -259,10 +259,10 @@ def test_rollback_casedir(filled_casedir, mesh, t):
     V = spacepool.get_space(2,1)
 
     D = mesh.geometry().dim()
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
-    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
+    expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t")[:D], degree=1, t=t)
 
-    expr_scalar = Expression("1+x[0]*x[1]*t", t=t)
+    expr_scalar = Expression("1+x[0]*x[1]*t", degree=1, t=t)
 
     restart = Restart(dict(casedir=filled_casedir, rollback_casedir=True, restart_times=t))
     assert os.path.isfile(os.path.join(filled_casedir, "play.db"))

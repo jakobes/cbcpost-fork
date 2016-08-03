@@ -135,7 +135,8 @@ class Field(Parameterized):
         """
         if self._name == "default":
             n = self.__class__.__name__
-            if self.label: n += "-"+self.label
+            if self.label:
+                n += "-"+self.label
         else:
             n = self._name
         return n
@@ -239,7 +240,7 @@ class Field(Parameterized):
 
     @classmethod
     def start_recording(cls):
-        assert cls._recording == False, "Recording already started!"
+        assert cls._recording is False, "Recording already started!"
         cls._recording = True
 
     @classmethod

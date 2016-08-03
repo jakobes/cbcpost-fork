@@ -28,7 +28,9 @@ from dolfin import (Function, MPI, mpi_comm_world, File, HDF5File, XDMFFile,
 from cbcpost.utils import safe_mkdir, hdf5_link, on_master_process, cbc_log
 from cbcpost.fieldbases import Field
 from distutils.version import LooseVersion
-import os, shelve, pickle
+import os
+import shelve
+import pickle
 from shutil import rmtree
 
 def _get_save_formats(field, data):
@@ -37,7 +39,7 @@ def _get_save_formats(field, data):
     Default values are xdmf and hdf5 for dolfin.Function-type data, and
     txt and shelve for types float, int, list, tuple and dict.
     """
-    if data == None:
+    if data is None:
         return []
 
     if field.params.save_as == Field.default_save_as():
@@ -62,6 +64,7 @@ def _get_save_formats(field, data):
 class Saver():
     "Class to handle all saving in cbcpost."
     _playlog = dict()
+
     def __init__(self, timer, casedir, flush_frequency):
         self._timer = timer
         # Caches for file storage
@@ -74,7 +77,6 @@ class Saver():
         self.flush_frequency = flush_frequency
 
         self._create_casedir()
-
 
     def get_casedir(self):
         "Return case directory."
@@ -90,7 +92,7 @@ class Saver():
                 except:
                     playlog = None
 
-                if playlog != None:
+                if playlog is not None:
                     all_fields = []
                     for v in playlog.values():
                         all_fields += v.get("fields", {}).keys()
@@ -129,7 +131,7 @@ class Saver():
     def _update_metadata_file(self, field_name, data, t, timestep, save_as, metadata):
         "Update metadata shelve file from master process."
         if on_master_process():
-            if self._metadata_cache.get(field_name) == None:
+            if self._metadata_cache.get(field_name) is None:
                 savedir = self.get_savedir(field_name)
                 metadata_filename = os.path.join(savedir, 'metadata.db')
                 #metadata_file = shelve.open(metadata_filename)
@@ -139,7 +141,7 @@ class Saver():
             metadata_file = self._metadata_cache[field_name]
 
             # Store some data the first time
-            if "type" not in metadata_file and data != None:
+            if "type" not in metadata_file and data is not None:
                 # Data about type and formats
                 metadata_file["type"] = type(data).__name__
                 metadata_file["saveformats"] = list(set(save_as+metadata_file.get("saveformats", [])))
@@ -324,7 +326,7 @@ class Saver():
         if on_master_process():
             key = (field_name, saveformat)
             datafile = self._datafile_cache.get(key)
-            if datafile == None:
+            if datafile is None:
                 datafile = shelve.open(fullname)
                 self._datafile_cache[key] = datafile
 
@@ -336,7 +338,7 @@ class Saver():
 
     def _fetch_playlog(self, flag='c', writeback=False):
         "Get play log from disk (which is stored as a shelve-object)."
-        if self._playlog[self.get_casedir()] != None:
+        if self._playlog[self.get_casedir()] is not None:
             self._playlog[self.get_casedir()].close()
             self._playlog[self.get_casedir()] = None
         casedir = self.get_casedir()
@@ -347,10 +349,10 @@ class Saver():
     def _update_playlog(self, t, timestep):
         "Update play log from master process with current time"
         if on_master_process():
-            if self._playlog[self.get_casedir()] == None:
+            if self._playlog[self.get_casedir()] is None:
                 self._playlog[self.get_casedir()] = self._fetch_playlog()
             #playlog = self._fetch_playlog()
-            if self._playlog[self.get_casedir()].has_key(str(timestep)):
+            if str(timestep) in self._playlog[self.get_casedir()]:
                 #playlog.close()
                 return
             self._playlog[self.get_casedir()][str(timestep)] = {"t":float(t)}
@@ -359,7 +361,7 @@ class Saver():
     def _fill_playlog(self, field, timestep, save_as):
         "Update play log with the data that has been stored at this timestep"
         if on_master_process():
-            if self._playlog[self.get_casedir()] == None:
+            if self._playlog[self.get_casedir()] is None:
                 self._playlog[self.get_casedir()] = self._fetch_playlog()
             timestep_dict = dict(self._playlog[self.get_casedir()][str(timestep)])
             if "fields" not in timestep_dict:
@@ -385,9 +387,9 @@ class Saver():
         casedir = self.get_casedir()
         meshfile = HDF5File(mpi_comm_world(), os.path.join(casedir, "mesh.hdf5"), 'w')
         meshfile.write(mesh, "Mesh")
-        if cell_domains != None:
+        if cell_domains is not None:
             meshfile.write(cell_domains, "CellDomains")
-        if facet_domains != None:
+        if facet_domains is not None:
             meshfile.write(facet_domains, "FacetDomains")
         del meshfile
 
@@ -396,7 +398,7 @@ class Saver():
         if on_master_process():
             for f in self._metadata_cache.values():
                 f.sync()
-            if self._playlog[self.get_casedir()] != None:
+            if self._playlog[self.get_casedir()] is not None:
                 self._playlog[self.get_casedir()].sync()
 
             for key, f in self._datafile_cache.iteritems():
@@ -414,7 +416,7 @@ class Saver():
                 #self._metadata_cache[k] = None
                 self._metadata_cache.pop(k)
 
-            if self._playlog[self.get_casedir()] != None:
+            if self._playlog[self.get_casedir()] is not None:
                 self._playlog[self.get_casedir()].sync()
                 self._playlog[self.get_casedir()].close()
                 self._playlog[self.get_casedir()] = None

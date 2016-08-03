@@ -25,26 +25,26 @@ import numpy as np
 from distutils.version import LooseVersion
 
 def _init_measure(measure="default", cell_domains=None, facet_domains=None, indicator=None):
-    assert cell_domains == None or facet_domains == None, "You can't specify both cell_domains or facet_domains"
+    assert cell_domains is None or facet_domains is None, "You can't specify both cell_domains or facet_domains"
 
-    if cell_domains != None:
+    if cell_domains is not None:
         assert isinstance(cell_domains, (MeshFunctionSizet, MeshFunctionInt))
 
-    if facet_domains != None:
+    if facet_domains is not None:
         assert isinstance(facet_domains, (MeshFunctionSizet, MeshFunctionInt))
 
-    if (cell_domains and indicator != None):
+    if (cell_domains and indicator is not None):
         if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
             dI = Measure("cell")(subdomain_data=cell_domains)(indicator)
         else:
             dI = Measure("cell")[cell_domains](indicator)
-    elif (facet_domains and indicator != None):
+    elif (facet_domains and indicator is not None):
         if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
             dI = Measure("exterior_facet")(subdomain_data=facet_domains)(indicator)
         else:
             dI = Measure("exterior_facet")[facet_domains](indicator)
     elif measure == "default":
-        if indicator != None:
+        if indicator is not None:
             cbc_warning("Indicator specified, but no domains. Will dompute average over entire domain.")
         dI = dx()
     elif isinstance(measure, Measure):
@@ -170,14 +170,14 @@ class DomainAvg(MetaField):
     """
     def __init__(self, value, params=None, name="default", label=None, measure="default", cell_domains=None, facet_domains=None, indicator=None):
         self.dI = _init_measure(measure, cell_domains, facet_domains, indicator)
-        if label == None:
+        if label is None:
             label = _init_label(self.dI)
         MetaField.__init__(self, value, params, name, label)
 
     def compute(self, get):
         u = get(self.valuename)
 
-        if u == None:
+        if u is None:
             return
 
         if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
@@ -204,14 +204,14 @@ class DomainAvg(MetaField):
 
             self.dI = self.dI.reconstruct(domain=mesh, subdomain_data=mf)
 
-        if dIdomain == None:
+        if dIdomain is None:
             self.dI = self.dI.reconstruct(domain=mesh)
             if LooseVersion(dolfin_version()) > LooseVersion("1.6.0"):
                 dIdomain = self.dI.ufl_domain()
             else:
                 dIdomain = self.dI.domain()
 
-        assert dIdomain != None
+        assert dIdomain is not None
 
         # Calculate volume
         if not hasattr(self, "volume"):

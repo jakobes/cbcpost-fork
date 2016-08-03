@@ -64,9 +64,11 @@ class ErrorNorm(MetaField2):
     def name(self):
         if self._name == "default":
             n = "%s" % (self.__class__.__name__)
-            if self.params.norm_type != "default": n += "_"+self.params.norm_type
+            if self.params.norm_type != "default":
+                n += "_"+self.params.norm_type
             n += "_"+self.valuename1+"_"+self.valuename2
-            if self.label: n += "-"+self.label
+            if self.label:
+                n += "-"+self.label
         else:
             n = self._name
         return n
@@ -75,7 +77,7 @@ class ErrorNorm(MetaField2):
         u = get(self.valuename1)
         uh = get(self.valuename2)
 
-        if u == None:
+        if u is None:
             return None
 
         if isinstance(uh, Function):
@@ -112,6 +114,6 @@ class ErrorNorm(MetaField2):
                 p = int(norm_type[1:])
                 err = sum(abs(_u-_uh)**p for _u, _uh in zip(u,uh))**(1./p)
                 if self.params.relative:
-                    return err/(sum(abs(_u)**p for _u in i)**(1./p)+DOLFIN_EPS)
+                    return err/(sum(abs(_u)**p for _u in u)**(1./p)+DOLFIN_EPS)
                 else:
                     return err

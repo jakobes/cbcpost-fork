@@ -127,9 +127,9 @@ if __name__ == '__main__':
     keys = np.array(keys, dtype=np.intc)
 
     t = 3.0
-    #expr = Expression("1+x[0]*x[1]*t", t=t)
-    expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
-    #expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
+    #expr = Expression("1+x[0]*x[1]*t", degree=1, t=t)
+    expr = Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t)
+    #expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t)
 
     u = interpolate(expr, V)
     ub = interpolate(expr, Vb)

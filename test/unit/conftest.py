@@ -107,7 +107,7 @@ class MockFunctionField(Field):
 
     def before_first_compute(self, get):
         t = get('t')
-        self.expr = Expression("1+x[0]*x[1]*t", t=t)
+        self.expr = Expression("1+x[0]*x[1]*t", degree=1, t=t)
 
     def compute(self, get):
         t = get('t')
@@ -126,9 +126,9 @@ class MockVectorFunctionField(Field):
 
         D = self.f.function_space().mesh().geometry().dim()
         if D == 2:
-            self.expr = Expression(("1+x[0]*t", "3+x[1]*t"), t=t)
+            self.expr = Expression(("1+x[0]*t", "3+x[1]*t"), degree=1, t=t)
         elif D == 3:
-            self.expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), t=t)
+            self.expr = Expression(("1+x[0]*t", "3+x[1]*t", "10+x[2]*t"), degree=1, t=t)
 
     def compute(self, get):
         t = get('t')

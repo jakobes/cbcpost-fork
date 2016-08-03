@@ -137,7 +137,8 @@ The saving is done in a structured manner below the postprocessors case director
         SolutionField("Pressure", save=True),
         Norm("Pressure", save=True),
     ])
-    pp.store_mesh(mesh, facet_domains=my_facet_domains, cell_domains=my_cell_domains)
+    pp.store_mesh(mesh, facet_domains=my_facet_domains,
+                  cell_domains=my_cell_domains)
     pp.store_params(
         ParamDict(
             mu = 1.5,

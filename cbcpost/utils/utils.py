@@ -22,11 +22,14 @@ from types import ModuleType
 from time import time
 from dolfin import compile_extension_module, MPI, mpi_comm_world, log, warning, dolfin_version
 from distutils.version import LooseVersion
+from dolfin import Mesh, HDF5File, Function
+from cbcpost import SpacePool, MeshPool
+import shelve
 
 def import_fenicstools():
     "Import fenicstools helper function."
     if hasattr(import_fenicstools, "_fenicstools"):
-        if import_fenicstools._fenicstools == None:
+        if import_fenicstools._fenicstools is None:
             raise ImportError("Unable to import fenicstools")
         return import_fenicstools._fenicstools
 
@@ -55,11 +58,10 @@ def import_fenicstools():
             fenicstools = None
         finally:
             sys.path = _syspath
-    if fenicstools == None:
+    if fenicstools is None:
         raise ImportError("Unable to import fenicstools")
     import_fenicstools._fenicstools = fenicstools
     return fenicstools
-
 
 
 def on_master_process():
@@ -167,8 +169,6 @@ def safe_mkdir(dir):
 
 
 loadable_formats = ["hdf5", "xml", "xml.gz", "shelve"]
-from dolfin import HDF5File, Function
-import shelve
 class Loadable():
     """Create an instance that reads a Field from file as specified by the
     parameters. Requires that the file is written in cbcpost (or in the same format).
@@ -196,7 +196,7 @@ class Loadable():
 
     def __call__(self):
         """Load file"""
-        t0 = time()
+        #t0 = time()
         cbc_log(20, "Loading: "+self.filename+", Timestep: "+str(self.timestep))
 
         if self.saveformat == 'hdf5':
@@ -215,8 +215,7 @@ class Loadable():
         cbc_log(20, "Loaded: "+self.filename+", Timestep: "+str(self.timestep))
         return data
 
-from dolfin import Mesh, HDF5File, Function
-from cbcpost import SpacePool, MeshPool
+
 def create_function_from_metadata(pp, fieldname, metadata, saveformat):
     "Create a function from metadata"
     assert metadata['type'] == 'Function'
@@ -343,8 +342,10 @@ def time_to_string(t):
     minutes = t/60-hours*60
     seconds = t-minutes*60-hours*3600
 
-    if hours > 0: s += "%dh" %hours
-    if minutes > 0: s += " %2dm" %minutes
+    if hours > 0:
+        s += "%dh" %hours
+    if minutes > 0:
+        s += " %2dm" %minutes
     s += " %2ds" %seconds
 
     return s

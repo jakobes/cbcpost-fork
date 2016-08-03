@@ -4,10 +4,10 @@ Restart a Problem
 ========================================
 
 Say we wish to run our simulation further than t=3.0, to see how it develops. To restart a problem, all you
-need is to use the computed solution as initial conditions in a simiular problem setup.
+need is to use the computed solution as initial condition in a similar problem setup.
 
 Restarting the heat equation solved as in :ref:`Basic`, can be done really simple
-with cbcpost. Starting with the python-file in :ref:`Basic`, we only have to make a couple of minor
+with cbcpost. Starting with the python file in :ref:`Basic`, we only have to make a couple of minor
 changes.
 
 We change the parameters T0 and T to look at the interval :math:`t \in [3,6]`: ::

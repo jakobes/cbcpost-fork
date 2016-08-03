@@ -163,7 +163,7 @@ class Plotter():
 
     def _action_plot(self, t, timestep, field, data):
         "Apply the 'plot' action to computed field data."
-        if data == None:
+        if data is None:
             return
 
         if disable_plotting():

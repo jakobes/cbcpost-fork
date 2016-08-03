@@ -31,7 +31,8 @@ from cbcpost.fieldbases import Field
 
 from cbcpost.utils import Timer, cbc_log, cbc_warning, strip_code
 
-import inspect, re
+import inspect
+import re
 from collections import defaultdict
 
 class DependencyException(Exception):
@@ -166,7 +167,8 @@ class PostProcessor(Parameterized):
         # Keep track of how many times .get has called each field.compute, for administration:
         self._compute_counts = defaultdict(int) # Actually only used for triggering "before_first_compute"
 
-        if self.params.clean_casedir: self._saver._clean_casedir()
+        if self.params.clean_casedir:
+            self._saver._clean_casedir()
 
         """
         # Callback to be called with fields where the 'callback' action is enabled
@@ -256,7 +258,7 @@ class PostProcessor(Parameterized):
 
         # Analyze dependencies of field through source inspection
         deps = field.explicit_dependencies()
-        if deps == None:
+        if deps is None:
             deps = find_dependencies(field)
 
         for dep in deps:
@@ -340,7 +342,7 @@ class PostProcessor(Parameterized):
                 if self._compute_counts[field.name] == 0:
                     init_data = field.before_first_compute(self.get)
                     self._timer.completed("PP: before first compute %s" %name)
-                    if init_data != None:
+                    if init_data is not None:
                         cbc_warning("Did not expect a return value from \
                                     %s.before_first_compute." %field.__class__)
 
@@ -368,7 +370,7 @@ class PostProcessor(Parameterized):
                 if self._plan[0][name] > 0:
                     if isinstance(data, Function):
                         # TODO: Use function pooling to avoid costly allocations?
-                        data = Function(data)
+                        data = data.copy(deepcopy=True)
 
                 # Cache it!
                 #c[name] = data
@@ -462,7 +464,7 @@ class PostProcessor(Parameterized):
         triggered_or_finalized = []
         for name in self._cache[0]:
             if (name in self._finalize_plan
-                or self._last_trigger_time[name][1] == timestep):
+                    or self._last_trigger_time[name][1] == timestep):
                 triggered_or_finalized.append(self._fields[name])
 
         self._saver.update(t, timestep, self._cache[0], triggered_or_finalized)

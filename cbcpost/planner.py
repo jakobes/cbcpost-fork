@@ -136,7 +136,7 @@ class Planner():
         #min_dt_factor = 0.5
         #max_dt_factor = 2.0
         #dt = self._problem.params.dt
-        if self._t_prev == None:
+        if self._t_prev is None:
             dt = self._initial_dt
         else:
             dt = t-self._t_prev

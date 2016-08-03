@@ -20,7 +20,8 @@ It also helps reduce memory consumption.
 """
 
 from dolfin import Mesh, Expression, CellVolume, dx, assemble, Constant, dot
-import gc, weakref
+import gc
+import weakref
 import numpy as np
 
 class MeshPool(Mesh):
@@ -54,7 +55,7 @@ class MeshPool(Mesh):
             if diff[idx] <= tolerance and isinstance(mesh, type(MeshPool._existing[keys[idx]])):
                 self = MeshPool._existing[keys[idx]]
 
-        if self == None:
+        if self is None:
             self = mesh
             MeshPool._existing[test] = self
         return self

@@ -20,7 +20,7 @@ Compute the (piecewise) magnitude of a Field.
 from cbcpost.fieldbases.MetaField import MetaField
 from dolfin import (project, sqrt, Function, inner, KrylovSolver, assemble, TrialFunction,
                     TestFunction, MPI, mpi_comm_world, FunctionAssigner, compile_extension_module,
-                    dolfin_version)
+                    dolfin_version, dx)
 import numpy as np
 from cbcpost.utils import cbc_warning
 from distutils.version import LooseVersion
@@ -28,8 +28,6 @@ from distutils.version import LooseVersion
 # Import for type-checking
 from collections import Iterable
 from numbers import Number
-
-from dolfin import TestFunction, TrialFunction, Vector, assemble, dx, solve
 
 _sqrt_in_place_code = """
 #include "petscvec.h"
@@ -80,7 +78,7 @@ class Magnitude(MetaField):
                 # (this might always be true for these spaces, but better to be safe than sorry )
                 self.use_project = True
                 if el.family() == "Lagrange" or (el.family() == "Discontinuous Lagrange" and el.degree()==0):
-                    dm = u.function_space().dofmap()
+                    #dm = u.function_space().dofmap()
                     dm0 = V.dofmap()
                     self.use_project = False
                     for i in xrange(u.function_space().num_sub_spaces()):
@@ -101,7 +99,7 @@ class Magnitude(MetaField):
                             self.use_project = True
                             break
                         self.assigner = FunctionAssigner([V]*u.function_space().num_sub_spaces(), u.function_space())
-                        self.subfuncs = [Function(V) for i in range(u.function_space().num_sub_spaces())]
+                        self.subfuncs = [Function(V) for _ in range(u.function_space().num_sub_spaces())]
 
                 # IF we have to use a projection, build projection matrix only once
                 if self.use_project:

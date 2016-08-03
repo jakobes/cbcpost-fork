@@ -326,18 +326,18 @@ def test_store_mesh(casedir):
     facetdomains2 = FacetFunction("size_t", mesh2)
     f.read(facetdomains2, "FacetDomains")
 
-    e = Expression("1+x[1]")
+    e = Expression("1+x[1]", degree=1)
 
-    #C1 = assemble(e*dx(1, domain=mesh), cell_domains=celldomains)
-    C1 = assemble(e*dx(1, domain=mesh, subdomain_data=celldomains))
-    #C2 = assemble(e*dx(1, domain=mesh2), cell_domains=celldomains2)
-    C2 = assemble(e*dx(1, domain=mesh2, subdomain_data=celldomains2))
+    dx1 = dx(1, domain=mesh, subdomain_data=celldomains)
+    dx2 = dx(1, domain=mesh2, subdomain_data=celldomains2)
+    C1 = assemble(e*dx1)
+    C2 = assemble(e*dx2)
     assert abs(C1-C2) < 1e-10
 
-    #F1 = assemble(e*ds(1, domain=mesh),exterior_facet_domains=facetdomains)
-    #F2 = assemble(e*ds(1, domain=mesh2), exterior_facet_domains=facetdomains2)
-    F1 = assemble(e*ds(1, domain=mesh, subdomain_data=facetdomains))
-    F2 = assemble(e*ds(1, domain=mesh2, subdomain_data=facetdomains2))
+    ds1 = ds(1, domain=mesh, subdomain_data=facetdomains)
+    ds2 = ds(1, domain=mesh2, subdomain_data=facetdomains2)
+    F1 = assemble(e*ds1)
+    F2 = assemble(e*ds2)
     assert abs(F1-F2) < 1e-10
 
 def test_store_params(casedir):

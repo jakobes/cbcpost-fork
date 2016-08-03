@@ -182,7 +182,7 @@ class ParamDict(dict):
     def pop(self, name, default=None):
         """ Returns Paramdict[name] if the key exists. If the key does not
         exist the default value is returned. """
-        if self.has_key(name):
+        if name in self:
             v = self[name]
             del self[name]
             return v
@@ -203,8 +203,8 @@ class ParamDict(dict):
     # --- String rendering
 
     def __repr__(self):
-        return "ParamDict([%s])" % ", ".join("(%r, %r)"
-                % (k, self[k]) for k in self._keys)
+        return "ParamDict([%s])" % ", ".join(
+            "(%r, %r)" % (k, self[k]) for k in self._keys)
 
     def __str__(self):
         "Return formatted string representing the dict"

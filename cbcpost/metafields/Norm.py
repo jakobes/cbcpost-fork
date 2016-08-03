@@ -69,7 +69,7 @@ class Norm(MetaField):
     def compute(self, get):
         u = get(self.valuename)
 
-        if u == None:
+        if u is None:
             return None
 
         norm_type = self.params.norm_type

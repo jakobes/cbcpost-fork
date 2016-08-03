@@ -58,7 +58,7 @@ def test_params_doc(Parameterized_subclass):
     required_doc_params = dict([(k, params[k]) for k in required_doc_keys])
 
     doc = v.default_params.__doc__
-    if doc == None:
+    if doc is None:
         assert len(required_doc_keys) == 0, ("Found no docstring, but undocumented parameters %s are introduced." \
                                              % (str(required_doc_keys)))
         return
@@ -110,7 +110,7 @@ def test_header(pyfile):
 def _recursive_getmembers(object, members, predicate=None):
     if object in members:
         return members
-    if predicate != None and not predicate(object):
+    if predicate is not None and not predicate(object):
         return members
 
     members.append(object)
@@ -124,7 +124,7 @@ def recursive_getmembers(object, predicate=None):
 
 def object_test(object):
     name, object = object
-    if inspect.getmodule(object) == None:
+    if inspect.getmodule(object) is None:
         #print object, "Not accepted. No module."
         return False
     elif not "cbcpost" in inspect.getmodule(object).__name__:
@@ -147,14 +147,14 @@ members = recursive_getmembers(cbcpost, object_test)
                                     ])
 def test_class_docstring(member):
     name, mem = member
-    assert mem.__doc__ != None
+    assert mem.__doc__ is not None
 
 @pytest.mark.parametrize("member", [m for m in members
                                     if inspect.ismodule(m[1])
                                     ])
 def test_module_docstring(member):
     name, mem = member
-    assert mem.__doc__ != None
+    assert mem.__doc__ is not None
 
 
 @pytest.mark.parametrize("member", [m for m in members
@@ -163,14 +163,14 @@ def test_module_docstring(member):
                                     ])
 def test_function_docstring(member):
     name, mem = member
-    assert mem.__doc__ != None
+    assert mem.__doc__ is not None
 
 
 @pytest.mark.parametrize("member", [m for m in members
                                     if inspect.ismethod(m[1])
                                     and (m[0][0] != "_"
                                          or m[0] in ["__call__"])
-                                    and m[1].__self__ == None
+                                    and m[1].__self__ is None
                                     ])
 def test_method_docstring(member):
     name, mem = member
@@ -184,4 +184,4 @@ def test_method_docstring(member):
         #print docs
         assert not all([d==None for d in docs])
     else:
-        assert mem.__doc__ != None
+        assert mem.__doc__ is not None

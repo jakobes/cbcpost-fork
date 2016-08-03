@@ -51,13 +51,13 @@ class SubFunction(MetaField):
 
     def before_first_compute(self, get):
         u = get(self.valuename)
-        if u == None:
+        if u is None:
             return None
 
         V = u.function_space()
         element = V.ufl_element()
-        family = element.family()
-        degree = element.degree()
+        #family = element.family()
+        #degree = element.degree()
 
         spaces = SpacePool(self.mesh)
         FS = spaces.get_custom_space(element.family(), element.degree(), element.value_shape())
@@ -78,7 +78,7 @@ class SubFunction(MetaField):
 
     def compute(self, get):
         u = get(self.valuename)
-        if u == None:
+        if u is None:
             return None
 
         if not hasattr(self, "u"):
@@ -113,10 +113,10 @@ class SubFunction(MetaField):
 if __name__ == '__main__':
     #from dolfin import *
     from dolfin import (Expression, UnitSquareMesh, errornorm)
-    #expr_scalar = Expression("1+x[0]*x[1]")
-    #expr_vector = Expression(("1+x[0]*x[1]", "x[1]-2"))
-    expr_scalar = Expression("1+x[0]")
-    expr_vector = Expression(("1+x[0]", "x[1]-2"))
+    #expr_scalar = Expression("1+x[0]*x[1]", degree=1)
+    #expr_vector = Expression(("1+x[0]*x[1]", "x[1]-2"), degree=1)
+    expr_scalar = Expression("1+x[0]", degree=1)
+    expr_vector = Expression(("1+x[0]", "x[1]-2"), degree=1)
 
     mesh = UnitSquareMesh(12,12)
 

@@ -22,7 +22,8 @@ function spaces used several places in a program.
 from dolfin import (FunctionSpace, VectorFunctionSpace, TensorFunctionSpace, BoundaryMesh,
                     grad, Coefficient, dolfin_version)
 from distutils.version import LooseVersion
-import weakref, gc
+import weakref
+import gc
 
 def galerkin_family(degree):
     "Returns CG if degree>0, else DG."
@@ -147,6 +148,6 @@ class SpacePool(object):
 
     @property
     def BoundaryMesh(self):
-        if self._boundary == None:
+        if self._boundary is None:
             self._boundary = BoundaryMesh(self.mesh, "exterior")
         return self._boundary

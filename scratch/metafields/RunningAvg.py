@@ -29,8 +29,8 @@ class RunningAvg(MetaField):
 
         if self._value is None:
             if isinstance(u, Function):
-                self._sum = Function(u)
-                self._value = Function(u)
+                self._sum = u.copy(deepcopy=True)
+                self._value = u.copy(deepcopy=True)
             else:
                 self._sum = u
                 self._value = u

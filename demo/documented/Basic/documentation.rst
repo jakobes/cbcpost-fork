@@ -3,7 +3,7 @@
 A Basic Use Case
 ========================================
 
-To demonstrate the functionality of the postprocessor, consider the 3D-case of the heat equation with
+To demonstrate the functionality of the postprocessor, consider the case of the 3D heat equation with
 variable diffusivity. The full demo can be found in :download:`Basic.py`.
 
 The general heat equation reads
@@ -28,7 +28,7 @@ We also use f=0, and solve the equations at the unit cube for :math:`t \in (0,3]
 Setting up the problem
 _______________________________________________
 
-We start by defininge a set of parameters for our problem: ::
+We start by defining a set of parameters for our problem: ::
 
     from cbcpost import *
     from cbcpost.utils import cbc_print
@@ -46,10 +46,8 @@ We start by defininge a set of parameters for our problem: ::
     )
 
 
-The parameters are created using the utility class :class:`.ParamDict`, which extend the built-in python
-dict.
-
-We the use the parameters to set up the problem using FEniCS: ::
+The parameters are created using the utility class :class:`.ParamDict`, which extends the built-in python
+dict with dot notation to access values. We use the parameters to set up the problem using FEniCS: ::
 
     # Create mesh
     mesh = UnitCubeMesh(21,21,21)
@@ -93,8 +91,11 @@ We the use the parameters to set up the problem using FEniCS: ::
     f = Constant(0)
 
     # Bilinear form
-    a = 1.0/dt*inner(u,v)*dx() + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx()
-    L = 1.0/dt*inner(U,v)*dx() + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx() + inner(f,v)*dx()
+    a = (1.0/dt*inner(u,v)*dx()
+        + Constant(params.theta)*alpha*inner(grad(u), grad(v))*dx)
+    L = (1.0/dt*inner(U,v)*dx()
+        + Constant(1-params.theta)*alpha*inner(grad(U), grad(v))*dx()
+        + inner(f,v)*dx())
     A = assemble(a)
     b = assemble(L)
     bc.apply(A)
@@ -107,12 +108,13 @@ is any data remaining from a previous simulation: ::
 
     pp = PostProcessor(dict(casedir="Results", clean_casedir=True))
 
-Since we`re solving for temperature, we add a SolutionField to the postprocessor: ::
+Since we're solving for temperature, we add a SolutionField to the postprocessor: ::
 
     pp.add_field(SolutionField("Temperature", dict(save=True,
                                     save_as=["hdf5", "xdmf"],
                                     plot=True,
-                                    plot_args=dict(range_min=-params.amplitude, range_max=params.amplitude),
+                                    plot_args=dict(range_min=-params.amplitude,
+                                                   range_max=params.amplitude),
                                     )))
 
 Note that we pass parameters, specifying that the field is to be saved in hdf5 and xdmf formats. These
@@ -125,12 +127,13 @@ We can compute both integrals and derivatives of other Fields. Here, we add the 
 t=1.0 to t=2.0, the time-average from t=0.0 to t=5.0 as well as the derivative of the temperature field. ::
 
     pp.add_fields([
-        TimeIntegral("Temperature", dict(save=True, start_time=1.0, end_time=2.0)),
+        TimeIntegral("Temperature", dict(save=True, start_time=1.0,
+                                         end_time=2.0)),
         TimeAverage("Temperature", dict(save=True, end_time=params.T)),
         TimeDerivative("Temperature", dict(save=True)),
         ])
 
-Again, we ask the fields to be saved. The save formats are decided by the datatype returned from the
+Again, we ask the fields to be saved. The storage formats are determined by the datatype returned from the
 *compute*-functions.
 
 Inspecting parts of a solution
@@ -153,7 +156,9 @@ postprocessor: ::
 
     pp.add_fields([
         PointEval("Temperature", [[0.7,0.5, 0.5]], dict(plot=True)),
-        SubFunction("Temperature", slicemesh, dict(plot=True, plot_args=dict(range_min=-params.amplitude, range_max=params.amplitude, mode="color"))),
+        SubFunction("Temperature", slicemesh, dict(plot=True,
+            plot_args=dict(range_min=-params.amplitude,
+                           range_max=params.amplitude, mode="color"))),
         Restrict("Temperature", submesh, dict(plot=True, save=True)),
         ])
 
@@ -164,8 +169,10 @@ We can also compute scalars from other fields. :class:`.DomainAvg` compute the a
 of different diffusivity, as specified by the variable *cell_domains*: ::
 
     pp.add_fields([
-        DomainAvg("Temperature", cell_domains=cell_domains, indicator=1, label="inner"),
-        DomainAvg("Temperature", cell_domains=cell_domains, indicator=0, label="outer"),
+        DomainAvg("Temperature", cell_domains=cell_domains,
+                  indicator=1, label="inner"),
+        DomainAvg("Temperature", cell_domains=cell_domains,
+                  indicator=0, label="outer"),
     ])
 
 The added parameter *label* does that these fields are now identified by *DomainAvg_Temperature-inner* and
@@ -180,7 +187,7 @@ If no norm is specified, the L2-norm (or l2-norm) is computed.
 
 Custom fields
 -----------------------------
-The user may also customize fields as he wishes. In this section we demonstrate two ways to compute the difference
+The user may also customize fields with custom computations. In this section we demonstrate two ways to compute the difference
 in average temperature between the two areas of different diffusivity at any given time. First, we take an
 approach based solely on accessing the *Temperature*-field: ::
 
@@ -188,17 +195,19 @@ approach based solely on accessing the *Temperature*-field: ::
         def __init__(self, domains, ind1, ind2, *args, **kwargs):
             Field.__init__(self, *args, **kwargs)
             self.domains = domains
+            self.dx = Measure("dx", domain=self.domains.mesh(),
+                              subdomain_data=self.domains)
             self.ind1 = ind1
             self.ind2 = ind2
 
         def before_first_compute(self, get):
-            self.V1 = assemble(Constant(1)*dx(self.ind1), cell_domains=self.domains, mesh=self.domains.mesh())
-            self.V2 = assemble(Constant(1)*dx(self.ind2), cell_domains=self.domains, mesh=self.domains.mesh())
+            self.V1 = assemble(Constant(1)*self.dx(self.ind1))
+            self.V2 = assemble(Constant(1)*self.dx(self.ind2))
 
         def compute(self, get):
             u = get("Temperature")
-            T1 = 1.0/self.V1*assemble(u*dx(self.ind1), cell_domains=self.domains)
-            T2 = 1.0/self.V2*assemble(u*dx(self.ind2), cell_domains=self.domains)
+            T1 = 1.0/self.V1*assemble(u*self.dx(self.ind1))
+            T2 = 1.0/self.V2*assemble(u*self.dx(self.ind2))
             return T1-T2
 
 In this implementation we have to specify the domains, as well as compute the respective averages directly
@@ -284,12 +293,3 @@ Finally, at the end of the time-loop we finalize the postprocessor through ::
     pp.finalize_all()
 
 This command will finalize and return values for fields such as for example time integrals.
-
-
-
-
-
-
-
-
-

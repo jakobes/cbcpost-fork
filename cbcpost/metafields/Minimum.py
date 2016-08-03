@@ -24,7 +24,7 @@ class Minimum(MetaField):
     def compute(self, get):
         u = get(self.valuename)
 
-        if u == None:
+        if u is None:
             return None
 
         if isinstance(u, Function):

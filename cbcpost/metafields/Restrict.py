@@ -41,7 +41,7 @@ class Restrict(MetaField):
     def compute(self, get):
         u = get(self.valuename)
 
-        if u == None:
+        if u is None:
             return None
 
         if not isinstance(u, Function):

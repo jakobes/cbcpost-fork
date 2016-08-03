@@ -66,10 +66,9 @@ for f in meta_fields:
     exec("from cbcpost.metafields.%s import %s" % (f, f))
 _add_doc = '\n ** Warning: The function method of accessing metafields is untested\n.'
 for f in _meta_fields_constant:
-    if f == "Dot":
-        # Don't overwrite FEniCS dot
-        continue
-    exec("""
+    # Don't overwrite FEniCS dot
+    if f != "Dot":
+        exec("""
 def {0}(value, *args):
     field = {1}("_tmp", *args)
     field.before_first_compute(lambda x: value)
@@ -77,7 +76,6 @@ def {0}(value, *args):
     del field
     return u
 {0}.__doc__ = {1}.__doc__+_add_doc
-        """.format(f.lower(), f)
-    )
+        """.format(f.lower(), f))
 del f
 del _add_doc

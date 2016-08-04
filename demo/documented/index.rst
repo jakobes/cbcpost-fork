@@ -6,9 +6,6 @@ To get started, we recommend starting with the demos.
 For explanation of generic FEniCS features, please refer to the official
 `FEniCS documentation <https://fenicsproject.org/documentation/>`_.
 
-
-**Documented demos**:
-
 .. toctree::
     :maxdepth: 2
 

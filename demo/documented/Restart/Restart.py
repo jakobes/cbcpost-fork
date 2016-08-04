@@ -84,6 +84,8 @@ pp.add_fields([
 # Solve
 solver = KrylovSolver(A, "cg", "hypre_amg")
 while t <= params.T+DOLFIN_EPS:
+    t += float(dt)
+    timestep += 1
     cbc_print("Time: "+str(t))
     u0.t = float(t)
     assemble(L, tensor=b)
@@ -91,8 +93,6 @@ while t <= params.T+DOLFIN_EPS:
     solver.solve(U.vector(), b)
 
     pp.update_all({"Temperature": lambda: U}, t, timestep)
-    t += float(dt)
-    timestep += 1
 
 pp.finalize_all()
 interactive()

@@ -24,20 +24,6 @@ dolfin.parameters["allow_extrapolation"] = True
 
 
 # TODO: Move these to shared code:
-def has_mpi4py():
-    try:
-        import mpi4py
-        return True
-    except:
-        return False
-
-def has_h5py():
-    try:
-        import h5py
-        return True
-    except:
-        return False
-
 def has_fenicstools():
     try:
         import_fenicstools()
@@ -45,10 +31,8 @@ def has_fenicstools():
     except:
         return False
 
-#require_mpi4py = pytest.mark.skipif(not has_mpi4py(), reason="Requires mpi4py which is not installed.")
 require_fenicstools = pytest.mark.skipif(not has_fenicstools(), reason="Requires fenicstools which is not installed.")
 require_fenicstools14 = pytest.mark.skipif(dolfin_version() == '1.4.0' and not has_fenicstools(), reason="Requires fenicstools in dolfin 1.4.0 which is not installed.")
-#require_h5py = pytest.mark.skipif(not has_h5py(), reason="Requires h5py which is not installed.")
 skip_in_parallel = pytest.mark.skipif(MPI.size(mpi_comm_world()) != 1, reason="Currently not supported in parallel")
 
 class MockProblem(Parameterized):

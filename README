@@ -35,7 +35,7 @@ cbcpost requires an installation of FEniCS version 2016.1 (version 1.4-1.6 shoul
 
 To install simply run
 
-  python setup.py install --prefix=/path/to/your/favourite/site-packages
+  pip install --prefix=/path/to/your/favourite/site-packages
 
 Contact
 -------

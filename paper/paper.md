@@ -19,7 +19,7 @@ bibliography: paper.bib
 
 cbcpost is developed to simplify the postprocessing of simulation results, produced by FEniCS solvers [@fenics].
 
-The framework is designed to take any given solution, and compute and save any derived data. Derivated data can easily be made highly complex, due to the modular design and implementation of computations of quantities such as integrals, derivatives, magnitude etc.
+The framework is designed to take any given solution, and compute and save any derived data. Derived data can easily be made highly complex, due to the modular design and implementation of computations of quantities such as integrals, derivatives, magnitude etc, and the ability to chain these.
 
 The interface is designed to be simple, with minimal cluttering of a typical solver code. This is illustrated by the following simple example:
 

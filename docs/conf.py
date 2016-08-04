@@ -235,12 +235,7 @@ def write_programmers_reference(type):
                     except:
                         pass
                     import re
-                    doc = re.sub(r":\s*param\s*", ":", doc)
-                    if v == "Restart":
-                        print doc
-                        #exit()
-
-                    
+                    doc = re.sub(r":\s*param\s*", ":", doc)                    
                     f.write(doc.strip())
                     f.write("\n\n")
             
@@ -392,8 +387,8 @@ if "-b latex" in " ".join(sys.argv):
     j = r.index(".. toctree::")
     with open("index.rst", 'w') as f:
         _r = r[:i]
-        _r += r[j:r.index("Indices and tables")]
-        #_r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
+        _r += r[j:]
+        _r = _r.replace(":numbered:\n\n", ":numbered:\n\n   introduction\n")
         f.write(_r)
     with open("introduction.rst", 'w') as f:
         f.write("Introduction\n=====================================\n")

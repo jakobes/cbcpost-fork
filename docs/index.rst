@@ -8,7 +8,9 @@ cbcpost - a postprocessing framework for FEniCS
 
 cbcpost is developed to simplify the postprocessing of simulation results, produced by FEniCS solvers.
 
-The framework is designed to take any given solution, and compute and save any derived data. The interface is designed to be simple, with minimal cluttering of a typical solver code. This is illustrated by the following simple example:
+The framework is designed to take any given solution, and compute and save any derived data. Derivated data can easily be made highly complex, due to the modular design and implementation of computations of quantities such as integrals, derivatives, magnitude etc.
+
+The interface is designed to be simple, with minimal cluttering of a typical solver code. This is illustrated by the following simple example:
 
 .. code-block :: python
 
@@ -18,6 +20,12 @@ The framework is designed to take any given solution, and compute and save any d
     solution = SolutionField("Displacement", dict(save=True))
     postprocessor = PostProcessor(dict(casedir="Results/"))
     postprocessor.add_field(solution)
+    
+    # Add derived fields
+    postprocessor.add_fields([
+        Maximum("Displacement", dict(save=True)),
+        TimeAverage("Displacement", dict(save=True, start_time=1.0, end_time=2.0)),
+    ])
 
     t = 0.0
     timestep = 0

@@ -1,5 +1,5 @@
 Features
-===============
+========
 
 The core concept in cbcpost is the :class:`.Field`, which represents
 something that can be computed from simulation solutions or other fields.

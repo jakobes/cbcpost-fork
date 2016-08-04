@@ -26,6 +26,7 @@ Backwards compatibility is not guaranteed (and quite unlikely).
 In addition, to run the test suite
 
     * pytest >2.4.0
+    * docutils
 
 
 Installing

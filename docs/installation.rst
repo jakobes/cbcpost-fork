@@ -1,47 +1,42 @@
 Installation
-=====================================
+============
 
-Quick Install
-_________________________________
+Dependencies
+____________
 
-Install using git clone:
+The installation of cbcpost requires the following environment:
+
+    * Python 2.7
+    * Numpy
+    * Scipy
+    * Any dbm compatible database (dbhash, dbm or gdbm)
+    * `FEniCS <http://fenicsproject.org>`_
+    * fenicstools (optional but highly recommended, tools to inspect parts of a solution)
+
+To install FEniCS, please refer to the `FEniCS download page
+<http://fenicsproject.org/download/>`_.
+
+To install fenicstools, please refer to the `github page
+<http://github.org/mikaem/fenicstools>`_.
+
+cbcpost and fenicstools follows the same version numbering as FEniCS,
+so make sure you install the matching versions.
+Backwards compatibility is not guaranteed (and quite unlikely).
+
+In addition, to run the test suite
+
+    * pytest >2.4.0
+
+
+Installing
+__________
+
+Get the software with git and install using pip:
 
 .. code-block:: bash
 
    git clone https://bitbucket.org/simula_cbc/cbcpost.git
    cd cbcpost
-   python setup.py install
+   pip install .
 
-Install using pip:
-
-.. code-block:: bash
-
-   pip install git+https://bitbucket.org/simula_cbc/cbcpost.git
-
-
-Dependencies
-__________________________________
-
-The installation of cbcpost requires the following environment:
-    * Python 2.7
-    * Numpy
-    * Scipy
-    * dbhash, dbm or gdbm
-    * `FEniCS <http://fenicsproject.org>`_ 1.4.0 or newer
-
-To install FEniCS, please refer to the `FEniCS download page
-<http://fenicsproject.org/download/>`_. cbcpost follows the same version numbering
-as FEniCS, so make sure you install the correct FEniCS version. Backwards
-compatibility is not guaranteed (and quite unlikely).
-
-In addition, cbcpost can utlize other libraries for added functionality
-   * fenicstools 1.4.0 (highly recommended, tools to inspect parts of a solution)
-   * mpi4py
-   * pytest >2.4.0 (required to run test suite)
-
-fenicstools can be installed using pip:
-
-.. code-block:: bash
-
-   pip install https://github.com/mikaem/fenicstools/archive/v1.4.0.zip
-
+See the pip documentation for more installation options.

@@ -86,6 +86,8 @@ class Field(Parameterized):
         |                      |                       | - ['txt', 'shelve'] if data is float, int, list, tuple or dict    |
         |                      |                       |                                                                   |
         +----------------------+-----------------------+-------------------------------------------------------------------+
+        | rewrite_mesh         | False                 | Rewrite mesh to file at every timestep                            |
+        +----------------------+-----------------------+-------------------------------------------------------------------+
         | expr2function        | 'assemble'            | How to convert Expression to Function. Allowed values:            |
         |                      |                       |                                                                   |
         |                      |                       | - 'assemble'                                                      |
@@ -114,6 +116,7 @@ class Field(Parameterized):
             safe = True,
             save = False,
             save_as = cls.default_save_as(),
+            rewrite_mesh = False,
 
             #callback = False,
 

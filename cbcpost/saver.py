@@ -201,7 +201,7 @@ class Saver():
         datafile << data
         return metadata
 
-    def _update_xdmf_file(self, field_name, saveformat, data, timestep, t):
+    def _update_xdmf_file(self, field_name, saveformat, data, timestep, t, rewrite_mesh=False):
         "Update xdmf file with new data."
         assert isinstance(data, Function)
         assert saveformat == "xdmf"
@@ -210,7 +210,7 @@ class Saver():
         datafile = self._datafile_cache.get(key)
         if datafile is None:
             datafile = XDMFFile(mpi_comm_world(), fullname)
-            datafile.parameters["rewrite_function_mesh"] = False
+            datafile.parameters["rewrite_function_mesh"] = rewrite_mesh
             datafile.parameters["flush_output"] = True
             self._datafile_cache[key] = datafile
         try:
@@ -454,14 +454,18 @@ class Saver():
 
         # Get list of file formats
         save_as = _get_save_formats(field, data)
-
+        # Notify user if self.rewrite_mesh has been set without mattering
+        if field.params["rewrite_mesh"]:
+            if not "xdmf" in save_as:
+                cbc_log(30, "rewrite_mesh flag has no effect for field {}".format(field_name))
+    
         # Write data to file for each filetype
         for saveformat in save_as:
             # Write data to file depending on type
             if saveformat == 'pvd':
                 metadata[saveformat] = self._update_pvd_file(field_name, saveformat, data, timestep, t)
             elif saveformat == 'xdmf':
-                metadata[saveformat] = self._update_xdmf_file(field_name, saveformat, data, timestep, t)
+                metadata[saveformat] = self._update_xdmf_file(field_name, saveformat, data, timestep, t, field.params["rewrite_mesh"])
             elif saveformat == 'xml':
                 metadata[saveformat] = self._update_xml_file(field_name, saveformat, data, timestep, t)
             elif saveformat == 'xml.gz':

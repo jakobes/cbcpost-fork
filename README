@@ -1,6 +1,10 @@
 cbcpost
 ========
 
+This is a fork of https://bitbucket.org/simula_cbc/cbcpost adapted (hacked) for newver versions 
+of fenics and python3
+
+
 Description
 -----------
 

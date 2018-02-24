@@ -16,11 +16,11 @@
 # along with CBCPOST. If not, see <http://www.gnu.org/licenses/>.
 """ Base classes for all post fields. """
 
-from Field import Field
-from SolutionField import SolutionField
-from MetaField import MetaField
-from MetaField2 import MetaField2
-from ConstantField import ConstantField
-from OperatorField import OperatorField
+from .Field import Field
+from .SolutionField import SolutionField
+from .MetaField import MetaField
+from .MetaField2 import MetaField2
+from .ConstantField import ConstantField
+from .OperatorField import OperatorField
 
 __all__ = ["Field", "SolutionField", "MetaField", "MetaField2", "OperatorField"]

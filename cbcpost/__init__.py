@@ -19,22 +19,6 @@ cbcpost is a postprocessing framework designed for time-dependent problems solve
 FEniCS project.
 """
 
-# Check that a "good" dbm-module exists
-from anydbm import _defaultmod
-assert _defaultmod.__name__ in ["dbm", "gdbm", "dbhash"], "Unable to find a required DBM-implementation"
-del _defaultmod
-
-_use_cmdline_args = False
-def set_parse_command_line_arguments(option):
-    "Switch on/off command line argument parsing"
-    assert option in [0,1,True,False]
-    global _use_cmdline_args
-    _use_cmdline_args = option
-
-def get_parse_command_line_arguments():
-    "Return whether to parse command line arguments"
-    return _use_cmdline_args
-
 
 # Helper functionality
 from cbcpost.spacepool import SpacePool, get_grad_space

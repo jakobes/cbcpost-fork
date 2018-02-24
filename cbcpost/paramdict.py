@@ -82,7 +82,7 @@ class ParamDict(dict):
             if unknown:
                 raise RuntimeError("Trying to replace non-existing entries: %s"
                                    % (sorted(unknown),))
-            for k, v in params.iteritems():
+            for k, v in params.items():
                 self[k] = v
         if kwparams:
             self.replace_shallow(kwparams)
@@ -102,9 +102,9 @@ class ParamDict(dict):
                 # Otherwise abort recursion
                 self[k] = v
         if params:
-            for k, v in params.iteritems():
+            for k, v in params.items():
                 handle(k, v)
-        for k, v in kwparams.iteritems():
+        for k, v in kwparams.items():
             handle(k, v)
         # Allow use as 'foo(params.replace_recursive(foo,bar))'
         return self
@@ -112,7 +112,7 @@ class ParamDict(dict):
     def update_shallow(self, params=None, **kwparams):
         "Perform a shallow update, allowing new keys to be introduced."
         if params:
-            for k, v in params.iteritems():
+            for k, v in params.items():
                 self[k] = v
         if kwparams:
             self.update_shallow(kwparams)
@@ -131,9 +131,9 @@ class ParamDict(dict):
                 # Otherwise abort recursion
                 self[k] = v
         if params:
-            for k, v in params.iteritems():
+            for k, v in params.items():
                 handle(k, v)
-        for k, v in kwparams.iteritems():
+        for k, v in kwparams.items():
             handle(k, v)
         # Allow use as 'foo(params.update_recursive(foo,bar))'
         return self
@@ -192,7 +192,7 @@ class ParamDict(dict):
     # --- Pickling and shelving
 
     def __getstate__(self):
-        return (self._keys, list(dict.iteritems(self)))
+        return (self._keys, list(dict.items(self)))
 
     def __setstate__(self, state):
         (self._keys, data) = state

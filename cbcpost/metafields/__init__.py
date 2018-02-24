@@ -18,7 +18,7 @@
 can be used on different fields, for example time derivatives, averages,
 parts of fields etc.
 """
-from Operators import Add, Divide, Subtract, Multiply
+from .Operators import Add, Divide, Subtract, Multiply
 
 # Fields that need input
 _meta_fields_constant = [

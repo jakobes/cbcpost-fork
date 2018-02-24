@@ -30,6 +30,7 @@ class MeshPool(Mesh):
     """
     #_existing = weakref.WeakValueDictionary()
     _existing = dict()
+    Expression("x[0]", degree=1)
     _X = [Expression("x[0]", degree=1),
           Expression(("x[0]", "x[1]"), degree=1),
           Expression(("x[0]", "x[1]", "x[2]"), degree=1)]

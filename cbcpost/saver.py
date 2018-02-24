@@ -235,10 +235,10 @@ class Saver():
         # Create "good enough" hash. This is done to avoid data corruption when restarted from
         # different number of processes, different distribution or different function space
         local_hash = sha1()
-        local_hash.update(str(data.function_space().mesh().num_cells()))
-        local_hash.update(str(data.function_space().ufl_element()))
-        local_hash.update(str(data.function_space().dim()))
-        local_hash.update(str(MPI.size(mpi_comm_world())))
+        local_hash.update(str(data.function_space().mesh().num_cells()).encode())
+        local_hash.update(str(data.function_space().ufl_element()).encode())
+        local_hash.update(str(data.function_space().dim()).encode())
+        local_hash.update(str(MPI.size(mpi_comm_world())).encode())
 
         # Global hash (same on all processes), 10 digits long
         global_hash = MPI.sum(mpi_comm_world(), int(local_hash.hexdigest(), 16))
@@ -401,7 +401,7 @@ class Saver():
             if self._playlog[self.get_casedir()] is not None:
                 self._playlog[self.get_casedir()].sync()
 
-            for key, f in self._datafile_cache.iteritems():
+            for key, f in self._datafile_cache.items():
                 fieldname, saveformat = key
                 if saveformat == "shelve":
                     f.sync()
@@ -409,12 +409,14 @@ class Saver():
     def _close_shelves(self):
         "Close all shelve files"
         if on_master_process():
+            """
             for k in self._metadata_cache.keys():
                 f = self._metadata_cache[k]
                 f.sync()
                 f.close()
                 #self._metadata_cache[k] = None
                 self._metadata_cache.pop(k)
+            """
 
             if self._playlog[self.get_casedir()] is not None:
                 self._playlog[self.get_casedir()].sync()

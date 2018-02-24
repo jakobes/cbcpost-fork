@@ -140,8 +140,8 @@ if __name__ == '__main__':
     u_sub2 = interpolate_nonmatching_mesh(u, Q_sub)
     v_sub2 = interpolate_nonmatching_mesh(v, V_sub)
 
-    print errornorm(u_sub, u_sub2)
-    print errornorm(v_sub, v_sub2)
+    print(errornorm(u_sub, u_sub2))
+    print(errornorm(v_sub, v_sub2))
 
 
 

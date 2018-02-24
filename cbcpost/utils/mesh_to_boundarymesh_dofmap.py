@@ -137,8 +137,8 @@ if __name__ == '__main__':
     #print MPI.sum(mpi_comm_world(), len(mapping.keys()))
     #print MPI.sum(mpi_comm_world(), len(mapping.values()))
 
-    print assemble(sqrt(inner(u,u))*ds)
-    print assemble(sqrt(inner(ub,ub))*dx)
+    print(assemble(sqrt(inner(u,u))*ds))
+    print(assemble(sqrt(inner(ub,ub))*dx))
 
     ub2 = Function(Vb)
     """
@@ -165,14 +165,14 @@ if __name__ == '__main__':
     #exit()
     #ub2.vector().__setitem__(keys, u.vector().__getitem__(values))
     #ub2.vector()[keys] = u.vector()[values]
-    print "Keys: ", keys
-    print "Values: ", values
+    print("Keys: ", keys)
+    print("Values: ", values)
     u2 = Function(V)
     #get_set_vector(ub2.vector(), keys, u.vector(), values)
     get_set_vector(u2.vector(), values, ub.vector(), keys)
 
-    print assemble(sqrt(inner(ub,ub))*dx)
-    print assemble(sqrt(inner(u2,u2))*ds)
+    print(assemble(sqrt(inner(ub,ub))*dx))
+    print(assemble(sqrt(inner(u2,u2))*ds))
     #plot(ub2)
     #plot(ub)
     #interactive()

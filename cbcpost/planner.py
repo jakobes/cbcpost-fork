@@ -145,8 +145,8 @@ class Planner():
         finalize_fields = []
 
         # Loop over all fields that and trigger for computation
-        #for name, field in self._fields.iteritems():
-        for name, field in fields.iteritems():
+        #for name, field in self._fields.items():
+        for name, field in fields.items():
             full_deps = full_dependencies[name]
             offset = abs(min([ts for depname, ts in full_deps]+[0]))
 

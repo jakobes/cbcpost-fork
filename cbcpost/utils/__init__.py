@@ -17,15 +17,15 @@
 
 "A collection of utilities used across cbcpost. "
 
-from utils import (import_fenicstools, on_master_process, in_serial, strip_code, hdf5_link,
+from .utils import (import_fenicstools, on_master_process, in_serial, strip_code, hdf5_link,
                    safe_mkdir, Loadable, create_function_from_metadata, cbc_warning, cbc_log,
                    cbc_print, get_memory_usage, time_to_string, Timer, timeit, loadable_formats,
                    get_set_vector)
-from restriction_map import restriction_map
-from submesh import create_submesh
-from mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap, boundarymesh_to_mesh_dofmap
-from slice import create_slice, Slice
-from connectivity import compute_connectivity
+from .restriction_map import restriction_map
+from .submesh import create_submesh
+from .mesh_to_boundarymesh_dofmap import mesh_to_boundarymesh_dofmap, boundarymesh_to_mesh_dofmap
+from .slice import create_slice, Slice
+from .connectivity import compute_connectivity
 
 
 from inspect import getmodule as _getmodule

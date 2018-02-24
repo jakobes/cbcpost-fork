@@ -424,12 +424,12 @@ class PostProcessor(Parameterized):
         "Update cache, remove what can be removed"
         new_cache = defaultdict(dict)
         # Loop over cache plans for each timestep
-        for ts, plan in self._plan.iteritems():
+        for ts, plan in self._plan.items():
             # Skip whats not computed yet
             if ts > 0:
                 continue
             # Only keep what we have planned to cache
-            for name, ttk in plan.iteritems():
+            for name, ttk in plan.items():
                 if ttk > 0:
                     # Cache should contain old cached values at ts<0
                     # and newly computed values at ts=0

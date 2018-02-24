@@ -165,7 +165,7 @@ if __name__ == '__main__':
     Left().mark(markers, 1)
     tic()
     mesh2 = create_submesh(mesh, markers, 1)
-    print "Time create submesh: ", toc()
+    print("Time create submesh: ", toc())
     #bmesh.coordinates()[:] += 0.1
     #bmesh2 = Mesh("submesh.xml")
 
@@ -176,14 +176,14 @@ if __name__ == '__main__':
 
     tic()
     mapping = restriction_map(V, Vb)
-    print "Time restriction_map: ", toc()
+    print("Time restriction_map: ", toc())
 
     expr = Expression("x[0]*x[1]+x[2]*x[2]+3.0", degree=2)
     u = project(expr, V)
     u2 = Function(Vb)
     u2.vector()[mapping.keys()] = u.vector()[mapping.values()]
 
-    print assemble(u*dx(1, subdomain_data=markers)), assemble(u2*dx)
+    print(assemble(u*dx(1, subdomain_data=markers)), assemble(u2*dx))
 
     V = VectorFunctionSpace(mesh, "CG", 1)
     Vb = VectorFunctionSpace(mesh2, "CG", 1)
@@ -195,4 +195,4 @@ if __name__ == '__main__':
     u2 = Function(Vb)
     u2.vector()[mapping.keys()] = u.vector()[mapping.values()]
 
-    print assemble(inner(u,u)*dx(1, subdomain_data=markers)), assemble(inner(u2,u2)*dx)
+    print(assemble(inner(u,u)*dx(1, subdomain_data=markers)), assemble(inner(u2,u2)*dx))

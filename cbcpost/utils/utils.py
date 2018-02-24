@@ -152,7 +152,8 @@ def safe_mkdir(dir):
     # Create directory
     if not os.path.isdir(dir):
         try:
-            os.makedirs(dir, mode=0775)
+            # os.makedirs(dir, mode=0775)
+            os.makedirs(dir)
         except:
             # Allow race condition when multiple processes
             # work in same directory, ignore exception.
@@ -309,7 +310,7 @@ def cbc_warning(msg):
 def cbc_print(msg):
     "Print on master process."
     if on_master_process():
-        print msg
+        print(msg)
 
 def cbc_log(level, msg):
     "Log on master process."
@@ -320,7 +321,7 @@ def cbc_log(level, msg):
 # --- System inspection ---
 
 from os import getpid
-from commands import getoutput
+# from commands import getoutput
 def get_memory_usage():
     """Return memory usage in MB"""
     try:
@@ -329,8 +330,9 @@ def get_memory_usage():
     except:
         cbc_warning("Unable to load fenicstools to check memory usage. Falling back to unsafe memory check.")
         mypid = getpid()
-        mymemory = getoutput("ps -o rss %s" % mypid).split()[1]
-        return int(mymemory)/1024
+        # mymemory = getoutput("ps -o rss %s" % mypid).split()[1]
+        # return int(mymemory)/1024
+        return -1
 
 # --- Timing ---
 

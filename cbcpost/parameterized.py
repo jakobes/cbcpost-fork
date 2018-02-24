@@ -19,7 +19,7 @@ Parameterized represents a suggested interface to create classes/objects with
 associated parameters.
 """
 from __future__ import division
-from cbcpost import get_parse_command_line_arguments
+# from cbcpost import get_parse_command_line_arguments
 import sys
 
 #pylint: disable=R0921
@@ -29,9 +29,9 @@ class Parameterized(object):
         self.params = self.default_params()
 
         self.params.replace(params)
-        if get_parse_command_line_arguments():
-            args = sys.argv[1:]
-            self.params.parse_args(args)
+        # if get_parse_command_line_arguments():
+        #     args = sys.argv[1:]
+        #     self.params.parse_args(args)
 
         # Assert for each subclass that we have all keys,
         # i.e. no default_params functions have been skipped

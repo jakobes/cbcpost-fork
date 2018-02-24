@@ -137,6 +137,6 @@ if __name__ == '__main__':
     #from IPython import embed; embed()
     tic()
     connectivity = compute_connectivity(mesh)
-    print mesh.size_global(0), mesh.size_global(3), toc()
+    print(mesh.size_global(0), mesh.size_global(3), toc())
 
     File("connectivity.xdmf") << connectivity

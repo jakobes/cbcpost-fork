@@ -210,10 +210,10 @@ if __name__ == '__main__':
         a = assemble(u*dx)
         v = assemble(Constant(1)*dx(domain=submesh))
         if MPI.rank(mpi_comm_world()) == 0:
-            print "Num vertices: ", s0
-            print "Num cells: ", s3
-            print "assemble(u*dx): ", a
-            print "Volume: ", v
+            print( "Num vertices: ", s0)
+            print( "Num cells: ", s3)
+            print( "assemble(u*dx): ", a)
+            print( "Volume: ", v)
         #u = Function(V)
     #File("u.pvd") << u
     #import ipdb; ipdb.set_trace()

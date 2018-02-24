@@ -31,7 +31,7 @@ from numpy import array, where, inf
 
 from dolfin import (Function, project, interpolate, compile_extension_module,
                     MPI, mpi_comm_world)
-from commands import getstatusoutput
+# from commands import getstatusoutput
 
 def find_solution_presence(pp, playlog, fields):
     "Search play-log to find where solution items are saved in a loadable format"
@@ -369,7 +369,8 @@ class Restart(Parameterized):
         #import ipdb; ipdb.set_trace()
         MPI.barrier(mpi_comm_world())
         if on_master_process():
-            status, result = getstatusoutput("h5repack -V")
+            # status, result = getstatusoutput("h5repack -V")
+            status, result = -1, -1
             if status != 0:
                 cbc_warning("Unable to run h5repack. Will not repack hdf5-files before replay, which may cause bloated hdf5-files.")
             else:

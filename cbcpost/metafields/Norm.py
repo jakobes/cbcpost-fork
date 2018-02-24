@@ -59,9 +59,11 @@ class Norm(MetaField):
     def name(self):
         if self._name == "default":
             n = "%s" % (self.__class__.__name__)
-            if self.params.norm_type != "default": n += "_"+self.params.norm_type
+            if self.params.norm_type != "default":
+                n += "_"+self.params.norm_type
             n += "_"+self.valuename
-            if self.label: n += "-"+self.label
+            if self.label:
+                n += "-"+self.label
         else:
             n = self._name
         return n

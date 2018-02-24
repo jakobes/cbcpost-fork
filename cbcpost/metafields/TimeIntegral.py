@@ -63,25 +63,38 @@ class TimeIntegral(MetaField):
 
         # Interpolate to integration limits, if t1 or t0 is outside
         if t0 < self.params.start_time-1e-14:
-            if isinstance(u0, Function): start = u0.vector() + (u1.vector()-u0.vector())/(t1-t0)*(self.params.start_time-t0)
-            elif hasattr(u0, "__len__"): start = [u0[i]+(u1[i]-u0[i])/(t1-t0)*(self.params.start_time-t0) for i in range(len(u0))]
-            else: start = u0 + (u1-u0)/(t1-t0)*(self.params.start_time-t0)
+            if isinstance(u0, Function):
+                start = u0.vector() + (u1.vector()-u0.vector())/(t1-t0)*(self.params.start_time-t0)
+            elif hasattr(u0, "__len__"):
+                start = [u0[i]+(u1[i]-u0[i])/(t1-t0)*(self.params.start_time-t0)
+                         for i in range(len(u0))]
+            else:
+                start = u0 + (u1-u0)/(t1-t0)*(self.params.start_time-t0)
             t0 = self.params.start_time
         else:
-            if isinstance(u0, Function): start = u0.vector()
-            else: start = u0
+            if isinstance(u0, Function):
+                start = u0.vector()
+            else:
+                start = u0
 
         if t1 > self.params.end_time:
-            if isinstance(u0, Function): end = u0.vector() + (u1.vector()-u0.vector())/(t1-t0)*(self.params.end_time-t0)
-            elif hasattr(u0, "__len__"): end = [u0[i]+(u1[i]-u0[i])/(t1-t0)*(self.params.end_time-t0) for i in range(len(u0))]
-            else: end = u0 + (u1-u0)/(t1-t0)*(self.params.end_time-t0)
+            if isinstance(u0, Function):
+                end = u0.vector() + (u1.vector()-u0.vector())/(t1-t0)*(self.params.end_time-t0)
+            elif hasattr(u0, "__len__"):
+                end = [u0[i]+(u1[i]-u0[i])/(t1-t0)*(self.params.end_time-t0)
+                       for i in range(len(u0))]
+            else:
+                end = u0 + (u1-u0)/(t1-t0)*(self.params.end_time-t0)
             t1 = self.params.end_time
         else:
-            if isinstance(u1, Function): end = u1.vector()
-            else: end = u1
+            if isinstance(u1, Function):
+                end = u1.vector()
+            else:
+                end = u1
 
         dt = t1 - t0
-        if dt == 0: dt = 1e-14 # Avoid zero-division
+        if dt == 0:
+            dt = 1e-14 # Avoid zero-division
 
         # Add to sum
         if isinstance(u0, Function):

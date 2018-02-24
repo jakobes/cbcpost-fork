@@ -60,9 +60,12 @@ class Restrict(MetaField):
             else:
                 rank = u.rank()
 
-            if rank == 0: FS = FunctionSpace(self.submesh, family, degree)
-            elif rank == 1: FS = VectorFunctionSpace(self.submesh, family, degree)
-            elif rank == 2: FS = TensorFunctionSpace(self.submesh, family, degree, symmetry={})
+            if rank == 0:
+                FS = FunctionSpace(self.submesh, family, degree)
+            elif rank == 1:
+                FS = VectorFunctionSpace(self.submesh, family, degree)
+            elif rank == 2:
+                FS = TensorFunctionSpace(self.submesh, family, degree, symmetry={})
 
             self.u = Function(FS)
 

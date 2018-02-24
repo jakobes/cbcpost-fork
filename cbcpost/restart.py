@@ -216,7 +216,8 @@ class Restart(Parameterized):
                             f1 = Lt1()
                             datatype = type(f0)
                             if not issubclass(datatype, Iterable):
-                                f0 = [f0]; f1 = [f1]
+                                f0 = [f0]
+                                f1 = [f1]
 
                             f = []
                             for _f0, _f1 in zip(f0, f1):
